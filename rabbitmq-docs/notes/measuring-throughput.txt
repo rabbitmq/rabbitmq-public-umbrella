@@ -1,0 +1,114 @@
+We want to measure the throughput of RabbitMQ and other AMQP brokers.
+
+Test set up
+===========
+There are many different scenarios for which throughput could be
+measured. We restrict ourselves to the following set up:
+
+A single AMQP client program establishes two connections to an AMQP
+broker - one is used for publishing messages, the other for
+receiving/acking them. NB: We use two connections instead of one in
+order for the test set up to closer simulate real-world scenarios
+where producer and consumer would typically be different client
+instances.
+
+Each connection has one channel.
+
+The consumer creates an auto-delete queue with a server-assigned name
+and with default bindings, i.e. a binding to the default exchange,
+only. It consumes messages from the queue using basic.consume. The
+producer uses basic.publish to publishes messages to the default
+exchange, using the queue name as the routing key.
+
+The payload of the messages consists of encoded measurement data,
+padded to a selected message size with 0 bytes. The basic properties
+of the message are all unset except for the delivery mode.
+
+We vary the following parameters for the test.
+- message size
+- auto-ack
+- the number of messages per producer/consumer transaction 
+- mandatory routing
+- immediate routing
+- delivery mode - transient vs persistent
+
+Dealing with (the absence of) flow control
+==========================================
+AMQP is a message *queuing* protocol and in its 0-8/9 version only
+features very limited high-level flow control, which furthermore is
+not implemented by many brokers. Thus, if the publisher in our test
+set up just sends messages to the broker as fast as it can, it is
+possible that the broker will attempt to keep up with producer to the
+detriment of the consumer, queuing all the messages, and only sending
+them to the consumer after the producer has gone quiet.
+
+This completely distorts any throughput measurements. To counter this
+the client attempts to keep a fixed number F of messages in flight,
+thus bounding the queue size. The producer starts by sending F
+messages to the broker. Only after that is done the consumer starts
+consuming messages. For each message consumed the producer sends
+another message.
+
+Finding the right in-flight message count
+=========================================
+It is important to choose the right value for F. When the value is too
+low, network delays and buffering at various levels will result in the
+broker not getting fully loaded, thus reducing throughput. When the
+value is too high, the increased resource usage, gc costs etc at the
+broker result in a higher per-message processing cost and thus in turn
+a decrease in throughput.
+
+We automatically determine the optimal value of F by performing a
+bisection search on an exponential scale (base TBD; probably 10). The
+initial bounds are determined by stepping through the scale from 0 at
+increments of 1, measuring the throughput at each step and stopping
+when the value decreases; the bounds are then [lastValue-2,
+lastValue]. In order to place a sensible upper bound on the number of
+steps in the subsequent search we stop when the size of the search
+interval is smaller than 1% of the mean, and take that mean as our
+optimal value of F.
+
+Getting reliable results
+========================
+So how do we actually measure the throughput? It is the inverse of the
+time difference between messages seen by the consumer. This can of
+course vary considerably between any two messages, due to many factors
+such as:
+- other tasks running on client or broker machine
+- variable network performance
+- buffering, packet sizes
+- background tasks such as gc and persistence
+- inaccuracy of time measurement
+- artifacts of the tests themselves, e.g. tx sizes
+Some of these result in outliers, while others produce inherent
+variability in the result.
+
+We take the following countermeasures:
+
+- We start throughput measurements only after the first N (TBD;
+probably ~2*F) messages have been received. This avoids distortions
+caused by the effects of the startup procedure.
+
+- Rather than measuring the time between individual messages, we
+measure the time between a number of messages, such that the time is
+greater than some threshold (TBD; probably ~10ms), and then divide
+the result by the number of messages. By setting the threshold high
+enough this avoids distortions due to clock inaccuracies.
+
+- We gather a sufficiently large number of samples (configurable;
+defaulting to 100) and report on the *median* throughput. This
+counters the effects of outliers. We also report on the mean and
+standard deviation, in order to help the user tune the sample size.
+
+Estimates of program run time
+=============================
+Say the optimal F is just under 10,000 - it's unlikely ever to be more
+than that on a LAN and current average hardware. This requires 11 test
+to find a good approximation for F:
+  1,10,100,1000,10000,5500,7750,8875,9437,9718,9859
+with the final value being 9929.
+
+We start measuring after sending 2F messages. That takes 2 seconds. It
+will then take 10ms x 100 = 1s to gather sufficient samples, giving a
+total time of 3s per test. So the total running time will be 11 x 3s =
+33 seconds.
