@@ -1,0 +1,130 @@
+=== running with '  '
+starting consumer #0
+starting producer #0
+recving rate avg: 222 msg/s
+sending rate avg: 254 msg/s
+=== running with '-a  '
+starting consumer #0
+starting producer #0
+recving rate avg: 296 msg/s
+sending rate avg: 315 msg/s
+=== running with '-m 1  '
+starting consumer #0
+starting producer #0
+recving rate avg: 24 msg/s
+sending rate avg: 24 msg/s
+=== running with '-m 1 -n 1  '
+starting consumer #0
+starting producer #0
+recving rate avg: 24 msg/s
+sending rate avg: 24 msg/s
+=== running with '-m 10  '
+starting consumer #0
+starting producer #0
+recving rate avg: 139 msg/s
+sending rate avg: 140 msg/s
+=== running with '-m 10 -n 10  '
+starting consumer #0
+starting producer #0
+recving rate avg: 138 msg/s
+sending rate avg: 140 msg/s
+=== running with ' -f persistent '
+starting consumer #0
+starting producer #0
+recving rate avg: 25 msg/s
+sending rate avg: 463 msg/s
+=== running with '-a -f persistent '
+starting consumer #0
+starting producer #0
+recving rate avg: 26 msg/s
+sending rate avg: 485 msg/s
+=== running with '-m 1 -f persistent '
+starting consumer #0
+starting producer #0
+recving rate avg: 14 msg/s
+sending rate avg: 14 msg/s
+=== running with '-m 1 -n 1 -f persistent '
+starting consumer #0
+starting producer #0
+recving rate avg: 14 msg/s
+sending rate avg: 14 msg/s
+=== running with '-m 10 -f persistent '
+starting consumer #0
+starting producer #0
+recving rate avg: 71 msg/s
+sending rate avg: 72 msg/s
+=== running with '-m 10 -n 10 -f persistent '
+starting consumer #0
+starting producer #0
+recving rate avg: 75 msg/s
+sending rate avg: 77 msg/s
+=== running with '  -s 1000'
+starting consumer #0
+starting producer #0
+recving rate avg: 209 msg/s
+sending rate avg: 222 msg/s
+=== running with '-a  -s 1000'
+starting consumer #0
+starting producer #0
+recving rate avg: 270 msg/s
+sending rate avg: 279 msg/s
+=== running with '-m 1  -s 1000'
+starting consumer #0
+starting producer #0
+recving rate avg: 24 msg/s
+sending rate avg: 24 msg/s
+=== running with '-m 1 -n 1  -s 1000'
+starting consumer #0
+starting producer #0
+recving rate avg: 24 msg/s
+sending rate avg: 24 msg/s
+=== running with '-m 10  -s 1000'
+starting consumer #0
+starting producer #0
+recving rate avg: 193 msg/s
+sending rate avg: 195 msg/s
+=== running with '-m 10 -n 10  -s 1000'
+starting consumer #0
+starting producer #0
+recving rate avg: 176 msg/s
+sending rate avg: 184 msg/s
+=== running with ' -f persistent -s 1000'
+starting consumer #0
+starting producer #0
+recving rate avg: 24 msg/s
+sending rate avg: 406 msg/s
+=== running with '-a -f persistent -s 1000'
+starting consumer #0
+starting producer #0
+recving rate avg: 23 msg/s
+sending rate avg: 418 msg/s
+=== running with '-m 1 -f persistent -s 1000'
+starting consumer #0
+starting producer #0
+recving rate avg: 14 msg/s
+sending rate avg: 14 msg/s
+=== running with '-m 1 -n 1 -f persistent -s 1000'
+starting consumer #0
+starting producer #0
+recving rate avg: 13 msg/s
+sending rate avg: 13 msg/s
+=== running with '-m 10 -f persistent -s 1000'
+starting consumer #0
+starting producer #0
+recving rate avg: 86 msg/s
+sending rate avg: 86 msg/s
+=== running with '-m 10 -n 10 -f persistent -s 1000'
+starting consumer #0
+starting producer #0
+recving rate avg: 62 msg/s
+sending rate avg: 64 msg/s
+=== running with '-a -f mandatory'
+starting consumer #0
+starting producer #0
+recving rate avg: 27 msg/s
+sending rate avg: 507 msg/s
+=== running with '-a -f mandatory -f immediate'
+starting consumer #0
+starting producer #0
+recving rate avg: 28 msg/s
+sending rate avg: 512 msg/s
