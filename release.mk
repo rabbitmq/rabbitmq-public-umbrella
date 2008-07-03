@@ -14,6 +14,12 @@ SERVER_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-server/$(VDIR)
 JAVA_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-java-client/$(VDIR)
 BUNDLES_PACKAGES_DIR=$(PACKAGES_DIR)/bundles/$(VDIR)
 
+HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
+
+ifeq ($(HGREPOBASE),)
+HGREPOBASE=ssh://hg@hg.lshift.net
+endif
+
 .PHONY: packages
 
 all:
@@ -125,13 +131,13 @@ windows_bundle:
 	rm -rf $(WINDOWS_BUNDLE_TMP_DIR)
 
 rabbitmq-server: rabbitmq-codegen
-	hg clone ssh://hg@hg.lshift.net/rabbitmq-server
+	hg clone $(HGREPOBASE)/rabbitmq-server
 
 rabbitmq-java-client: rabbitmq-codegen
-	hg clone ssh://hg@hg.lshift.net/rabbitmq-java-client
+	hg clone $(HGREPOBASE)/rabbitmq-java-client
 
 rabbitmq-codegen:
-	hg clone ssh://hg@hg.lshift.net/rabbitmq-codegen
+	hg clone $(HGREPOBASE)/rabbitmq-codegen
 
 clean:
 	rm -rf $(PACKAGES_DIR)
