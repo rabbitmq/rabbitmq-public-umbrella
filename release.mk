@@ -19,6 +19,8 @@ BUNDLES_PACKAGES_DIR=$(PACKAGES_DIR)/bundles/$(VDIR)
 all:
 	@echo Please choose a target from the Makefile.
 
+checkout: rabbitmq-codegen rabbitmq-server rabbitmq-java-client
+
 ifeq "$(UNOFFICIAL_RELEASE)$(GNUPG_PATH)" ""
 dist:
 	@echo "You must specify one of UNOFFICIAL_RELEASE (to true, if you don't want to sign packages) or GNUPG_PATH (to the location of the RabbitMQ keyring) when making dist."
@@ -121,6 +123,15 @@ windows_bundle:
 	mv $(WINDOWS_BUNDLE_TMP_DIR)/../complete-rabbitmq-bundle-$(VERSION).zip \
 		$(BUNDLES_PACKAGES_DIR)
 	rm -rf $(WINDOWS_BUNDLE_TMP_DIR)
+
+rabbitmq-server: rabbitmq-codegen
+	hg clone ssh://hg@hg.lshift.net/rabbitmq-server
+
+rabbitmq-java-client: rabbitmq-codegen
+	hg clone ssh://hg@hg.lshift.net/rabbitmq-java-client
+
+rabbitmq-codegen:
+	hg clone ssh://hg@hg.lshift.net/rabbitmq-codegen
 
 clean:
 	rm -rf $(PACKAGES_DIR)
