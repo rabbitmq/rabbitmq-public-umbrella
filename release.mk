@@ -131,13 +131,13 @@ windows_bundle:
 	rm -rf $(WINDOWS_BUNDLE_TMP_DIR)
 
 rabbitmq-server: rabbitmq-codegen
-	hg clone $(HGREPOBASE)/rabbitmq-server
+	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
 
 rabbitmq-java-client: rabbitmq-codegen
-	hg clone $(HGREPOBASE)/rabbitmq-java-client
+	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
 
 rabbitmq-codegen:
-	hg clone $(HGREPOBASE)/rabbitmq-codegen
+	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
 
 clean:
 	rm -rf $(PACKAGES_DIR)
