@@ -14,6 +14,9 @@ SERVER_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-server/$(VDIR)
 JAVA_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-java-client/$(VDIR)
 BUNDLES_PACKAGES_DIR=$(PACKAGES_DIR)/bundles/$(VDIR)
 
+REQUIRED_EMULATOR_VERSION=5.5.5
+ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
+
 HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
 ifeq ($(HGREPOBASE),)
@@ -36,6 +39,10 @@ dist: packages bundles sign_everything
 endif
 
 prepare:
+	@[ "$(REQUIRED_EMULATOR_VERSION)" = "$(ACTUAL_EMULATOR_VERSION)" ] || \
+		(echo "You are trying to compile with the wrong Erlang/OTP release."; \
+		echo "Please use emulator version $(REQUIRED_EMULATOR_VERSION)."; \
+		false)
 	mkdir -p $(PACKAGES_DIR)
 	mkdir -p $(SERVER_PACKAGES_DIR)
 	mkdir -p $(JAVA_CLIENT_PACKAGES_DIR)
