@@ -61,10 +61,19 @@ enhancements
 - migrate from cvs to hg, and split into separate repositories for
   server, java client, etc.
 - clean up and refactor Makefiles
+- avoid hanging for 30s when an invalid database schema is detected
 
 
 Upgrading
 =========
+
+The database schema has changed in this version of RabbitMQ. If you
+attempt to start RabbitMQ-1.4.0 over top of a previous installation,
+it will fail, citing "schema_integrity_check_failed". To correct this,
+delete your mnesia directory (on most platforms,
+/var/lib/rabbitmq/mnesia) and restart the server. Note that this will
+destroy all your durable exchanges and queues, and all your persisted
+messages!
 
 Care must be taken when upgrading a server that contains persisted
 messages. The persister log format has changed between RabbitMQ-1.3.0
