@@ -102,7 +102,7 @@ debian_packages: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.g
 		GNUPG_PATH=$(GNUPG_PATH) \
 		VERSION=$(VERSION) \
 		SIGNING_KEY_ID=$(SIGNING_KEY)
-	cp rabbitmq-server/packaging/debs/Debian/*$(VERSION)*.deb $(SERVER_PACKAGES_DIR)
+	cp rabbitmq-server/packaging/debs/Debian/rabbitmq-server*$(VERSION)* $(SERVER_PACKAGES_DIR)
 	$(MAKE) -C rabbitmq-server/packaging/debs/apt-repository all \
 		UNOFFICIAL_RELEASE=$(UNOFFICIAL_RELEASE) \
 		GNUPG_PATH=$(GNUPG_PATH) \
