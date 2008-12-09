@@ -8,7 +8,7 @@ server
 ------
 bug fixes
 - support running on top of the latest Erlang/OTP release (R12B-5)
-- maintain effect visibility guartantees in cross-node routing
+- maintain effect visibility guarantees in cross-node routing
 - reduce likelihood of timeouts when channels interact with a large
   number of queues
 - graceful handling of some corner cases in abrupt client disconnect
