@@ -40,9 +40,9 @@ endif
 
 prepare:
 	@[ "$(REQUIRED_EMULATOR_VERSION)" = "$(ACTUAL_EMULATOR_VERSION)" ] || \
-     [ "x$(UNOFFICIAL_RELEASE)" = "xtrue" ] || \
 		(echo "You are trying to compile with the wrong Erlang/OTP release."; \
 		echo "Please use emulator version $(REQUIRED_EMULATOR_VERSION)."; \
+		echo "Alternatively, set the makefile variable REQUIRED_EMULATOR_VERSION=$(ACTUAL_EMULATOR_VERSION) ."; \
 		false)
 	@echo Checking the presence of the tools necessary to build a release on a Debian based OS.
 	dpkg -L cdbs elinks findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip > /dev/null
