@@ -14,10 +14,21 @@ SERVER_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-server/$(VDIR)
 JAVA_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-java-client/$(VDIR)
 BUNDLES_PACKAGES_DIR=$(PACKAGES_DIR)/bundles/$(VDIR)
 
+REQUIRED_EMULATOR_VERSION=5.5.5
+ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
+
+HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
+
+ifeq ($(HGREPOBASE),)
+HGREPOBASE=ssh://hg@hg.lshift.net
+endif
+
 .PHONY: packages
 
 all:
 	@echo Please choose a target from the Makefile.
+
+checkout: rabbitmq-codegen rabbitmq-server rabbitmq-java-client
 
 ifeq "$(UNOFFICIAL_RELEASE)$(GNUPG_PATH)" ""
 dist:
@@ -28,6 +39,14 @@ dist: packages bundles sign_everything
 endif
 
 prepare:
+	@[ "$(REQUIRED_EMULATOR_VERSION)" = "$(ACTUAL_EMULATOR_VERSION)" ] || \
+		(echo "You are trying to compile with the wrong Erlang/OTP release."; \
+		echo "Please use emulator version $(REQUIRED_EMULATOR_VERSION)."; \
+		echo "Alternatively, set the makefile variable REQUIRED_EMULATOR_VERSION=$(ACTUAL_EMULATOR_VERSION) ."; \
+		false)
+	@echo Checking the presence of the tools necessary to build a release on a Debian based OS.
+	dpkg -L cdbs elinks findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip > /dev/null
+	@echo All required tools are installed, great!
 	mkdir -p $(PACKAGES_DIR)
 	mkdir -p $(SERVER_PACKAGES_DIR)
 	mkdir -p $(JAVA_CLIENT_PACKAGES_DIR)
@@ -84,9 +103,13 @@ $(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip: prepare rabbitmq-
 debian_packages: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
 	$(MAKE) -C rabbitmq-server/packaging/debs/Debian clean package \
 		UNOFFICIAL_RELEASE=$(UNOFFICIAL_RELEASE) \
+		GNUPG_PATH=$(GNUPG_PATH) \
 		VERSION=$(VERSION) \
 		SIGNING_KEY_ID=$(SIGNING_KEY)
-	cp rabbitmq-server/packaging/debs/Debian/*$(VERSION)*.deb $(SERVER_PACKAGES_DIR)
+	cp rabbitmq-server/packaging/debs/Debian/rabbitmq-server*$(VERSION)*.deb $(SERVER_PACKAGES_DIR)
+	cp rabbitmq-server/packaging/debs/Debian/rabbitmq-server*$(VERSION)*.diff.gz $(SERVER_PACKAGES_DIR)
+	cp rabbitmq-server/packaging/debs/Debian/rabbitmq-server*$(VERSION)*.orig.tar.gz $(SERVER_PACKAGES_DIR)
+	cp rabbitmq-server/packaging/debs/Debian/rabbitmq-server*$(VERSION)*.dsc $(SERVER_PACKAGES_DIR)
 	$(MAKE) -C rabbitmq-server/packaging/debs/apt-repository all \
 		UNOFFICIAL_RELEASE=$(UNOFFICIAL_RELEASE) \
 		GNUPG_PATH=$(GNUPG_PATH) \
@@ -95,7 +118,8 @@ debian_packages: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.g
 
 rpm_packages: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
 	$(MAKE) -C rabbitmq-server/packaging/RPMS/Fedora rpms VERSION=$(VERSION)
-	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/noarch/rabbitmq-server*.rpm $(SERVER_PACKAGES_DIR)
+	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/i386/rabbitmq-server*.rpm $(SERVER_PACKAGES_DIR)
+	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/x86_64/rabbitmq-server*.rpm $(SERVER_PACKAGES_DIR)
 
 java_packages: prepare rabbitmq-java-client
 	$(MAKE) -C rabbitmq-java-client clean dist VERSION=$(VERSION)
@@ -121,6 +145,15 @@ windows_bundle:
 	mv $(WINDOWS_BUNDLE_TMP_DIR)/../complete-rabbitmq-bundle-$(VERSION).zip \
 		$(BUNDLES_PACKAGES_DIR)
 	rm -rf $(WINDOWS_BUNDLE_TMP_DIR)
+
+rabbitmq-server: rabbitmq-codegen
+	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
+
+rabbitmq-java-client: rabbitmq-codegen
+	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
+
+rabbitmq-codegen:
+	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
 
 clean:
 	rm -rf $(PACKAGES_DIR)
