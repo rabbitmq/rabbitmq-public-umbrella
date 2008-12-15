@@ -34,6 +34,8 @@ bug fixes
 - eliminate several race condition in connection and channel closure
   that could result in deadlock
 - always respond to a server's 'connection.close' and 'channel.close'
+- prevent interference between interal locking on channels and
+  application-level locking
 
 enhancements
 - remove tickets and realms
@@ -124,6 +126,7 @@ Holger Hoffstätte
 Jacek Korycki
 John Leuner
 Jonatan Kallus
+Jonathan McGee
 Kyle Sampson
 Leo Martins
 Maarten Engelen
@@ -138,5 +141,3 @@ Steve Jenson
 Terry Jones
 Vadim Zaliva
 Valentino Volonghi
-
-
