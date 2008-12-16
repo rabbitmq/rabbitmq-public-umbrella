@@ -19,6 +19,8 @@ enhancements
 - add 'queue.unbind' command to protocol
 - disable Nagle for more consistent latency
 - throttle producers with 'channel.flow' when running low on memory
+  Note that this feature is disabled by default; please see
+  http://www.rabbitmq.com/admin-guide.html#memsup for details.
 - remove a few spurious errors in the logs
 - show the actual listening IP & port in logs
 - improve rabbitmqctl:
