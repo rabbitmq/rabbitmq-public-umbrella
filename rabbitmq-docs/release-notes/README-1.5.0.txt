@@ -97,9 +97,8 @@ assistance with the upgrade. If you want to experiment with the new
 version in the meantime, simply move the database directory to a safe
 place. In all other cases just remove the directory.
 
-The debian package upgrade detects the presence of an old schema and
-asks the user how to proceed. The rpm package upgrade moves any
-existing database to a backup location.
+The debian and rpm package upgrades move any existing database to a
+backup location.
 
 
 Credits
