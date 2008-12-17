@@ -3,6 +3,7 @@
 
 VERSION=0.0.0
 VDIR=v$(VERSION)
+TAG=rabbitmq_$(subst .,_,$(VDIR))
 
 SIGNING_KEY=056E8E56
 SIGNING_USER_EMAIL=info@rabbitmq.com
@@ -17,6 +18,8 @@ BUNDLES_PACKAGES_DIR=$(PACKAGES_DIR)/bundles/$(VDIR)
 REQUIRED_EMULATOR_VERSION=5.5.5
 ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
 
+REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client
+
 HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
 ifeq ($(HGREPOBASE),)
@@ -28,7 +31,13 @@ endif
 all:
 	@echo Please choose a target from the Makefile.
 
-checkout: rabbitmq-codegen rabbitmq-server rabbitmq-java-client
+checkout: $(REPOS)
+
+tag: checkout
+	$(foreach DIR,. $(REPOS),(cd $(DIR); hg tag $(TAG));)
+
+push: checkout
+	$(foreach DIR,. $(REPOS),(cd $(DIR); hg push -f);)
 
 ifeq "$(UNOFFICIAL_RELEASE)$(GNUPG_PATH)" ""
 dist:
