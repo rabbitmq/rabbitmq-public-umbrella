@@ -90,15 +90,14 @@ Upgrading
 =========
 
 The database schema has changed between RabbitMQ-1.4.0 and this
-release. If your RabbitMQ installation contains important data, such
-as user accounts, durable exchanges and queues, or persistent
-messages, then we recommend you contact support@rabbitmq.com for
-assistance with the upgrade. If you want to experiment with the new
-version in the meantime, simply move the database directory to a safe
-place. In all other cases just remove the directory.
+release. When the RabbitMQ server detects the presence of an old
+database, it moves it to a backup location, creates a fresh, empty
+database, and logs a warning.
 
-The debian and rpm package upgrades move any existing database to a
-backup location.
+If your RabbitMQ installation contains important data, such as user
+accounts, durable exchanges and queues, or persistent messages, then
+we recommend you contact support@rabbitmq.com for assistance with the
+upgrade.
 
 
 Credits
