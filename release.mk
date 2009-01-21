@@ -126,9 +126,12 @@ debian_packages: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.g
 	cp -r rabbitmq-server/packaging/debs/apt-repository/debian $(PACKAGES_DIR)
 
 rpm_packages: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
-	$(MAKE) -C rabbitmq-server/packaging/RPMS/Fedora rpms VERSION=$(VERSION)
+	$(MAKE) -C rabbitmq-server/packaging/RPMS/Fedora rpms VERSION=$(VERSION) RPM_OS=fedora
 	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/i386/rabbitmq-server*.rpm $(SERVER_PACKAGES_DIR)
 	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/x86_64/rabbitmq-server*.rpm $(SERVER_PACKAGES_DIR)
+	$(MAKE) -C rabbitmq-server/packaging/RPMS/Fedora rpms VERSION=$(VERSION) RPM_OS=suse
+	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/i386/rabbitmq-server*suse*.rpm $(SERVER_PACKAGES_DIR)
+	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/x86_64/rabbitmq-server*suse*.rpm $(SERVER_PACKAGES_DIR)
 
 java_packages: prepare rabbitmq-java-client
 	$(MAKE) -C rabbitmq-java-client clean dist VERSION=$(VERSION)
