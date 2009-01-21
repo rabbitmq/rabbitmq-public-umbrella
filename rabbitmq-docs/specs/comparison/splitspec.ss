@@ -16,12 +16,11 @@
 
 (define (normalize-amqp-name name)
   (string-downcase
-   (list->string
-    (map (lambda (c)
-	   (case c
-	     ((#\space) #\-)
-	     (else c)))
-	 (string->list name)))))
+   (string-filter (lambda (c)
+		    (case c
+		      ((#\space #\-) #f)
+		      (else #t)))
+		  name)))
 
 (define (normalize-amqp-attribute-entry entry)
   (string-append "_" (normalize-amqp-name (cadr entry))))
