@@ -1,0 +1,111 @@
+Semantically, there are few differences between 0-8 and 0-9-1; here's
+a summary of the differences from the specification XML:
+
+ - The advertised version number is major=0,minor=9,revision=1 rather
+   than major=8,minor=0.
+
+ - Frame types 4-7 (OOB and trace frames) have been removed, as they
+   were not well specified in AMQP 0-8.
+
+ - Status code changes:
+	- Removed:
+		NOT_DELIVERED		310
+	- Added:
+		NO_ROUTE		312 (missing from spec???)
+		NO_CONSUMERS		313
+		PRECONDITION_FAILED	406
+		UNEXPECTED_FRAME	505
+
+ - Access tickets have been removed. This involves the removal of the
+   Access.Request method, and the deprecation of each and every ticket
+   field in methods that used to require a ticket.
+
+ - The restrictions on virtual-host names have been removed.
+
+ - The notions of "known hosts" and of connection redirection have
+   been removed.
+
+ - The (AMQP-specific) "PLAIN" security mechanism is no longer
+   mentioned.
+
+ - The meaning of "channel-max" has been clarified: for example, if
+   channel-max is set to 2, then it is illegal to use channels
+   numbered 3 or higher for frames carried by the connection.
+
+ - A new rule (named "upper-limit") regarding channel-max has been
+   added: if the server can't support the requested channel-max, the
+   connection MUST be closed without attempting a negotiated close.
+
+ - The extensibility of the exchange-type mechanism is now explicitly
+   documented.
+
+ - The rules for equivalence of exchange instances in Exchange.Declare
+   have been more clearly specified, including a specification of how
+   the "arguments" tables are to be compared.
+
+ - Auto-deletion of exchanges is no longer supported.
+
+ - The AMQP 0-8 notion of "content classes" has been removed.
+
+ - The rules for equivalence of queues in Queue.Declare have been more
+   clearly specified.
+
+ - The rules regarding declaration of "exclusive" queues have been
+   more tightly specified.
+
+ - A single Basic.Publish is now defined to never result in multiple
+   copies of a message on any particular queue, even in the presence
+   of multiple independent bindings to the same queue that match the
+   published message.
+
+ - Durable queues may now bind to transient exchanges. Bindings
+   between a durable queue and an exchange are as durable as the bound
+   exchange is.
+
+ - The error code for use of an empty queue name in Queue.Bind (and
+   other methods that use the most-recently-declared-queue mechanism)
+   has been changed.
+
+ - The empty string may now be specified in Queue.Bind's "exchange"
+   field; it signifies the default exchange (!).
+
+UP TO: JUST FINISHED QUEUE.BIND-OK. NEXT: Split the docs using some
+XSLT or something and compare them using that. Plain-old-diff isn't
+giving very good results at this point.
+
+ - Some methods have been removed:
+
+   Connection.Redirect
+   Channel.Alert
+
+ - Some methods have been renumbered:
+
+                        AMQP 0-8        AMQP 0-9-1
+   Connection.Close     60              50
+   Connection.CloseOk   61              51
+
+ - Some methods have been added:
+
+   Queue.Unbind, methodId 50
+   Queue.UnbindOk, methodId 51
+
+ - Some methods have new or changed arguments:
+
+   (many methods)	short		Ticket			deprecated
+   Channel.Open		shortstr	Capabilities		deprecated
+   Channel.Open		bit		Insist			deprecated
+   Channel.OpenOk	shortstr	KnownHosts		deprecated
+   Exchange.Declare	bit		AutoDelete		deprecated
+   Exchange.Declare	bit		Internal		deprecated
+   Basic.Consume	table		Filter			added
+   File.Consume		table		Filter			added
+   Stream.Consume	table		Filter			added
+
+ - Some classes have been removed:
+
+   Access
+   Test
+
+Framing and connection establishment (modulo the removed frame-types
+and the spec version number advertisement, respectively) are
+identical.
