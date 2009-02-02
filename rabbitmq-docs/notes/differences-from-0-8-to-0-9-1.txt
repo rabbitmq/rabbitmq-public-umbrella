@@ -149,7 +149,20 @@ a summary of the differences from the specification XML:
    longer purged, even if the channel they were sent down is not
    (Tx-)transacted.
 
-UP TO HERE%%%: Up to class TX in the split spec diff.
+ - Class Tx has new language around atomicity and
+   multiple-queue-transactions.
+
+ - The effects of the "immediate" and "mandatory" flags on
+   Basic.Publish are explicitly declared to be undefined when used
+   within a Tx transaction in 0-9-1.
+
+ - Tx.Rollback has been clarified: unacked messages will NOT be
+   redelivered in 0-9-1 upon rollback.
+
+ - The "no-local" field is specified to prohibit delivery to the
+   connection that published a message in 0-9-1. In 0-8, it was not
+   specified whether the scope of prohibition was the channel or the
+   connection.
 
  - Some methods have been removed:
 
