@@ -164,7 +164,7 @@ here's a summary:
    specified whether the scope of prohibition was the channel or the
    connection.
 
- - It is made clear in section 1.5.1 of the main spec that strings are
+ - It is made clear in section 1.4.1 of the main spec that strings are
    case-sensitive.
 
  - References to "chained bindings", nested message contents
@@ -172,23 +172,23 @@ here's a summary:
    frames etc have been removed.
 
  - There is new specification around errors detected during connection
-   establishment (see the end of section 2.3.4).
+   establishment (see the end of sections 2.2.4).
 
- - Section 2.3.10 reiterates the lack of requeuing and redelivering on
+ - Section 2.2.9 reiterates the lack of requeuing and redelivering on
    Tx.Rollback.
 
- - Section 2.5.7 explains the changes made to the connection and
+ - Section 2.3.7 explains the changes made to the connection and
    channel close protocols.
 
  - The "Headers" exchange type is now defined (section 3.1.3.4).
 
  - The use of UNEXPECTED_FRAME (code 505) is documented in section
-   4.2.7.
+   4.2.6.
 
  - The content body size field has been clarified to mean the sum of
    the body sizes of the following content body frames.
 
- - Heartbeating has been specified (section 4.2.8).
+ - Heartbeating has been specified (section 4.2.7).
 
  - Sections 4.4 (Visibility Guarantee), 4.5 (Channel Closure), 4.6
    (Content Synchronisation) and 4.7 (Content Ordering Guarantees) are
