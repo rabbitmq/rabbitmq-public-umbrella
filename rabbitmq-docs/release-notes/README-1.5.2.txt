@@ -35,7 +35,9 @@ enhancements
   packaging guidelines
 - place wrapper scripts for rabbitmq-server and rabbitmq-multi
   alongside the rabbitmqctl wrapper in /usr/sbin
-
+- do not start the server by default on RPM-based systems, in order to
+  comply with common practice and guidelines
+- suppress stdout in logrotate scripts, to keep cron et al happy
 
 Upgrading
 =========
@@ -44,9 +46,10 @@ The place from which the server startup and control scripts source
 configuration information on Unix systems has changed from
 /etc/default/rabbitmq to /etc/rabbitmq/rabbitmq.conf. If you have been
 using the former, just move the file to the latter location.  The
-/etc/default/rabbitmq file is still being sourced by the init.d
-script, but it should only contain settings directly affecting the
-behaviour of the init.d script, such as NODE_COUNT.
+/etc/default/rabbitmq file (/etc/sysconfig/rabbitmq on RPM-based
+systems) is still being sourced by the init.d script, but it should
+only contain settings directly affecting the behaviour of the init.d
+script, such as NODE_COUNT.
 
 When upgrading from releases earlier than RabbitMQ-1.5.x, note that
 the database schema has changed. When the RabbitMQ server detects the
@@ -66,6 +69,7 @@ We would like to thank the following individuals for submitting bug
 reports and feedback that we incorporated into this release:
 
 Billy Chasen
+Charl Matthee
 Christopher Hoover
 Darien Kindlund
 Dmitriy Samovskiy
