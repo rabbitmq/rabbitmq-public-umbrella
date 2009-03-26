@@ -134,8 +134,8 @@ here's a summary:
    queue is permitted and meaningful.
 
  - The rules on exclusive queues have changed: exclusivity now applies
-   not just to consuming from the queue, but also to
-   Basic.Get. Furthermore, passive declarations of an exclusively-held
+   to all queue operations, not just consuming from the
+   queue. Furthermore, passive declarations of an exclusively-held
    queue on other connections are now disallowed.
 
  - Generally, passive declarations are now specified to ignore most of
