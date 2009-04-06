@@ -37,6 +37,8 @@ no changes
 building & packaging
 --------------------
 bug fixes
+- correct paths in 64-bit RPMs; the paths got broken in the 1.5.3
+  release, preventing the server from starting
 - in the Debian and RPM packages, set the current working dir of the
   various scripts to /var/lib/rabbitmq instead of /. The latter was
   preventing crash dumps from being written.
