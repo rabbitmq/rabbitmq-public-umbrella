@@ -78,8 +78,7 @@ move the file to the latter location.  The /etc/default/rabbitmq file
 by the init.d script, but it should only contain settings directly
 affecting the behaviour of the init.d script, such as NODE_COUNT.
 
-When upgrading from releases earlier than 1.5.x, note that the
-database schema has changed. When the RabbitMQ server detects the
+The database schema has changed. When the RabbitMQ server detects the
 presence of an old database, it moves it to a backup location, creates
 a fresh, empty database, and logs a warning. If your RabbitMQ
 installation contains important data, such as user accounts, durable
