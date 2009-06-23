@@ -69,6 +69,7 @@ packages: prepare
 	$(MAKE) debian_packages
 	$(MAKE) rpm_packages
 	$(MAKE) java_packages
+	$(MAKE) macports_packages
 
 ifneq "$(UNOFFICIAL_RELEASE)" ""
 sign_everything:
@@ -124,6 +125,9 @@ debian_packages: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.g
 		GNUPG_PATH=$(GNUPG_PATH) \
 		SIGNING_USER_EMAIL=$(SIGNING_USER_EMAIL)
 	cp -r rabbitmq-server/packaging/debs/apt-repository/debian $(PACKAGES_DIR)
+
+macports_packages: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
+	$(MAKE) -C rabbitmq-server/packaging/macports VERSION=$(VERSION) package
 
 rpm_packages: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
 	$(MAKE) -C rabbitmq-server/packaging/RPMS/Fedora rpms VERSION=$(VERSION) RPM_OS=fedora
