@@ -181,21 +181,41 @@ function build_c {
     fi
 }
 
+function build_xmpp {
+    v="`hgVersion rabbitmq-xmpp`"
+    if [ ! -f $debianStagingdir/rabbitmq-xmpp_$v-1.tar.gz ]
+    then
+	pre_build
+	hg clone rabbitmq-xmpp $builddir/rabbitmq-xmpp-$v
+	(
+	    cd $builddir/rabbitmq-xmpp-$v
+	    make all
+	    genChangelogEntry rabbitmq-xmpp $v debian/changelog
+	    set +e
+	    dpkg-buildpackage -rfakeroot
+	    set -e
+	    cd ..
+	    rm -rf rabbitmq-xmpp-$v
+	    mv * $debianStagingdir
+	)
+    fi
+}
+
 function build_rabbithub {
     v="`gitVersion rabbithub`"
     if [ ! -f $debianStagingdir/rabbithub_$v-1.tar.gz ]
     then
 	pre_build
-	git clone rabbithub $builddir/rabbithub
+	git clone rabbithub $builddir/rabbithub-$v
 	(
-	    cd $builddir/rabbithub
+	    cd $builddir/rabbithub-$v
 	    make all
 	    genChangelogEntry rabbithub $v debian/changelog
 	    set +e
 	    dpkg-buildpackage -rfakeroot
 	    set -e
 	    cd ..
-	    rm -rf rabbithub
+	    rm -rf rabbithub-$v
 	    mv * $debianStagingdir
 	)
     fi
@@ -205,6 +225,7 @@ function wipe_all {
     rm -rf rabbitmq-codegen
     rm -rf rabbitmq-server
     rm -rf rabbitmq-c
+    rm -rf rabbitmq-xmpp
     rm -rf rabbithub
 }
 
@@ -212,6 +233,7 @@ function fetch_all {
     fetchHg rabbitmq-codegen
     fetchHg rabbitmq-server
     fetchHg rabbitmq-c
+    fetchHg rabbitmq-xmpp
     fetchGit rabbithub
 }
 
@@ -219,6 +241,7 @@ function clean_all {
     clean rabbitmq-codegen
     clean rabbitmq-server
     clean rabbitmq-c
+    clean rabbitmq-xmpp
     clean rabbithub
 }
 
@@ -226,6 +249,7 @@ function build_all {
     startDebianRepository
     build_server
     build_c
+    build_xmpp
     build_rabbithub
     finishDebianRepository
     post_build
