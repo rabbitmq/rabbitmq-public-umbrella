@@ -7,7 +7,7 @@ rabbitHg="http://hg.rabbitmq.com/"
 tonygGithub="git://github.com/tonyg/"
 
 sourceArchivedir="`pwd`/_repo/sources"
-debianStagingdir="`pwd`/_repo/staging_debian"
+binaryArchivedir="`pwd`/_repo/binaries"
 debianRepodir="`pwd`/_repo/debian"
 
 function fetchHg {
@@ -102,7 +102,7 @@ function post_build {
 
 function startDebianRepository {
     mkdir -p $sourceArchivedir
-    mkdir -p $debianStagingdir
+    mkdir -p $binaryArchivedir
 }
 
 function finishDebianRepository {
@@ -120,7 +120,7 @@ Architectures: arm hppa ia64 mips mipsel s390 sparc i386 amd64 powerpc source
 Components: main
 Description: Autobuild RabbitMQ Repository for Debian / Ubuntu etc
 EOF
-	for file in $debianStagingdir/*.changes
+	for file in $binaryArchivedir/*.changes
 	do
 	    reprepro --ignore=wrongdistribution -V include kitten ${file}
 	done
@@ -130,7 +130,7 @@ EOF
 
 function build_server {
     v="`hgVersion rabbitmq-server`"
-    if [ ! -f $debianStagingdir/rabbitmq-server_$v.orig.tar.gz ]
+    if [ ! -f $binaryArchivedir/rabbitmq-server_$v.orig.tar.gz ]
     then
 	pre_build
 	make -C rabbitmq-server VERSION=$v srcdist
@@ -138,14 +138,14 @@ function build_server {
 	(
 	    cd rabbitmq-server/packaging/debs/Debian
 	    make UNOFFICIAL_RELEASE=1 TARBALL=rabbitmq-server-$v.tar.gz clean package
-	    mv rabbitmq-server_$v* $debianStagingdir
+	    mv rabbitmq-server_$v* $binaryArchivedir
 	)
     fi
 }
 
 function build_c {
     v="`hgVersion rabbitmq-c`"
-    if [ ! -f $debianStagingdir/librabbitmq_$v-1.tar.gz ]
+    if [ ! -f $binaryArchivedir/librabbitmq_$v-1.tar.gz ]
     then
 	pre_build
 	if [ -f rabbitmq-c/Makefile ]
@@ -176,14 +176,14 @@ function build_c {
 	    set -e
 	    cd ..
 	    rm -rf librabbitmq-$v
-	    mv * $debianStagingdir
+	    mv * $binaryArchivedir
 	)
     fi
 }
 
 function build_xmpp {
     v="`hgVersion rabbitmq-xmpp`"
-    if [ ! -f $debianStagingdir/rabbitmq-xmpp_$v-1.tar.gz ]
+    if [ ! -f $binaryArchivedir/rabbitmq-xmpp_$v-1.tar.gz ]
     then
 	pre_build
 	hg clone rabbitmq-xmpp $builddir/rabbitmq-xmpp-$v
@@ -196,14 +196,33 @@ function build_xmpp {
 	    set -e
 	    cd ..
 	    rm -rf rabbitmq-xmpp-$v
-	    mv * $debianStagingdir
+	    mv * $binaryArchivedir
+	)
+    fi
+}
+
+function build_java {
+    v="`hgVersion rabbitmq-java-client`"
+    if [ ! -f $sourceArchivedir/rabbitmq-java-client-$v.tar.gz ]
+    then
+	pre_build
+	make -C rabbitmq-java-client VERSION=$v srcdist
+	cp rabbitmq-java-client/build/rabbitmq-java-client-$v.tar.gz $sourceArchivedir
+	(
+	    cd $builddir
+	    tar -zxf $sourceArchivedir/rabbitmq-java-client-$v.tar.gz
+	    cd rabbitmq-java-client-$v
+	    make VERSION=$v dist_all
+	    mv build/rabbitmq-java-client-*-$v.* $binaryArchivedir
+	    cd ..
+	    rm -rf rabbitmq-java-client-$v
 	)
     fi
 }
 
 function build_rabbithub {
     v="`gitVersion rabbithub`"
-    if [ ! -f $debianStagingdir/rabbithub_$v-1.tar.gz ]
+    if [ ! -f $binaryArchivedir/rabbithub_$v-1.tar.gz ]
     then
 	pre_build
 	git clone rabbithub $builddir/rabbithub-$v
@@ -216,7 +235,7 @@ function build_rabbithub {
 	    set -e
 	    cd ..
 	    rm -rf rabbithub-$v
-	    mv * $debianStagingdir
+	    mv * $binaryArchivedir
 	)
     fi
 }
@@ -226,6 +245,7 @@ function wipe_all {
     rm -rf rabbitmq-server
     rm -rf rabbitmq-c
     rm -rf rabbitmq-xmpp
+    rm -rf rabbitmq-java-client
     rm -rf rabbithub
 }
 
@@ -234,6 +254,7 @@ function fetch_all {
     fetchHg rabbitmq-server
     fetchHg rabbitmq-c
     fetchHg rabbitmq-xmpp
+    fetchHg rabbitmq-java-client
     fetchGit rabbithub
 }
 
@@ -242,6 +263,7 @@ function clean_all {
     clean rabbitmq-server
     clean rabbitmq-c
     clean rabbitmq-xmpp
+    clean rabbitmq-java-client
     clean rabbithub
 }
 
@@ -250,6 +272,7 @@ function build_all {
     build_server
     build_c
     build_xmpp
+    build_java
     build_rabbithub
     finishDebianRepository
     post_build
