@@ -181,24 +181,39 @@ function build_c {
     fi
 }
 
-function build_xmpp {
-    v="`hgVersion rabbitmq-xmpp`"
-    if [ ! -f $binaryArchivedir/rabbitmq-xmpp_$v-1.tar.gz ]
+function buildGenericSimpleHgDebian {
+    p="$1"; shift
+    v="`hgVersion ${p}`"
+    if [ ! -f $binaryArchivedir/${p}_${v}-1.tar.gz ]
     then
-	pre_build
-	hg clone rabbitmq-xmpp $builddir/rabbitmq-xmpp-$v
+	hg clone ${p} $builddir/${p}-${v}
 	(
-	    cd $builddir/rabbitmq-xmpp-$v
-	    make all
-	    genChangelogEntry rabbitmq-xmpp $v debian/changelog
+	    cd $builddir/${p}-${v}
+	    genChangelogEntry ${p} ${v} debian/changelog
 	    set +e
 	    dpkg-buildpackage -rfakeroot
 	    set -e
 	    cd ..
-	    rm -rf rabbitmq-xmpp-$v
+	    rm -rf ${p}-${v}
 	    mv * $binaryArchivedir
 	)
     fi
+}
+
+function build_xmpp {
+    pre_build
+    buildGenericSimpleHgDebian rabbitmq-xmpp
+}
+
+function build_stomp {
+    pre_build
+    (
+	cd $builddir
+	tar -zxf $sourceArchivedir/rabbitmq-server-*.tar.gz
+	mv rabbitmq-server-* rabbitmq-server
+	make -C rabbitmq-server include/rabbit_framing.hrl
+    )
+    buildGenericSimpleHgDebian rabbitmq-stomp
 }
 
 function build_java {
@@ -245,6 +260,7 @@ function wipe_all {
     rm -rf rabbitmq-server
     rm -rf rabbitmq-c
     rm -rf rabbitmq-xmpp
+    rm -rf rabbitmq-stomp
     rm -rf rabbitmq-java-client
     rm -rf rabbithub
 }
@@ -254,6 +270,7 @@ function fetch_all {
     fetchHg rabbitmq-server
     fetchHg rabbitmq-c
     fetchHg rabbitmq-xmpp
+    fetchHg rabbitmq-stomp
     fetchHg rabbitmq-java-client
     fetchGit rabbithub
 }
@@ -263,6 +280,7 @@ function clean_all {
     clean rabbitmq-server
     clean rabbitmq-c
     clean rabbitmq-xmpp
+    clean rabbitmq-stomp
     clean rabbitmq-java-client
     clean rabbithub
 }
@@ -272,6 +290,7 @@ function build_all {
     build_server
     build_c
     build_xmpp
+    build_stomp
     build_java
     build_rabbithub
     finishDebianRepository
