@@ -79,32 +79,11 @@ function genChangelogEntry {
     mv -f $changelogfile.tmp $changelogfile
 }
 
-function fetch_all {
-    fetchHg rabbitmq-codegen
-    fetchHg rabbitmq-server
-    fetchHg rabbitmq-c
-    fetchGit rabbithub
-}
-
-function wipe_all {
-    rm -rf rabbitmq-codegen
-    rm -rf rabbitmq-server
-    rm -rf rabbitmq-c
-    rm -rf rabbithub
-}
-
 function clean {
     if [ -f "$1/Makefile" ]
     then
 	make -C "$1" distclean
     fi
-}
-
-function clean_all {
-    clean rabbitmq-codegen
-    clean rabbitmq-server
-    clean rabbitmq-c
-    clean rabbithub
 }
 
 function pre_build {
@@ -220,6 +199,27 @@ function build_rabbithub {
 	    mv * $debianStagingdir
 	)
     fi
+}
+
+function wipe_all {
+    rm -rf rabbitmq-codegen
+    rm -rf rabbitmq-server
+    rm -rf rabbitmq-c
+    rm -rf rabbithub
+}
+
+function fetch_all {
+    fetchHg rabbitmq-codegen
+    fetchHg rabbitmq-server
+    fetchHg rabbitmq-c
+    fetchGit rabbithub
+}
+
+function clean_all {
+    clean rabbitmq-codegen
+    clean rabbitmq-server
+    clean rabbitmq-c
+    clean rabbithub
 }
 
 function build_all {
