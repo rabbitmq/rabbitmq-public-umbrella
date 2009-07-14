@@ -4,7 +4,8 @@ set -e
 set -x
 
 rabbitHg="http://hg.rabbitmq.com/"
-buildStamp="`date '+%Y%m%d%H%M%S'`"
+tonygGithub="git://github.com/tonyg/"
+
 sourceArchivedir="`pwd`/_repo/sources"
 debianStagingdir="`pwd`/_repo/staging_debian"
 debianRepodir="`pwd`/_repo/debian"
@@ -27,6 +28,24 @@ function fetchHg {
     ) fi
 }
 
+function fetchGit {
+    module="$1"; shift
+    set +e
+    baseurl="$1"; shift
+    directory="$1"; shift
+    set -e
+    if [ -z "$baseurl" ]; then baseurl="$tonygGithub"; fi
+    if [ -z "$directory" ]; then directory="$module"; fi
+
+    if [ -d "$directory" ]
+    then (
+	    cd $directory
+	    git pull
+    ) else (
+	    git clone "$baseurl$module.git" "$directory"
+    ) fi
+}
+
 function hgVersion {
     directory="$1"
     (
@@ -34,6 +53,15 @@ function hgVersion {
 	hgid="`hg id -i`"
 	hg log -r "$hgid" --template '{date|isodate}+hgr'"$hgid" | \
 	    tr -d '-' | tr ': ' '..' | sed -e 's:\.+[0-9]\+::'
+    )
+}
+
+function gitVersion {
+    directory="$1"
+    (
+	cd $directory
+	git log -1 --pretty='format:%ai+gitr%h' HEAD | \
+	    tr -d '-' | tr ': ' '..' | sed -e 's:\.[0-9][0-9]\.+[0-9]\+::'
     )
 }
 
@@ -55,12 +83,14 @@ function fetch_all {
     fetchHg rabbitmq-codegen
     fetchHg rabbitmq-server
     fetchHg rabbitmq-c
+    fetchGit rabbithub
 }
 
 function wipe_all {
     rm -rf rabbitmq-codegen
     rm -rf rabbitmq-server
     rm -rf rabbitmq-c
+    rm -rf rabbithub
 }
 
 function clean {
@@ -74,6 +104,7 @@ function clean_all {
     clean rabbitmq-codegen
     clean rabbitmq-server
     clean rabbitmq-c
+    clean rabbithub
 }
 
 function pre_build {
@@ -88,6 +119,34 @@ function post_build {
 	chmod -R +w _build
 	rm -rf _build
     fi
+}
+
+function startDebianRepository {
+    mkdir -p $sourceArchivedir
+    mkdir -p $debianStagingdir
+}
+
+function finishDebianRepository {
+    rm -rf $debianRepodir
+    mkdir -p $debianRepodir
+    (
+	cd $debianRepodir
+	mkdir -p conf
+	cat > conf/distributions <<EOF
+Origin: RabbitMQ
+Label: Autobuild RabbitMQ Repository for Debian / Ubuntu etc
+Suite: testing
+Codename: kitten
+Architectures: arm hppa ia64 mips mipsel s390 sparc i386 amd64 powerpc source
+Components: main
+Description: Autobuild RabbitMQ Repository for Debian / Ubuntu etc
+EOF
+	for file in $debianStagingdir/*.changes
+	do
+	    reprepro --ignore=wrongdistribution -V include kitten ${file}
+	done
+	reprepro -V createsymlinks
+    )
 }
 
 function build_server {
@@ -133,7 +192,9 @@ function build_c {
 	    tar -zxvf $sourceArchivedir/librabbitmq-$v.tar.gz
 	    cd librabbitmq-$v
 	    genChangelogEntry librabbitmq $v debian/changelog
+	    set +e
 	    dpkg-buildpackage -rfakeroot
+	    set -e
 	    cd ..
 	    rm -rf librabbitmq-$v
 	    mv * $debianStagingdir
@@ -141,38 +202,31 @@ function build_c {
     fi
 }
 
-function startDebianRepository {
-    mkdir -p $sourceArchivedir
-    mkdir -p $debianStagingdir
-}
-
-function finishDebianRepository {
-    rm -rf $debianRepodir
-    mkdir -p $debianRepodir
-    (
-	cd $debianRepodir
-	mkdir -p conf
-	cat > conf/distributions <<EOF
-Origin: RabbitMQ
-Label: Autobuild RabbitMQ Repository for Debian / Ubuntu etc
-Suite: testing
-Codename: kitten
-Architectures: arm hppa ia64 mips mipsel s390 sparc i386 amd64 powerpc source
-Components: main
-Description: Autobuild RabbitMQ Repository for Debian / Ubuntu etc
-EOF
-	for file in $debianStagingdir/*.changes
-	do
-	    reprepro --ignore=wrongdistribution -V include kitten ${file}
-	done
-	reprepro -V createsymlinks
-    )
+function build_rabbithub {
+    v="`gitVersion rabbithub`"
+    if [ ! -f $debianStagingdir/rabbithub_$v-1.tar.gz ]
+    then
+	pre_build
+	git clone rabbithub $builddir/rabbithub
+	(
+	    cd $builddir/rabbithub
+	    make all
+	    genChangelogEntry rabbithub $v debian/changelog
+	    set +e
+	    dpkg-buildpackage -rfakeroot
+	    set -e
+	    cd ..
+	    rm -rf rabbithub
+	    mv * $debianStagingdir
+	)
+    fi
 }
 
 function build_all {
     startDebianRepository
     build_server
     build_c
+    build_rabbithub
     finishDebianRepository
     post_build
 }
