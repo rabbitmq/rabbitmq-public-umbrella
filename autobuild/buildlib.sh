@@ -79,6 +79,10 @@ function genChangelogEntry {
     mv -f $changelogfile.tmp $changelogfile
 }
 
+function buildDeb {
+    dpkg-buildpackage -rfakeroot -us -uc
+}
+
 function clean {
     if [ -f "$1/Makefile" ]
     then
@@ -171,9 +175,7 @@ function build_c {
 	    tar -zxvf $sourceArchivedir/librabbitmq-$v.tar.gz
 	    cd librabbitmq-$v
 	    genChangelogEntry librabbitmq $v debian/changelog
-	    set +e
-	    dpkg-buildpackage -rfakeroot
-	    set -e
+	    buildDeb
 	    cd ..
 	    rm -rf librabbitmq-$v
 	    mv * $binaryArchivedir
@@ -190,9 +192,7 @@ function buildGenericSimpleHgDebian {
 	(
 	    cd $builddir/${p}-${v}
 	    genChangelogEntry ${p} ${v} debian/changelog
-	    set +e
-	    dpkg-buildpackage -rfakeroot
-	    set -e
+	    buildDeb
 	    cd ..
 	    rm -rf ${p}-${v}
 	    mv * $binaryArchivedir
@@ -245,9 +245,7 @@ function build_rabbithub {
 	    cd $builddir/rabbithub-$v
 	    make all
 	    genChangelogEntry rabbithub $v debian/changelog
-	    set +e
-	    dpkg-buildpackage -rfakeroot
-	    set -e
+	    buildDeb
 	    cd ..
 	    rm -rf rabbithub-$v
 	    mv * $binaryArchivedir
