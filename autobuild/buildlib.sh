@@ -195,7 +195,7 @@ function buildGenericSimpleHgDebian {
 	    buildDeb
 	    cd ..
 	    rm -rf ${p}-${v}
-	    mv * $binaryArchivedir
+	    mv ${p}* $binaryArchivedir
 	)
     fi
 }
@@ -207,12 +207,18 @@ function build_xmpp {
 
 function build_stomp {
     pre_build
+
+    serverVersion="`hgVersion rabbitmq-server`"
+    serverSourceTarball="$sourceArchivedir/rabbitmq-server-$serverVersion.tar.gz"
+    [ -f "$serverSourceTarball" ]
+
     (
 	cd $builddir
-	tar -zxf $sourceArchivedir/rabbitmq-server-*.tar.gz
-	mv rabbitmq-server-* rabbitmq-server
+	tar -zxf $serverSourceTarball
+	mv rabbitmq-server-$serverVersion rabbitmq-server
 	make -C rabbitmq-server include/rabbit_framing.hrl
     )
+
     buildGenericSimpleHgDebian rabbitmq-stomp
 }
 
