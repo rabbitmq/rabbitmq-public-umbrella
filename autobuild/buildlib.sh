@@ -4,6 +4,7 @@ set -e
 set -x
 
 rabbitHg="http://hg.rabbitmq.com/"
+lshiftOpenSourceHg="http://hg.opensource.lshift.net/"
 tonygGithub="git://github.com/tonyg/"
 
 sourceArchivedir="`pwd`/_repo/sources"
@@ -132,6 +133,11 @@ EOF
     )
 }
 
+function build_erlang_rfc4627 {
+    pre_build
+    buildGenericSimpleHgDebian erlang-rfc4627 rfc4627-erlang
+}
+
 function build_server {
     v="`hgVersion rabbitmq-server`"
     if [ ! -f $binaryArchivedir/rabbitmq-server_$v.orig.tar.gz ]
@@ -185,17 +191,21 @@ function build_c {
 
 function buildGenericSimpleHgDebian {
     p="$1"; shift
+    set +e
+    dp="$1"; shift
+    set -e
+    if [ -z "$dp" ]; then dp="$p"; fi
     v="`hgVersion ${p}`"
-    if [ ! -f $binaryArchivedir/${p}_${v}-1.tar.gz ]
+    if [ ! -f $binaryArchivedir/${dp}_${v}-1.tar.gz ]
     then
-	hg clone ${p} $builddir/${p}-${v}
+	hg clone ${p} $builddir/${dp}-${v}
 	(
-	    cd $builddir/${p}-${v}
-	    genChangelogEntry ${p} ${v} debian/changelog
+	    cd $builddir/${dp}-${v}
+	    genChangelogEntry ${dp} ${v} debian/changelog
 	    buildDeb
 	    cd ..
-	    rm -rf ${p}-${v}
-	    mv ${p}* $binaryArchivedir
+	    rm -rf ${dp}-${v}
+	    mv ${dp}* $binaryArchivedir
 	)
     fi
 }
@@ -260,6 +270,7 @@ function build_rabbithub {
 }
 
 function wipe_all {
+    rm -rf erlang-rfc4627
     rm -rf rabbitmq-codegen
     rm -rf rabbitmq-server
     rm -rf rabbitmq-c
@@ -270,6 +281,7 @@ function wipe_all {
 }
 
 function fetch_all {
+    fetchHg erlang-rfc4627 $lshiftOpenSourceHg
     fetchHg rabbitmq-codegen
     fetchHg rabbitmq-server
     fetchHg rabbitmq-c
@@ -280,6 +292,7 @@ function fetch_all {
 }
 
 function clean_all {
+    clean erlang-rfc4627
     clean rabbitmq-codegen
     clean rabbitmq-server
     clean rabbitmq-c
@@ -291,6 +304,7 @@ function clean_all {
 
 function build_all {
     startDebianRepository
+    build_erlang_rfc4627
     build_server
     build_c
     build_xmpp
