@@ -6,6 +6,8 @@
 # The following optional variables can be set if your build requires it:
 #  GENERATED_SOURCES	-- The names of modules that are automatically generated.
 #			   Note that the names provided should EXCLUDE the .erl extension 
+#  EXTRA_PACKAGE_DIRS   -- The names of extra directories (over ebin) that should be included
+#			   in distribution packages
 
 EBIN_DIR=ebin
 SOURCE_DIR=src
@@ -38,6 +40,7 @@ package: clean all
 	rm -rf $(DIST_DIR)
 	mkdir -p $(DIST_DIR)/$(PACKAGE)
 	cp -r $(EBIN_DIR) $(DIST_DIR)/$(PACKAGE)
+	$(foreach EXTRA_DIR, $(EXTRA_PACKAGE_DIRS), cp -r $(EXTRA_DIR) $(DIST_DIR)/$(PACKAGE);)
 	(cd $(DIST_DIR); zip -r $(PACKAGE).ez $(PACKAGE))
 
 clean:
