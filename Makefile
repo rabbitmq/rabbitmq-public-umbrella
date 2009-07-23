@@ -64,4 +64,5 @@ named_update: checkout
 attach_plugins:
 	mkdir -p rabbitmq-server/plugins
 	$(foreach DIR, $(PLUGINS), (cd rabbitmq-server/plugins; ln -sf ../../$(DIR));)
+	(cd rabbitmq-server/plugins; ln -sf ../../mod_http/mochiweb)
 	rabbitmq-server/scripts/activate-plugins
