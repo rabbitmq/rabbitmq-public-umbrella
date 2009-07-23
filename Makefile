@@ -3,11 +3,12 @@ include include.mk
 # The order of these repos is VERY important because some repos depend on
 # other repos, so be careful when palying with this
 
-CORE_REPOS=rabbitmq-server rabbitmq-codegen rabbitmq-erlang-client
+CORE_REPOS=rabbitmq-server rabbitmq-codegen rabbitmq-erlang-client \
+           rabbitmq-http2
 PLUGIN_REPOS=erlang-rfc4627 mod_http mod_bql
 REPOS=$(CORE_REPOS) $(PLUGIN_REPOS)
 BRANCH=default
-PLUGINS=$(PLUGIN_REPOS) rabbitmq-erlang-client
+PLUGINS=$(PLUGIN_REPOS) rabbitmq-erlang-client rabbitmq-http2
 
 HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 HG_CORE_REPOSBASE=ssh://hg@hg.lshift.net
@@ -45,6 +46,9 @@ $(PLUGIN_REPOS):
 	hg clone $(HGREPOBASE)/$@
 
 checkout: $(REPOS)
+
+st: checkout
+	$(foreach DIR,. $(REPOS),(cd $(DIR); hg st -mad);)
 
 pull: checkout
 	$(foreach DIR,. $(REPOS),(cd $(DIR); hg pull);)
