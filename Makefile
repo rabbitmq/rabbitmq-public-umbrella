@@ -37,7 +37,10 @@ $(REPOS):
 
 checkout: $(REPOS)
 
-update: checkout
+pull: checkout
+	$(foreach DIR,. $(REPOS),(cd $(DIR); hg pull);)
+
+update: pull
 	$(foreach DIR,. $(REPOS),(cd $(DIR); hg up);)
 
 named_update: checkout
