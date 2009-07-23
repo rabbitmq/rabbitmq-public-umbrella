@@ -3,6 +3,7 @@
 EBIN_DIR=ebin
 SOURCE_DIR=src
 INCLUDE_DIR=include
+DIST_DIR=dist
 
 INCLUDES=$(wildcard $(INCLUDE_DIR)/*.hrl)
 SOURCES=$(wildcard $(SOURCE_DIR)/*.erl)
