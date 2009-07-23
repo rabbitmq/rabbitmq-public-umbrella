@@ -7,6 +7,7 @@ CORE_REPOS=rabbitmq-server rabbitmq-codegen rabbitmq-erlang-client
 PLUGIN_REPOS=erlang-rfc4627 mod_http mod_bql
 REPOS=$(CORE_REPOS) $(PLUGIN_REPOS)
 BRANCH=default
+PLUGINS=$(PLUGIN_REPOS) rabbitmq-erlang-client
 
 HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 HG_CORE_REPOSBASE=ssh://hg@hg.lshift.net
@@ -54,3 +55,9 @@ update: pull
 named_update: checkout
 	$(foreach DIR,. $(REPOS),(cd $(DIR); hg up -C $(BRANCH));)
 
+#----------------------------------
+# Plugin management
+attach_plugins:
+	mkdir -p rabbitmq-server/plugins
+	$(foreach DIR, $(PLUGINS), (cd rabbitmq-server/plugins; ln -sf ../../$(DIR));)
+	rabbitmq-server/scripts/activate-plugins
