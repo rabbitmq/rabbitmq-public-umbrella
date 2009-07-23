@@ -66,3 +66,13 @@ attach_plugins:
 	$(foreach DIR, $(PLUGINS), (cd rabbitmq-server/plugins; ln -sf ../../$(DIR));)
 	(cd rabbitmq-server/plugins; ln -sf ../../mod_http/mochiweb)
 	rabbitmq-server/scripts/activate-plugins
+
+bundle: package
+	rm -rf $(DIST_DIR)
+	mkdir -p $(DIST_DIR)/plugins
+	find . -name '*.ez' -exec cp {} $(DIST_DIR)/plugins \;
+	(cd $(DIST_DIR); zip -r plugins.zip plugins/)
+
+
+
+
