@@ -1,0 +1,7 @@
+syntax: glob
+*~
+erl_crash.dump
+
+syntax: regexp
+^dist/
+
