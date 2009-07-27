@@ -1,5 +1,3 @@
-include include.mk
-
 # The order of these repos is VERY important because some repos depend on
 # other repos, so be careful when palying with this
 
@@ -10,11 +8,16 @@ REPOS=$(CORE_REPOS) $(PLUGIN_REPOS)
 BRANCH=default
 PLUGINS=$(PLUGIN_REPOS) rabbitmq-erlang-client rabbitmq-http2
 
-HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
-HG_CORE_REPOSBASE=ssh://hg@hg.lshift.net
+HG_CORE_REPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
-ifeq ($(HGREPOBASE),)
-HGREPOBASE=ssh://hg@hg.opensource.lshift.net
+ifeq ($(HG_CORE_REPOBASE),)
+HG_CORE_REPOBASE=http://hg.rabbitmq.com/
+endif
+
+ifeq ($(shell echo $(HG_CORE_REPOBASE) | cut -c1-3),ssh)
+HG_PLUGIN_REPOBASE=ssh://hg@hg.opensource.lshift.net
+else
+HG_PLUGIN_REPOBASE=http://hg.opensource.lshift.net
 endif
 
 #----------------------------------
@@ -40,10 +43,10 @@ clean:
 # Subrepository management
 
 $(CORE_REPOS):
-	hg clone $(HG_CORE_REPOSBASE)/$@
+	hg clone $(HG_CORE_REPOBASE)/$@
 
 $(PLUGIN_REPOS):
-	hg clone $(HGREPOBASE)/$@
+	hg clone $(HG_PLUGIN_REPOBASE)/$@
 
 checkout: $(REPOS)
 
