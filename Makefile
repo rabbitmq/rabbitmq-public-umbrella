@@ -2,11 +2,13 @@
 # other repos, so be careful when palying with this
 
 CORE_REPOS=rabbitmq-server rabbitmq-codegen rabbitmq-erlang-client \
-           rabbitmq-http2
-PLUGIN_REPOS=erlang-rfc4627 mod_http mod_bql
-REPOS=$(CORE_REPOS) $(PLUGIN_REPOS)
+           rabbitmq-jsonrpc-channel rabbitmq-http-server \
+	   rabbitmq-jsonrpc-http-channel rabbitmq-bql
+OS_REPOS=erlang-rfc4627
+REPOS=$(CORE_REPOS) $(OS_REPOS)
 BRANCH=default
-PLUGINS=$(PLUGIN_REPOS) rabbitmq-erlang-client rabbitmq-http2
+PLUGINS=rabbitmq-erlang-client rabbitmq-jsonrpc-channel rabbitmq-jsonrpc-http-channel \
+        rabbitmq-bql
 
 HG_CORE_REPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
@@ -15,9 +17,9 @@ HG_CORE_REPOBASE=http://hg.rabbitmq.com/
 endif
 
 ifeq ($(shell echo $(HG_CORE_REPOBASE) | cut -c1-3),ssh)
-HG_PLUGIN_REPOBASE=ssh://hg@hg.opensource.lshift.net
+HG_OS_REPOBASE=ssh://hg@hg.opensource.lshift.net
 else
-HG_PLUGIN_REPOBASE=http://hg.opensource.lshift.net
+HG_OS_REPOBASE=http://hg.opensource.lshift.net
 endif
 
 #----------------------------------
@@ -45,8 +47,8 @@ clean:
 $(CORE_REPOS):
 	hg clone $(HG_CORE_REPOBASE)/$@
 
-$(PLUGIN_REPOS):
-	hg clone $(HG_PLUGIN_REPOBASE)/$@
+$(OS_REPOS):
+	hg clone $(HG_OS_REPOBASE)/$@
 
 checkout: $(REPOS)
 
@@ -67,7 +69,6 @@ named_update: checkout
 attach_plugins:
 	mkdir -p rabbitmq-server/plugins
 	$(foreach DIR, $(PLUGINS), (cd rabbitmq-server/plugins; ln -sf ../../$(DIR));)
-	(cd rabbitmq-server/plugins; ln -sf ../../mod_http/mochiweb)
 	rabbitmq-server/scripts/activate-plugins
 
 bundle: package
