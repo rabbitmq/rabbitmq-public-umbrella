@@ -25,10 +25,10 @@ endif
 #----------------------------------
 
 all:
-	$(foreach DIR, $(REPOS), $(MAKE) -C $(DIR) all;)
+	$(foreach DIR, $(REPOS), $(MAKE) -C $(DIR) all &&) true
 
 package:
-	$(foreach DIR, $(REPOS), $(MAKE) -C $(DIR) package;)
+	$(foreach DIR, $(REPOS), $(MAKE) -C $(DIR) package &&) true
 
 #----------------------------------
 # Convenience aliases
@@ -53,13 +53,13 @@ $(OS_REPOS):
 checkout: $(REPOS)
 
 st: checkout
-	$(foreach DIR,. $(REPOS),(cd $(DIR); hg st -mad);)
+	$(foreach DIR,. $(REPOS),(cd $(DIR); hg st -mad) &&) true
 
 pull: checkout
-	$(foreach DIR,. $(REPOS),(cd $(DIR); hg pull);)
+	$(foreach DIR,. $(REPOS),(cd $(DIR); hg pull) &&) true
 
 update: pull
-	$(foreach DIR,. $(REPOS),(cd $(DIR); hg up);)
+	$(foreach DIR,. $(REPOS),(cd $(DIR); hg up) &&) true
 
 named_update: checkout
 	$(foreach DIR,. $(REPOS),(cd $(DIR); hg up -C $(BRANCH));)
@@ -68,7 +68,7 @@ named_update: checkout
 # Plugin management
 attach_plugins:
 	mkdir -p rabbitmq-server/plugins
-	$(foreach DIR, $(PLUGINS), (cd rabbitmq-server/plugins; ln -sf ../../$(DIR));)
+	$(foreach DIR, $(PLUGINS), (cd rabbitmq-server/plugins; ln -sf ../../$(DIR)) &&) true
 	rabbitmq-server/scripts/activate-plugins
 
 bundle: package
@@ -76,7 +76,3 @@ bundle: package
 	mkdir -p $(DIST_DIR)/plugins
 	find . -name '*.ez' -exec cp {} $(DIST_DIR)/plugins \;
 	(cd $(DIST_DIR); zip -r plugins.zip plugins/)
-
-
-
-
