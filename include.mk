@@ -39,7 +39,8 @@ ERLC_OPTS=$(INCLUDE_OPTS) -o $(EBIN_DIR) -Wall
 TEST_ERLC_OPTS=$(INCLUDE_OPTS) -o $(TEST_EBIN_DIR) -Wall
 
 TEST_LOAD_PATH=-pa $(EBIN_DIR) -pa $(TEST_EBIN_DIR) $(foreach DEP, $(DEPS), -pa ../$(DEP)/ebin) \
-	$(foreach DEP, $(INTERNAL_DEPS), -pa $(DEPS_DIR)/$(DEP)/ebin)
+	$(foreach DEP, $(INTERNAL_DEPS), -pa $(DEPS_DIR)/$(DEP)/ebin) \
+	$(foreach DEP, $(DEPS), $(foreach SUBDEP, $(shell [ -d ../$(DEP)/deps ] && ls ../$(DEP)/deps), -pa ../$(DEP)/deps/$(SUBDEP)/ebin))
 
 LOG_BASE=/tmp
 LOG_IN_FILE=true
@@ -51,6 +52,8 @@ TEST_ARGS=
 else
 TEST_ARGS=$(ADD_BROKER_ARGS)
 endif
+
+TEST_APP_ARGS=$(foreach APP,$(TEST_APPS),-eval 'application:start($(APP))')
 
 all: $(TARGETS)
 
@@ -80,12 +83,13 @@ package: clean all
 	cp -r $(EBIN_DIR) $(DIST_DIR)/$(PACKAGE)
 	$(foreach EXTRA_DIR, $(EXTRA_PACKAGE_DIRS), cp -r $(EXTRA_DIR) $(DIST_DIR)/$(PACKAGE);)
 	(cd $(DIST_DIR); zip -r $(PACKAGE).ez $(PACKAGE))
+	$(foreach DEP, $(INTERNAL_DEPS), cp $(DEPS_DIR)/$(DEP)/$(DEP).ez $(DIST_DIR))
 
 test:	$(TARGETS) $(TEST_TARGETS)
-	$(ERL) $(TEST_LOAD_PATH) -noshell $(TEST_ARGS) $(foreach APP,$(TEST_APPS),-s $(APP) ) -eval "$(foreach CMD,$(TEST_COMMANDS),$(CMD), )halt()."	
+	$(ERL) $(TEST_LOAD_PATH) -noshell $(TEST_ARGS) $(TEST_APP_ARGS) -eval "$(foreach CMD,$(TEST_COMMANDS),$(CMD), )halt()."	
 
 run:	$(TARGETS) $(TEST_TARGETS)
-	$(ERL) $(TEST_LOAD_PATH) $(TEST_ARGS) $(foreach APP,$(TEST_APPS),-s $(APP) )
+	$(ERL) $(TEST_LOAD_PATH) $(TEST_ARGS) $(TEST_APP_ARGS)
 
 clean:
 	rm -f $(EBIN_DIR)/*.beam
