@@ -84,6 +84,9 @@ package: clean all
 test:	$(TARGETS) $(TEST_TARGETS)
 	$(ERL) $(TEST_LOAD_PATH) -noshell $(TEST_ARGS) $(foreach APP,$(TEST_APPS),-s $(APP) ) -eval "$(foreach CMD,$(TEST_COMMANDS),$(CMD), )halt()."	
 
+run:	$(TARGETS) $(TEST_TARGETS)
+	$(ERL) $(TEST_LOAD_PATH) $(TEST_ARGS) $(foreach APP,$(TEST_APPS),-s $(APP) )
+
 clean:
 	rm -f $(EBIN_DIR)/*.beam
 	rm -f $(TEST_EBIN_DIR)/*.beam
