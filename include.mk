@@ -75,7 +75,7 @@ $(TEST_EBIN_DIR)/%.beam: $(TEST_DIR)/%.erl
 	$(ERLC) $(TEST_ERLC_OPTS) -pa $(TEST_EBIN_DIR) $<
 
 $(DEPS_DIR)/%/ebin:
-	make -C $(shell dirname $@)
+	$(MAKE) -C $(shell dirname $@)
 
 package: clean all
 	rm -rf $(DIST_DIR)
@@ -96,4 +96,4 @@ clean:
 	rm -f $(TEST_EBIN_DIR)/*.beam
 	rm -f erl_crash.dump
 	$(foreach GEN, $(GENERATED_SOURCES), rm -f src/$(GEN);)
-	$(foreach DEP, $(INTERNAL_DEPS), make -C $(DEPS_DIR)/$(DEP) clean)
+	$(foreach DEP, $(INTERNAL_DEPS), $(MAKE) -C $(DEPS_DIR)/$(DEP) clean)
