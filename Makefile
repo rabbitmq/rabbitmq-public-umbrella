@@ -7,7 +7,7 @@ CORE_REPOS=rabbitmq-server rabbitmq-codegen rabbitmq-erlang-client \
 OS_REPOS=erlang-rfc4627
 REPOS=$(CORE_REPOS) $(OS_REPOS)
 BRANCH=default
-PLUGINS=rabbitmq-erlang-client rabbitmq-jsonrpc-channel rabbitmq-jsonrpc-http-channel \
+PLUGINS=rabbitmq-erlang-client rabbitmq-jsonrpc rabbitmq-mochiweb rabbitmq-jsonrpc-channel \
         rabbitmq-bql
 
 HG_CORE_REPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
@@ -68,7 +68,9 @@ named_update: checkout
 # Plugin management
 attach_plugins:
 	mkdir -p rabbitmq-server/plugins
+	rm rabbitmq-server/plugins/*
 	$(foreach DIR, $(PLUGINS), (cd rabbitmq-server/plugins; ln -sf ../../$(DIR)) &&) true
+	$(foreach DIR, rabbitmq-mochiweb, $(foreach DEP, $(shell make -C $(DIR) list-deps), (cd rabbitmq-server/plugins; ln -sf ../../$(DIR)/$(DEP)) && true))
 	rabbitmq-server/scripts/activate-plugins
 
 bundle: package

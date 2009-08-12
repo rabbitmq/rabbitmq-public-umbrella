@@ -26,7 +26,8 @@ SHELL=/bin/bash
 ERLC=erlc
 ERL=erl
 
-INCLUDE_OPTS=-I $(INCLUDE_DIR) $(foreach DEP, $(DEPS), -I ../$(DEP)/include)
+INCLUDE_OPTS=-I $(INCLUDE_DIR) $(foreach DEP, $(DEPS), -I ../$(DEP)/include) \
+             $(foreach DEP, $(INTERNAL_DEPS), -I $(DEPS_DIR)/$(DEP)/include)
 SOURCES=$(wildcard $(SOURCE_DIR)/*.erl)
 TEST_SOURCES=$(wildcard $(TEST_DIR)/*.erl)
 TARGETS=$(foreach DEP, $(INTERNAL_DEPS), $(DEPS_DIR)/$(DEP)/ebin) \
@@ -76,6 +77,9 @@ $(TEST_EBIN_DIR)/%.beam: $(TEST_DIR)/%.erl
 
 $(DEPS_DIR)/%/ebin:
 	$(MAKE) -C $(shell dirname $@)
+
+list-deps:
+	@echo $(foreach DEP, $(INTERNAL_DEPS), $(DEPS_DIR)/$(DEP))
 
 package: clean all
 	rm -rf $(DIST_DIR)
