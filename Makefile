@@ -2,8 +2,8 @@
 # other repos, so be careful when palying with this
 
 CORE_REPOS=rabbitmq-server rabbitmq-codegen rabbitmq-erlang-client \
-           rabbitmq-jsonrpc-channel rabbitmq-http-server \
-	   rabbitmq-jsonrpc-http-channel rabbitmq-bql
+           rabbitmq-jsonrpc rabbitmq-mochiweb \
+	   rabbitmq-jsonrpc-channel rabbitmq-bql
 OS_REPOS=erlang-rfc4627
 REPOS=$(CORE_REPOS) $(OS_REPOS)
 BRANCH=default
