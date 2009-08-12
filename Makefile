@@ -70,7 +70,7 @@ attach_plugins:
 	mkdir -p rabbitmq-server/plugins
 	rm rabbitmq-server/plugins/*
 	$(foreach DIR, $(PLUGINS), (cd rabbitmq-server/plugins; ln -sf ../../$(DIR)) &&) true
-	$(foreach DIR, rabbitmq-mochiweb, $(foreach DEP, $(shell make -C $(DIR) list-deps), (cd rabbitmq-server/plugins; ln -sf ../../$(DIR)/$(DEP)) && true))
+	$(foreach DIR, rabbitmq-mochiweb, $(foreach DEP, $(shell make -s -C $(DIR) list-deps), (cd rabbitmq-server/plugins; ln -sf ../../$(DIR)/$(DEP)) && true))
 	rabbitmq-server/scripts/activate-plugins
 
 bundle: package
