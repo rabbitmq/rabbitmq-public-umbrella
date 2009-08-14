@@ -5,7 +5,6 @@
 # 
 # The following optional variables can be set if your build requires it:
 #  DEPS                 -- Other projects that your build depends on (eg rabbitmq-server)
-#  DEP_APPS             -- The application names of dependencies that should be added to the load path
 #  INTERNAL_DEPS        -- Internal dependencies that need to be built and included.
 #  GENERATED_SOURCES	-- The names of modules that are automatically generated.
 #			   Note that the names provided should EXCLUDE the .erl extension 
@@ -22,7 +21,7 @@ TEST_DIR=test
 INCLUDE_DIR=include
 DIST_DIR=dist
 DEPS_DIR=deps
-PRIV_DEPS_DIR=priv/deps
+PRIV_DEPS_DIR=build/deps
 ROOT_DIR=..
 
 SHELL=/bin/bash
@@ -31,8 +30,11 @@ ERL=erl
 
 SOURCES=$(wildcard $(SOURCE_DIR)/*.erl)
 TEST_SOURCES=$(wildcard $(TEST_DIR)/*.erl)
+DEP_EZS=$(foreach DEP, $(DEPS), $(wildcard $(ROOT_DIR)/$(DEP)/$(DIST_DIR)/*.ez))
+DEP_NAMES=$(patsubst %.ez, %, $(foreach DEP_EZ, $(DEP_EZS), $(shell basename $(DEP_EZ))))
+
 TARGETS=$(foreach DEP, $(INTERNAL_DEPS), $(DEPS_DIR)/$(DEP)/ebin) \
-	$(foreach DEP, $(DEP_APPS), $(PRIV_DEPS_DIR)/$(DEP)/ebin) \
+	$(foreach DEP_NAME, $(DEP_NAMES), $(PRIV_DEPS_DIR)/$(DEP_NAME)/ebin) \
 	$(foreach GEN, $(GENERATED_SOURCES), src/$(GEN).erl)  \
         $(patsubst $(SOURCE_DIR)/%.erl, $(EBIN_DIR)/%.beam, $(SOURCES)) \
         $(foreach GEN, $(GENERATED_SOURCES), ebin/$(GEN).beam)
@@ -41,14 +43,11 @@ TEST_TARGETS=$(patsubst $(TEST_DIR)/%.erl, $(TEST_EBIN_DIR)/%.beam, $(TEST_SOURC
 ERLC_OPTS=$(INCLUDE_OPTS) -o $(EBIN_DIR) -Wall
 TEST_ERLC_OPTS=$(INCLUDE_OPTS) -o $(TEST_EBIN_DIR) -Wall
 
-DEPS_LOAD_PATH=$(foreach DEP, $(DEP_APPS), -pa $(PRIV_DEPS_DIR)/$(DEP)/ebin) \
-	$(foreach DEP, $(INTERNAL_DEPS), -pa $(DEPS_DIR)/$(DEP)/ebin) \
-	$(foreach DEP, $(DEPS), $(foreach SUBDEP, $(shell [ -d $(ROOT_DIR)/$(DEP)/deps ] && ls $(ROOT_DIR)/$(DEP)/deps), -pa $(ROOT_DIR)/$(DEP)/deps/$(SUBDEP)/ebin))
+DEPS_LOAD_PATH=$(foreach DEP, $(DEP_NAMES), -pa $(PRIV_DEPS_DIR)/$(DEP)/ebin) \
+	$(foreach DEP, $(INTERNAL_DEPS), -pa $(DEPS_DIR)/$(DEP)/ebin)
 TEST_LOAD_PATH=-pa $(EBIN_DIR) -pa $(TEST_EBIN_DIR) $(DEPS_LOAD_PATH)
 
-INCLUDE_OPTS=-I $(INCLUDE_DIR) $(foreach DEP, $(DEPS), -I $(ROOT_DIR)/$(DEP)/include) \
-             $(foreach DEP, $(INTERNAL_DEPS), -I $(DEPS_DIR)/$(DEP)/include) \
-             $(DEPS_LOAD_PATH)
+INCLUDE_OPTS=-I $(INCLUDE_DIR) $(DEPS_LOAD_PATH)
 
 LOG_BASE=/tmp
 LOG_IN_FILE=true
@@ -66,7 +65,10 @@ TEST_APP_ARGS=$(foreach APP,$(TEST_APPS),-eval 'ok = application:start($(APP))')
 all: $(TARGETS)
 
 diag:
-	echo $(INCLUDE_OPTS)
+	@echo DEP_EZS=$(DEP_EZS)
+	@echo DEP_NAMES=$(DEP_NAMES)
+	@echo TARGETS=$(TARGETS)
+	@echo INCLUDE_OPTS=$(INCLUDE_OPTS)
 
 $(EBIN_DIR):
 	mkdir -p $(EBIN_DIR)
@@ -87,7 +89,7 @@ $(DEPS_DIR)/%/ebin:
 
 $(PRIV_DEPS_DIR)/%/ebin:
 	@mkdir -p $(PRIV_DEPS_DIR)
-	$(foreach DEP, $(DEPS), $(foreach EZ, $(shell ls $(ROOT_DIR)/$(DEP)/dist/*.ez), cp $(EZ) $(PRIV_DEPS_DIR);))
+	$(foreach DEP, $(DEPS), $(foreach EZ, $(wildcard $(ROOT_DIR)/$(DEP)/dist/*.ez), cp $(EZ) $(PRIV_DEPS_DIR);))
 	(cd $(PRIV_DEPS_DIR); unzip $*.ez)
 
 list-deps:
@@ -100,6 +102,7 @@ package: clean all
 	$(foreach EXTRA_DIR, $(EXTRA_PACKAGE_DIRS), cp -r $(EXTRA_DIR) $(DIST_DIR)/$(PACKAGE);)
 	(cd $(DIST_DIR); zip -r $(PACKAGE).ez $(PACKAGE))
 	$(foreach DEP, $(INTERNAL_DEPS), cp $(DEPS_DIR)/$(DEP)/$(DEP).ez $(DIST_DIR))
+	$(foreach DEP, $(DEP_NAMES), cp $(PRIV_DEPS_DIR)/$(DEP).ez $(DIST_DIR) &&) true
 
 test:	$(TARGETS) $(TEST_TARGETS)
 	$(ERL) $(TEST_LOAD_PATH) -noshell $(TEST_ARGS) $(TEST_APP_ARGS) -eval "$(foreach CMD,$(TEST_COMMANDS),$(CMD), )halt()."	
