@@ -52,7 +52,7 @@ INCLUDE_OPTS=-I $(INCLUDE_DIR) $(DEPS_LOAD_PATH)
 LOG_BASE=/tmp
 LOG_IN_FILE=true
 RABBIT_SERVER=rabbitmq-server
-ADD_BROKER_ARGS=-mnesia dir tmp -boot start_sasl -s rabbit -sname rabbit\
+ADD_BROKER_ARGS=-pa $(ROOT_DIR)/$(RABBIT_SERVER)/ebin -mnesia dir tmp -boot start_sasl -s rabbit -sname rabbit\
         $(shell [ $(LOG_IN_FILE) = "true" ] && echo "-sasl sasl_error_logger '{file, \"'${LOG_BASE}'/rabbit-sasl.log\"}' -kernel error_logger '{file, \"'${LOG_BASE}'/rabbit.log\"}'")
 ifeq ($(START_RABBIT_IN_TESTS),)
 TEST_ARGS=
@@ -62,7 +62,7 @@ endif
 
 TEST_APP_ARGS=$(foreach APP,$(TEST_APPS),-eval 'ok = application:start($(APP))')
 
-all: $(TARGETS)
+all: package
 
 diag:
 	@echo DEP_EZS=$(DEP_EZS)
@@ -95,7 +95,9 @@ $(PRIV_DEPS_DIR)/%/ebin:
 list-deps:
 	@echo $(foreach DEP, $(INTERNAL_DEPS), $(DEPS_DIR)/$(DEP))
 
-package: clean all
+package: $(DIST_DIR)/$(PACKAGE).ez
+
+$(DIST_DIR)/$(PACKAGE).ez: $(TARGETS)
 	rm -rf $(DIST_DIR)
 	mkdir -p $(DIST_DIR)/$(PACKAGE)
 	cp -r $(EBIN_DIR) $(DIST_DIR)/$(PACKAGE)
@@ -117,3 +119,4 @@ clean:
 	rm -rf $(PRIV_DEPS_DIR)
 	$(foreach GEN, $(GENERATED_SOURCES), rm -f src/$(GEN);)
 	$(foreach DEP, $(INTERNAL_DEPS), $(MAKE) -C $(DEPS_DIR)/$(DEP) clean)
+	rm -rf $(DIST_DIR)
