@@ -21,16 +21,20 @@ TEST_DIR=test
 INCLUDE_DIR=include
 DIST_DIR=dist
 DEPS_DIR=deps
+PRIV_DEPS_DIR=build/deps
+ROOT_DIR=..
 
 SHELL=/bin/bash
 ERLC=erlc
 ERL=erl
 
-INCLUDE_OPTS=-I $(INCLUDE_DIR) $(foreach DEP, $(DEPS), -I ../$(DEP)/include) \
-             $(foreach DEP, $(INTERNAL_DEPS), -I $(DEPS_DIR)/$(DEP)/include)
 SOURCES=$(wildcard $(SOURCE_DIR)/*.erl)
 TEST_SOURCES=$(wildcard $(TEST_DIR)/*.erl)
+DEP_EZS=$(foreach DEP, $(DEPS), $(wildcard $(ROOT_DIR)/$(DEP)/$(DIST_DIR)/*.ez))
+DEP_NAMES=$(patsubst %.ez, %, $(foreach DEP_EZ, $(DEP_EZS), $(shell basename $(DEP_EZ))))
+
 TARGETS=$(foreach DEP, $(INTERNAL_DEPS), $(DEPS_DIR)/$(DEP)/ebin) \
+	$(foreach DEP_NAME, $(DEP_NAMES), $(PRIV_DEPS_DIR)/$(DEP_NAME)/ebin) \
 	$(foreach GEN, $(GENERATED_SOURCES), src/$(GEN).erl)  \
         $(patsubst $(SOURCE_DIR)/%.erl, $(EBIN_DIR)/%.beam, $(SOURCES)) \
         $(foreach GEN, $(GENERATED_SOURCES), ebin/$(GEN).beam)
@@ -39,14 +43,16 @@ TEST_TARGETS=$(patsubst $(TEST_DIR)/%.erl, $(TEST_EBIN_DIR)/%.beam, $(TEST_SOURC
 ERLC_OPTS=$(INCLUDE_OPTS) -o $(EBIN_DIR) -Wall
 TEST_ERLC_OPTS=$(INCLUDE_OPTS) -o $(TEST_EBIN_DIR) -Wall
 
-TEST_LOAD_PATH=-pa $(EBIN_DIR) -pa $(TEST_EBIN_DIR) $(foreach DEP, $(DEPS), -pa ../$(DEP)/ebin) \
-	$(foreach DEP, $(INTERNAL_DEPS), -pa $(DEPS_DIR)/$(DEP)/ebin) \
-	$(foreach DEP, $(DEPS), $(foreach SUBDEP, $(shell [ -d ../$(DEP)/deps ] && ls ../$(DEP)/deps), -pa ../$(DEP)/deps/$(SUBDEP)/ebin))
+DEPS_LOAD_PATH=$(foreach DEP, $(DEP_NAMES), -pa $(PRIV_DEPS_DIR)/$(DEP)/ebin) \
+	$(foreach DEP, $(INTERNAL_DEPS), -pa $(DEPS_DIR)/$(DEP)/ebin)
+TEST_LOAD_PATH=-pa $(EBIN_DIR) -pa $(TEST_EBIN_DIR) $(DEPS_LOAD_PATH)
+
+INCLUDE_OPTS=-I $(INCLUDE_DIR) $(DEPS_LOAD_PATH)
 
 LOG_BASE=/tmp
 LOG_IN_FILE=true
 RABBIT_SERVER=rabbitmq-server
-ADD_BROKER_ARGS=-mnesia dir tmp -boot start_sasl -s rabbit -sname rabbit\
+ADD_BROKER_ARGS=-pa $(ROOT_DIR)/$(RABBIT_SERVER)/ebin -mnesia dir tmp -boot start_sasl -s rabbit -sname rabbit\
         $(shell [ $(LOG_IN_FILE) = "true" ] && echo "-sasl sasl_error_logger '{file, \"'${LOG_BASE}'/rabbit-sasl.log\"}' -kernel error_logger '{file, \"'${LOG_BASE}'/rabbit.log\"}'")
 ifeq ($(START_RABBIT_IN_TESTS),)
 TEST_ARGS=
@@ -54,12 +60,15 @@ else
 TEST_ARGS=$(ADD_BROKER_ARGS)
 endif
 
-TEST_APP_ARGS=$(foreach APP,$(TEST_APPS),-eval 'application:start($(APP))')
+TEST_APP_ARGS=$(foreach APP,$(TEST_APPS),-eval 'ok = application:start($(APP))')
 
-all: $(TARGETS)
+all: package
 
 diag:
-	echo $(INCLUDE_OPTS)
+	@echo DEP_EZS=$(DEP_EZS)
+	@echo DEP_NAMES=$(DEP_NAMES)
+	@echo TARGETS=$(TARGETS)
+	@echo INCLUDE_OPTS=$(INCLUDE_OPTS)
 
 $(EBIN_DIR):
 	mkdir -p $(EBIN_DIR)
@@ -78,16 +87,24 @@ $(TEST_EBIN_DIR)/%.beam: $(TEST_DIR)/%.erl
 $(DEPS_DIR)/%/ebin:
 	$(MAKE) -C $(shell dirname $@)
 
+$(PRIV_DEPS_DIR)/%/ebin:
+	@mkdir -p $(PRIV_DEPS_DIR)
+	$(foreach EZ, $(DEP_EZS), cp $(EZ) $(PRIV_DEPS_DIR) &&) true
+	(cd $(PRIV_DEPS_DIR); unzip $*.ez)
+
 list-deps:
 	@echo $(foreach DEP, $(INTERNAL_DEPS), $(DEPS_DIR)/$(DEP))
 
-package: clean all
+package: $(DIST_DIR)/$(PACKAGE).ez
+
+$(DIST_DIR)/$(PACKAGE).ez: $(TARGETS)
 	rm -rf $(DIST_DIR)
 	mkdir -p $(DIST_DIR)/$(PACKAGE)
 	cp -r $(EBIN_DIR) $(DIST_DIR)/$(PACKAGE)
 	$(foreach EXTRA_DIR, $(EXTRA_PACKAGE_DIRS), cp -r $(EXTRA_DIR) $(DIST_DIR)/$(PACKAGE);)
 	(cd $(DIST_DIR); zip -r $(PACKAGE).ez $(PACKAGE))
 	$(foreach DEP, $(INTERNAL_DEPS), cp $(DEPS_DIR)/$(DEP)/$(DEP).ez $(DIST_DIR))
+	$(foreach DEP, $(DEP_NAMES), cp $(PRIV_DEPS_DIR)/$(DEP).ez $(DIST_DIR) &&) true
 
 test:	$(TARGETS) $(TEST_TARGETS)
 	$(ERL) $(TEST_LOAD_PATH) -noshell $(TEST_ARGS) $(TEST_APP_ARGS) -eval "$(foreach CMD,$(TEST_COMMANDS),$(CMD), )halt()."	
@@ -99,5 +116,7 @@ clean:
 	rm -f $(EBIN_DIR)/*.beam
 	rm -f $(TEST_EBIN_DIR)/*.beam
 	rm -f erl_crash.dump
+	rm -rf $(PRIV_DEPS_DIR)
 	$(foreach GEN, $(GENERATED_SOURCES), rm -f src/$(GEN);)
 	$(foreach DEP, $(INTERNAL_DEPS), $(MAKE) -C $(DEPS_DIR)/$(DEP) clean)
+	rm -rf $(DIST_DIR)
