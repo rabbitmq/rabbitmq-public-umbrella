@@ -89,7 +89,7 @@ $(DEPS_DIR)/%/ebin:
 
 $(PRIV_DEPS_DIR)/%/ebin:
 	@mkdir -p $(PRIV_DEPS_DIR)
-	$(foreach DEP, $(DEPS), $(foreach EZ, $(wildcard $(ROOT_DIR)/$(DEP)/dist/*.ez), cp $(EZ) $(PRIV_DEPS_DIR);))
+	$(foreach EZ, $(DEP_EZS), cp $(EZ) $(PRIV_DEPS_DIR) &&) true
 	(cd $(PRIV_DEPS_DIR); unzip $*.ez)
 
 list-deps:
