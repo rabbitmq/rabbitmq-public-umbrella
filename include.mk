@@ -13,6 +13,8 @@
 #  TEST_APPS            -- Applications that should be started as part of the VM that your tests
 #                          run in
 #  START_RABBIT_IN_TESTS -- If set, a Rabbit broker instance will be started as part of the test VM
+#  TEST_ARGS            -- Appended to the erl command line when running or running tests.
+#                          Beware of quote escaping issues!
 
 EBIN_DIR=ebin
 TEST_EBIN_DIR=test_ebin
@@ -55,9 +57,9 @@ RABBIT_SERVER=rabbitmq-server
 ADD_BROKER_ARGS=-pa $(ROOT_DIR)/$(RABBIT_SERVER)/ebin -mnesia dir tmp -boot start_sasl -s rabbit -sname rabbit\
         $(shell [ $(LOG_IN_FILE) = "true" ] && echo "-sasl sasl_error_logger '{file, \"'${LOG_BASE}'/rabbit-sasl.log\"}' -kernel error_logger '{file, \"'${LOG_BASE}'/rabbit.log\"}'")
 ifeq ($(START_RABBIT_IN_TESTS),)
-TEST_ARGS=
+FULL_TEST_ARGS=$(TEST_ARGS)
 else
-TEST_ARGS=$(ADD_BROKER_ARGS)
+FULL_TEST_ARGS=$(ADD_BROKER_ARGS) $(TEST_ARGS)
 endif
 
 TEST_APP_ARGS=$(foreach APP,$(TEST_APPS),-eval 'ok = application:start($(APP))')
@@ -107,10 +109,10 @@ $(DIST_DIR)/$(PACKAGE).ez: $(TARGETS)
 	$(foreach DEP, $(DEP_NAMES), cp $(PRIV_DEPS_DIR)/$(DEP).ez $(DIST_DIR) &&) true
 
 test:	$(TARGETS) $(TEST_TARGETS)
-	$(ERL) $(TEST_LOAD_PATH) -noshell $(TEST_ARGS) $(TEST_APP_ARGS) -eval "$(foreach CMD,$(TEST_COMMANDS),$(CMD), )halt()."	
+	$(ERL) $(TEST_LOAD_PATH) -noshell $(FULL_TEST_ARGS) $(TEST_APP_ARGS) -eval "$(foreach CMD,$(TEST_COMMANDS),$(CMD), )halt()."
 
 run:	$(TARGETS) $(TEST_TARGETS)
-	$(ERL) $(TEST_LOAD_PATH) $(TEST_ARGS) $(TEST_APP_ARGS)
+	$(ERL) $(TEST_LOAD_PATH) $(FULL_TEST_ARGS) $(TEST_APP_ARGS)
 
 clean:
 	rm -f $(EBIN_DIR)/*.beam
