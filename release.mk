@@ -13,12 +13,13 @@ PACKAGES_DIR=packages
 
 SERVER_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-server/$(VDIR)
 JAVA_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-java-client/$(VDIR)
+ERLANG_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-erlang-client/$(VDIR)
 BUNDLES_PACKAGES_DIR=$(PACKAGES_DIR)/bundles/$(VDIR)
 
 REQUIRED_EMULATOR_VERSION=5.5.5
 ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
 
-REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client
+REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-erlang-client
 
 HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
@@ -59,6 +60,7 @@ prepare:
 	mkdir -p $(PACKAGES_DIR)
 	mkdir -p $(SERVER_PACKAGES_DIR)
 	mkdir -p $(JAVA_CLIENT_PACKAGES_DIR)
+	mkdir -p $(ERLANG_CLIENT_PACKAGES_DIR)
 	mkdir -p $(BUNDLES_PACKAGES_DIR)
 
 packages: prepare
@@ -69,6 +71,7 @@ packages: prepare
 	$(MAKE) debian_packages
 	$(MAKE) rpm_packages
 	$(MAKE) java_packages
+	$(MAKE) erlang_client_packages
 
 ifneq "$(UNOFFICIAL_RELEASE)" ""
 sign_everything:
@@ -139,6 +142,12 @@ java_packages: prepare rabbitmq-java-client
 	cp rabbitmq-java-client/build/*.zip $(JAVA_CLIENT_PACKAGES_DIR)
 	cd $(JAVA_CLIENT_PACKAGES_DIR); unzip rabbitmq-java-client-javadoc-$(VERSION).zip
 
+erlang_client_packages: prepare rabbitmq-erlang-client
+	$(MAKE) -C rabbitmq-erlang-client clean doc dist VERSION=$(VERSION)
+	cp rabbitmq-java-client/dist/*.ez $(ERLANG_CLIENT_PACKAGES_DIR)
+	cp rabbitmq-java-client/dist/*.tar.gz $(ERLANG_CLIENT_PACKAGES_DIR)
+	cp rabbitmq-java-client/doc/ $(ERLANG_CLIENT_PACKAGES_DIR)
+
 WINDOWS_BUNDLE_TMP_DIR=$(PACKAGES_DIR)/complete-rabbitmq-bundle-$(VERSION)
 windows_bundle:
 	rm -rf $(WINDOWS_BUNDLE_TMP_DIR)
@@ -164,6 +173,9 @@ rabbitmq-server: rabbitmq-codegen
 rabbitmq-java-client: rabbitmq-codegen
 	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
 
+rabbitmq-erlang-client: rabbitmq-server
+	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
+
 rabbitmq-codegen:
 	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
 
@@ -176,6 +188,7 @@ clean:
 	$(MAKE) -C rabbitmq-server/packaging/debs/apt-repository clean
 	$(MAKE) -C rabbitmq-server/packaging/RPMS/Fedora clean
 	$(MAKE) -C rabbitmq-java-client clean
+	$(MAKE) -C rabbitmq-erlang-client clean
 
 ###########################################################################
 
