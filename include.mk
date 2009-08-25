@@ -12,6 +12,7 @@
 #			   in distribution packages
 #  TEST_APPS            -- Applications that should be started as part of the VM that your tests
 #                          run in
+#  TEST_SCRIPTS		-- Scripts that should be run during the test run
 #  START_RABBIT_IN_TESTS -- If set, a Rabbit broker instance will be started as part of the test VM
 #  TEST_ARGS            -- Appended to the erl command line when running or running tests.
 #                          Beware of quote escaping issues!
@@ -42,7 +43,7 @@ TARGETS=$(foreach DEP, $(INTERNAL_DEPS), $(DEPS_DIR)/$(DEP)/ebin) \
         $(foreach GEN, $(GENERATED_SOURCES), ebin/$(GEN).beam)
 TEST_TARGETS=$(patsubst $(TEST_DIR)/%.erl, $(TEST_EBIN_DIR)/%.beam, $(TEST_SOURCES))
 
-ERLC_OPTS=$(INCLUDE_OPTS) -o $(EBIN_DIR) -Wall
+ERLC_OPTS=$(INCLUDE_OPTS) -o $(EBIN_DIR) -Wall +debug_info
 TEST_ERLC_OPTS=$(INCLUDE_OPTS) -o $(TEST_EBIN_DIR) -Wall
 
 DEPS_LOAD_PATH=$(foreach DEP, $(DEP_NAMES), -pa $(PRIV_DEPS_DIR)/$(DEP)/ebin) \
@@ -109,7 +110,15 @@ $(DIST_DIR)/$(PACKAGE).ez: $(TARGETS)
 	$(foreach DEP, $(DEP_NAMES), cp $(PRIV_DEPS_DIR)/$(DEP).ez $(DIST_DIR) &&) true
 
 test:	$(TARGETS) $(TEST_TARGETS)
-	$(ERL) $(TEST_LOAD_PATH) -noshell $(FULL_TEST_ARGS) $(TEST_APP_ARGS) -eval "$(foreach CMD,$(TEST_COMMANDS),$(CMD), )halt()."
+	$(ERL) $(TEST_LOAD_PATH) -noshell $(FULL_TEST_ARGS) $(TEST_APP_ARGS) -eval "$(foreach CMD,$(TEST_COMMANDS),$(CMD), )halt()." 
+
+COVER_DIR=.
+cover: coverage
+coverage:
+	$(MAKE) test TEST_COMMANDS='cover:start() rabbit_misc:enable_cover([\"$(COVER_DIR)\"]) $(TEST_COMMANDS) rabbit_misc:report_cover() cover:stop()'
+	
+	@echo -e "\n**** Code coverage ****"
+	@cat cover/summary.txt
 
 run:	$(TARGETS) $(TEST_TARGETS)
 	$(ERL) $(TEST_LOAD_PATH) $(FULL_TEST_ARGS) $(TEST_APP_ARGS)
