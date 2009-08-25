@@ -143,10 +143,10 @@ java_packages: prepare rabbitmq-java-client
 	cd $(JAVA_CLIENT_PACKAGES_DIR); unzip rabbitmq-java-client-javadoc-$(VERSION).zip
 
 erlang_client_packages: prepare rabbitmq-erlang-client
-	$(MAKE) -C rabbitmq-erlang-client clean doc dist VERSION=$(VERSION)
-	cp rabbitmq-java-client/dist/*.ez $(ERLANG_CLIENT_PACKAGES_DIR)
-	cp rabbitmq-java-client/dist/*.tar.gz $(ERLANG_CLIENT_PACKAGES_DIR)
-	cp rabbitmq-java-client/doc/ $(ERLANG_CLIENT_PACKAGES_DIR)
+	$(MAKE) -C rabbitmq-erlang-client clean source_tarball doc package VERSION=$(VERSION)
+	cp rabbitmq-erlang-client/dist/*.ez $(ERLANG_CLIENT_PACKAGES_DIR)
+	cp rabbitmq-erlang-client/dist/*.tar.gz $(ERLANG_CLIENT_PACKAGES_DIR)
+	cp -r rabbitmq-erlang-client/doc/ $(ERLANG_CLIENT_PACKAGES_DIR)
 
 WINDOWS_BUNDLE_TMP_DIR=$(PACKAGES_DIR)/complete-rabbitmq-bundle-$(VERSION)
 windows_bundle:
