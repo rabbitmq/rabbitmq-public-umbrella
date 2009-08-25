@@ -114,7 +114,7 @@ test:	$(TARGETS) $(TEST_TARGETS)
 run:	$(TARGETS) $(TEST_TARGETS)
 	$(ERL) $(TEST_LOAD_PATH) $(FULL_TEST_ARGS) $(TEST_APP_ARGS)
 
-clean:
+clean::
 	rm -f $(EBIN_DIR)/*.beam
 	rm -f $(TEST_EBIN_DIR)/*.beam
 	rm -f erl_crash.dump
