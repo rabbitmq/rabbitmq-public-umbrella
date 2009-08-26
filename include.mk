@@ -13,6 +13,8 @@
 #  TEST_APPS            -- Applications that should be started as part of the VM that your tests
 #                          run in
 #  START_RABBIT_IN_TESTS -- If set, a Rabbit broker instance will be started as part of the test VM
+#  TEST_COMMANDS        -- A space separated list of commands that should be executed in order to run
+#                          test cases. For example, my_module_tests:test()
 #  TEST_ARGS            -- Appended to the erl command line when running or running tests.
 #                          Beware of quote escaping issues!
 
