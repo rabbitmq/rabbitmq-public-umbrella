@@ -143,9 +143,9 @@ WINDOWS_BUNDLE_TMP_DIR=$(PACKAGES_DIR)/complete-rabbitmq-bundle-$(VERSION)
 windows_bundle:
 	rm -rf $(WINDOWS_BUNDLE_TMP_DIR)
 	mkdir -p $(WINDOWS_BUNDLE_TMP_DIR)
-	[ -f /tmp/otp_win32_R11B-5.exe ] || \
-		wget -P /tmp http://www.erlang.org/download/otp_win32_R11B-5.exe
-	cp /tmp/otp_win32_R11B-5.exe $(WINDOWS_BUNDLE_TMP_DIR)
+	[ -f /tmp/otp_win32_R12B-5.exe ] || \
+		wget -P /tmp http://erlang.org/download/otp_win32_R12B-5.exe
+	cp /tmp/otp_win32_R12B-5.exe $(WINDOWS_BUNDLE_TMP_DIR)
 	cp \
 		$(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip \
 		$(JAVA_CLIENT_PACKAGES_DIR)/rabbitmq-java-client-bin-$(VERSION).zip \
