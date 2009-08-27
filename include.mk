@@ -12,6 +12,9 @@
 #			   in distribution packages
 #  TEST_APPS            -- Applications that should be started as part of the VM that your tests
 #                          run in
+#  TEST_SCRIPTS         -- A space seperated list of shell-executable scripts that should be run to
+#                          execute plugin tests. Allows languages other than Erlang to be used to write
+#                          test cases.
 #  START_RABBIT_IN_TESTS -- If set, a Rabbit broker instance will be started as part of the test VM
 #  TEST_COMMANDS        -- A space separated list of commands that should be executed in order to run
 #                          test cases. For example, my_module_tests:test()
@@ -31,6 +34,7 @@ ROOT_DIR=..
 SHELL=/bin/bash
 ERLC=erlc
 ERL=erl
+ERL_CALL=erl_call
 
 SOURCES=$(wildcard $(SOURCE_DIR)/*.erl)
 TEST_SOURCES=$(wildcard $(TEST_DIR)/*.erl)
@@ -44,8 +48,11 @@ TARGETS=$(foreach DEP, $(INTERNAL_DEPS), $(DEPS_DIR)/$(DEP)/ebin) \
         $(foreach GEN, $(GENERATED_SOURCES), ebin/$(GEN).beam)
 TEST_TARGETS=$(patsubst $(TEST_DIR)/%.erl, $(TEST_EBIN_DIR)/%.beam, $(TEST_SOURCES))
 
+NODE_NAME=rabbit
+
 ERLC_OPTS=$(INCLUDE_OPTS) -o $(EBIN_DIR) -Wall
 TEST_ERLC_OPTS=$(INCLUDE_OPTS) -o $(TEST_EBIN_DIR) -Wall
+ERL_CALL_OPTS=-sname $(NODE_NAME) -e
 
 DEPS_LOAD_PATH=$(foreach DEP, $(DEP_NAMES), -pa $(PRIV_DEPS_DIR)/$(DEP)/ebin) \
 	$(foreach DEP, $(INTERNAL_DEPS), -pa $(DEPS_DIR)/$(DEP)/ebin)
@@ -56,13 +63,16 @@ INCLUDE_OPTS=-I $(INCLUDE_DIR) $(DEPS_LOAD_PATH)
 LOG_BASE=/tmp
 LOG_IN_FILE=true
 RABBIT_SERVER=rabbitmq-server
-ADD_BROKER_ARGS=-pa $(ROOT_DIR)/$(RABBIT_SERVER)/ebin -mnesia dir tmp -boot start_sasl -s rabbit -sname rabbit\
+ADD_BROKER_ARGS=-pa $(ROOT_DIR)/$(RABBIT_SERVER)/ebin -mnesia dir tmp -boot start_sasl \
         $(shell [ $(LOG_IN_FILE) = "true" ] && echo "-sasl sasl_error_logger '{file, \"'${LOG_BASE}'/rabbit-sasl.log\"}' -kernel error_logger '{file, \"'${LOG_BASE}'/rabbit.log\"}'")
 ifeq ($(START_RABBIT_IN_TESTS),)
 FULL_TEST_ARGS=$(TEST_ARGS)
+BOOT_CMDS=
 else
 FULL_TEST_ARGS=$(ADD_BROKER_ARGS) $(TEST_ARGS)
+BOOT_CMDS=rabbit:start()
 endif
+
 
 TEST_APP_ARGS=$(foreach APP,$(TEST_APPS),-eval 'ok = application:start($(APP))')
 
@@ -111,10 +121,25 @@ $(DIST_DIR)/$(PACKAGE).ez: $(TARGETS)
 	$(foreach DEP, $(DEP_NAMES), cp $(PRIV_DEPS_DIR)/$(DEP).ez $(DIST_DIR) &&) true
 
 test:	$(TARGETS) $(TEST_TARGETS)
-	$(ERL) $(TEST_LOAD_PATH) -noshell $(FULL_TEST_ARGS) $(TEST_APP_ARGS) -eval "$(foreach CMD,$(TEST_COMMANDS),$(CMD), )halt()."
+	OK=true && \
+	echo >/tmp/rabbit-test-output && \
+	{ $(ERL) $(TEST_LOAD_PATH) -noshell -sname $(NODE_NAME) $(FULL_TEST_ARGS) & sleep 1 && \
+	  $(foreach BOOT_CMD,$(BOOT_CMDS),\
+            echo "$(BOOT_CMD)." | tee -a /tmp/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a /tmp/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
+	  $(foreach APP,$(TEST_APPS),\
+	    echo >>/tmp/rabbit-test-output && \
+            echo "ok = application:start($(APP))." | tee -a /tmp/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a /tmp/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
+	  $(foreach CMD,$(TEST_COMMANDS), \
+	    echo >>/tmp/rabbit-test-output && \
+	    echo "$(CMD)." | tee -a /tmp/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a /tmp/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
+	  $(foreach SCRIPT,$(TEST_SCRIPTS), \
+	    $(SCRIPT) && ) true || OK=false; } && \
+        echo "init:stop()." | $(ERL_CALL) $(ERL_CALL_OPTS) >/dev/null && \
+	sleep 1 && \
+	$$OK
 
 run:	$(TARGETS) $(TEST_TARGETS)
-	$(ERL) $(TEST_LOAD_PATH) $(FULL_TEST_ARGS) $(TEST_APP_ARGS)
+	$(ERL) $(TEST_LOAD_PATH) $(FULL_TEST_ARGS) -sname $(NODE_NAME) $(foreach BOOT_CMD,$(BOOT_CMDS),-eval '$(BOOT_CMD)') $(TEST_APP_ARGS)
 
 clean::
 	rm -f $(EBIN_DIR)/*.beam
