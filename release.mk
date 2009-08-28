@@ -143,7 +143,7 @@ java_packages: prepare rabbitmq-java-client
 	cd $(JAVA_CLIENT_PACKAGES_DIR); unzip rabbitmq-java-client-javadoc-$(VERSION).zip
 
 erlang_client_packages: prepare rabbitmq-erlang-client
-	$(MAKE) -C rabbitmq-erlang-client clean dist VERSION=$(VERSION)
+	$(MAKE) -C rabbitmq-erlang-client clean dist VERSION=$(VERSION) OTP_HOME=$(OTP_HOME)
 	cp rabbitmq-erlang-client/dist/*.ez $(ERLANG_CLIENT_PACKAGES_DIR)
 	cp rabbitmq-erlang-client/dist/*.tar.gz $(ERLANG_CLIENT_PACKAGES_DIR)
 	cp -r rabbitmq-erlang-client/doc/ $(ERLANG_CLIENT_PACKAGES_DIR)
