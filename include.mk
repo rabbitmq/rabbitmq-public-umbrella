@@ -50,7 +50,7 @@ TEST_TARGETS=$(patsubst $(TEST_DIR)/%.erl, $(TEST_EBIN_DIR)/%.beam, $(TEST_SOURC
 
 NODE_NAME=rabbit
 
-ERLC_OPTS=$(INCLUDE_OPTS) -o $(EBIN_DIR) -Wall
+ERLC_OPTS=$(INCLUDE_OPTS) -o $(EBIN_DIR) -Wall +debug_info
 TEST_ERLC_OPTS=$(INCLUDE_OPTS) -o $(TEST_EBIN_DIR) -Wall
 ERL_CALL_OPTS=-sname $(NODE_NAME) -e
 
@@ -67,11 +67,12 @@ ADD_BROKER_ARGS=-pa $(ROOT_DIR)/$(RABBIT_SERVER)/ebin -mnesia dir tmp -boot star
         $(shell [ $(LOG_IN_FILE) = "true" ] && echo "-sasl sasl_error_logger '{file, \"'${LOG_BASE}'/rabbit-sasl.log\"}' -kernel error_logger '{file, \"'${LOG_BASE}'/rabbit.log\"}'")
 ifeq ($(START_RABBIT_IN_TESTS),)
 FULL_TEST_ARGS=$(TEST_ARGS)
-BOOT_CMDS=
+FULL_BOOT_CMDS=$(BOOT_CMDS)
 else
 FULL_TEST_ARGS=$(ADD_BROKER_ARGS) $(TEST_ARGS)
-BOOT_CMDS=rabbit:start()
+FULL_BOOT_CMDS=$(BOOT_CMDS) rabbit:start()
 endif
+FULL_CLEANUP_CMDS=$(CLEANUP_CMDS) init:stop()
 
 
 TEST_APP_ARGS=$(foreach APP,$(TEST_APPS),-eval 'ok = application:start($(APP))')
@@ -120,11 +121,21 @@ $(DIST_DIR)/$(PACKAGE).ez: $(TARGETS)
 	$(foreach DEP, $(INTERNAL_DEPS), cp $(DEPS_DIR)/$(DEP)/$(DEP).ez $(DIST_DIR))
 	$(foreach DEP, $(DEP_NAMES), cp $(PRIV_DEPS_DIR)/$(DEP).ez $(DIST_DIR) &&) true
 
+
+COVER_DIR=.
+cover: coverage
+coverage:
+	$(MAKE) test BOOT_CMDS='cover:start() rabbit_misc:enable_cover([\"$(COVER_DIR)\"])' CLEANUP_CMDS='rabbit_misc:report_cover() cover:stop()'
+	
+	@echo -e "\n**** Code coverage ****"
+	@cat cover/summary.txt
+
+
 test:	$(TARGETS) $(TEST_TARGETS)
 	OK=true && \
 	echo >/tmp/rabbit-test-output && \
 	{ $(ERL) $(TEST_LOAD_PATH) -noshell -sname $(NODE_NAME) $(FULL_TEST_ARGS) & sleep 1 && \
-	  $(foreach BOOT_CMD,$(BOOT_CMDS),\
+	  $(foreach BOOT_CMD,$(FULL_BOOT_CMDS),\
             echo "$(BOOT_CMD)." | tee -a /tmp/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a /tmp/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
 	  $(foreach APP,$(TEST_APPS),\
 	    echo >>/tmp/rabbit-test-output && \
@@ -135,12 +146,13 @@ test:	$(TARGETS) $(TEST_TARGETS)
 	  $(foreach SCRIPT,$(TEST_SCRIPTS), \
 	    $(SCRIPT) && ) true || OK=false; } && \
 	{ [ "$$OK" == "true" ] || cat /tmp/rabbit-test-output; echo; } && \
-        echo "init:stop()." | $(ERL_CALL) $(ERL_CALL_OPTS) >/dev/null && \
+	$(foreach CLEANUP_CMD,$(FULL_CLEANUP_CMDS),\
+            echo "$(CLEANUP_CMD)." | tee -a /tmp/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a /tmp/rabbit-test-output | egrep "{ok, " >/dev/null; ) true && \
 	sleep 1 && \
 	$$OK
 
 run:	$(TARGETS) $(TEST_TARGETS)
-	$(ERL) $(TEST_LOAD_PATH) $(FULL_TEST_ARGS) -sname $(NODE_NAME) $(foreach BOOT_CMD,$(BOOT_CMDS),-eval '$(BOOT_CMD)') $(TEST_APP_ARGS)
+	$(ERL) $(TEST_LOAD_PATH) $(FULL_TEST_ARGS) -sname $(NODE_NAME) $(foreach BOOT_CMD,$(FULL_BOOT_CMDS),-eval '$(BOOT_CMD)') $(TEST_APP_ARGS)
 
 clean::
 	rm -f $(EBIN_DIR)/*.beam
