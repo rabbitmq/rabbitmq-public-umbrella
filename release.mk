@@ -179,28 +179,35 @@ clean:
 
 ###########################################################################
 
-RSYNC_CMD=rsync -irvpl
-DEPLOY_HOST=charlotte
+LIVE_DEPLOY_HOST=www
+LIVE_DEPLOY_PATH=/home/rabbitmq/extras
+
+STAGE_DEPLOY_HOST=www-stage
+STAGE_DEPLOY_PATH=/home/rabbitmq/extras
+
+RSYNC_CMD=rsync -irvpl --delete-after
 
 DEPLOY_RSYNC_CMDS=\
-	set -x; \
+	set -x -e; \
 	for subdirectory in rabbitmq-server rabbitmq-java-client bundles; do \
-		ssh $(DEPLOY_HOST) "(cd $${DEPLOY_ROOT}/releases; mkdir -p $$subdirectory; chmod g+w $$subdirectory)"; \
-		$(RSYNC_CMD) --delete-after $(PACKAGES_DIR)/$$subdirectory/* \
-			$(DEPLOY_HOST):$${DEPLOY_ROOT}/releases/$$subdirectory ; \
+		ssh $$deploy_host "(cd $$deploy_path/releases; mkdir -p $$subdirectory; chmod g+w $$subdirectory)"; \
+		$(RSYNC_CMD) $(PACKAGES_DIR)/$$subdirectory/* \
+		    $$deploy_host:$$deploy_path/releases/$$subdirectory ; \
 	done; \
-	$(RSYNC_CMD) --delete-after \
-			$(PACKAGES_DIR)/debian \
-		$(DEPLOY_HOST):$${DEPLOY_ROOT}/releases; \
-	UNPACKED_JAVADOC_DIR=`(cd packages/rabbitmq-java-client; ls -td */rabbitmq-java-client-javadoc-*/ | head -1)`; \
-	ssh $(DEPLOY_HOST) "(cd $${DEPLOY_ROOT}/releases/rabbitmq-java-client; rm -f current-javadoc; ln -s $${UNPACKED_JAVADOC_DIR} current-javadoc)"; \
-	set +x
+	$(RSYNC_CMD) $(PACKAGES_DIR)/debian \
+	    $$deploy_host:$$deploy_path/releases; \
+	unpacked_javadoc_dir=`(cd packages/rabbitmq-java-client; ls -td */rabbitmq-java-client-javadoc-*/ | head -1)`; \
+	ssh $$deploy_host "(cd $$deploy_path/releases/rabbitmq-java-client; rm -f current-javadoc; ln -s $$unpacked_javadoc_dir current-javadoc)"; \
 
 deploy-stage: fixup-permissions-for-deploy
-	(DEPLOY_ROOT=/home/rabbitmq/stage-extras; $(DEPLOY_RSYNC_CMDS))
+	deploy_host=$(STAGE_DEPLOY_HOST); \
+	     deploy_path=$(STAGE_DEPLOY_PATH); \
+	     $(DEPLOY_RSYNC_CMDS)
 
 deploy-live: fixup-permissions-for-deploy
-	(DEPLOY_ROOT=/home/rabbitmq/live-extras; $(DEPLOY_RSYNC_CMDS))
+	deploy_host=$(LIVE_DEPLOY_HOST); \
+	     deploy_path=$(LIVE_DEPLOY_PATH); \
+	     $(DEPLOY_RSYNC_CMDS)
 
 fixup-permissions-for-deploy:
 	chmod -R g+w $(PACKAGES_DIR)
