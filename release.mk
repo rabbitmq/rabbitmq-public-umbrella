@@ -13,12 +13,13 @@ PACKAGES_DIR=packages
 
 SERVER_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-server/$(VDIR)
 JAVA_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-java-client/$(VDIR)
+DOTNET_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-dotnet-client/$(VDIR)
 BUNDLES_PACKAGES_DIR=$(PACKAGES_DIR)/bundles/$(VDIR)
 
 REQUIRED_EMULATOR_VERSION=5.5.5
 ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
 
-REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client
+REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client
 
 HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
@@ -59,6 +60,7 @@ prepare:
 	mkdir -p $(PACKAGES_DIR)
 	mkdir -p $(SERVER_PACKAGES_DIR)
 	mkdir -p $(JAVA_CLIENT_PACKAGES_DIR)
+	mkdir -p $(DOTNET_CLIENT_PACKAGES_DIR)
 	mkdir -p $(BUNDLES_PACKAGES_DIR)
 
 packages: prepare
@@ -69,6 +71,7 @@ packages: prepare
 	$(MAKE) debian_packages
 	$(MAKE) rpm_packages
 	$(MAKE) java_packages
+	$(MAKE) dotnet_packages
 
 ifneq "$(UNOFFICIAL_RELEASE)" ""
 sign_everything:
@@ -139,6 +142,10 @@ java_packages: prepare rabbitmq-java-client
 	cp rabbitmq-java-client/build/*.zip $(JAVA_CLIENT_PACKAGES_DIR)
 	cd $(JAVA_CLIENT_PACKAGES_DIR); unzip rabbitmq-java-client-javadoc-$(VERSION).zip
 
+dotnet_packages:
+	$(MAKE) -C rabbitmq-dotnet-client dist RABBIT_VSN=$(VERSION)
+	cp -a rabbitmq-dotnet-client/releases/rabbitmq-dotnet-client/$(VDIR)/* $(DOTNET_CLIENT_PACKAGES_DIR)
+
 WINDOWS_BUNDLE_TMP_DIR=$(PACKAGES_DIR)/complete-rabbitmq-bundle-$(VERSION)
 windows_bundle:
 	rm -rf $(WINDOWS_BUNDLE_TMP_DIR)
@@ -164,6 +171,9 @@ rabbitmq-server: rabbitmq-codegen
 rabbitmq-java-client: rabbitmq-codegen
 	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
 
+rabbitmq-dotnet-client:
+	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
+
 rabbitmq-codegen:
 	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
 
@@ -179,28 +189,35 @@ clean:
 
 ###########################################################################
 
-RSYNC_CMD=rsync -irvpl
-DEPLOY_HOST=charlotte
+LIVE_DEPLOY_HOST=www
+LIVE_DEPLOY_PATH=/home/rabbitmq/extras
+
+STAGE_DEPLOY_HOST=www-stage
+STAGE_DEPLOY_PATH=/home/rabbitmq/extras
+
+RSYNC_CMD=rsync -irvpl --delete-after
 
 DEPLOY_RSYNC_CMDS=\
-	set -x; \
-	for subdirectory in rabbitmq-server rabbitmq-java-client bundles; do \
-		ssh $(DEPLOY_HOST) "(cd $${DEPLOY_ROOT}/releases; mkdir -p $$subdirectory; chmod g+w $$subdirectory)"; \
-		$(RSYNC_CMD) --delete-after $(PACKAGES_DIR)/$$subdirectory/* \
-			$(DEPLOY_HOST):$${DEPLOY_ROOT}/releases/$$subdirectory ; \
+	set -x -e; \
+	for subdirectory in rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client bundles; do \
+		ssh $$deploy_host "(cd $$deploy_path/releases; mkdir -p $$subdirectory; chmod g+w $$subdirectory)"; \
+		$(RSYNC_CMD) $(PACKAGES_DIR)/$$subdirectory/* \
+		    $$deploy_host:$$deploy_path/releases/$$subdirectory ; \
 	done; \
-	$(RSYNC_CMD) --delete-after \
-			$(PACKAGES_DIR)/debian \
-		$(DEPLOY_HOST):$${DEPLOY_ROOT}/releases; \
-	UNPACKED_JAVADOC_DIR=`(cd packages/rabbitmq-java-client; ls -td */rabbitmq-java-client-javadoc-*/ | head -1)`; \
-	ssh $(DEPLOY_HOST) "(cd $${DEPLOY_ROOT}/releases/rabbitmq-java-client; rm -f current-javadoc; ln -s $${UNPACKED_JAVADOC_DIR} current-javadoc)"; \
-	set +x
+	$(RSYNC_CMD) $(PACKAGES_DIR)/debian \
+	    $$deploy_host:$$deploy_path/releases; \
+	unpacked_javadoc_dir=`(cd packages/rabbitmq-java-client; ls -td */rabbitmq-java-client-javadoc-*/ | head -1)`; \
+	ssh $$deploy_host "(cd $$deploy_path/releases/rabbitmq-java-client; rm -f current-javadoc; ln -s $$unpacked_javadoc_dir current-javadoc)"; \
 
 deploy-stage: fixup-permissions-for-deploy
-	(DEPLOY_ROOT=/home/rabbitmq/stage-extras; $(DEPLOY_RSYNC_CMDS))
+	deploy_host=$(STAGE_DEPLOY_HOST); \
+	     deploy_path=$(STAGE_DEPLOY_PATH); \
+	     $(DEPLOY_RSYNC_CMDS)
 
 deploy-live: fixup-permissions-for-deploy
-	(DEPLOY_ROOT=/home/rabbitmq/live-extras; $(DEPLOY_RSYNC_CMDS))
+	deploy_host=$(LIVE_DEPLOY_HOST); \
+	     deploy_path=$(LIVE_DEPLOY_PATH); \
+	     $(DEPLOY_RSYNC_CMDS)
 
 fixup-permissions-for-deploy:
 	chmod -R g+w $(PACKAGES_DIR)
