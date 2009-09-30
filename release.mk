@@ -156,7 +156,7 @@ windows_bundle:
 	cp \
 		$(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip \
 		$(JAVA_CLIENT_PACKAGES_DIR)/rabbitmq-java-client-bin-$(VERSION).zip \
-		$(DOTNET_CLIENT_PACKAGES_DIR)/rabbitmq-dotnet-client-bin-$(VERSION).zip \
+		$(DOTNET_CLIENT_PACKAGES_DIR)/rabbitmq-dotnet-client-$(VERSION).msi \
 		$(WINDOWS_BUNDLE_TMP_DIR)
 	cp ./README-windows-bundle $(WINDOWS_BUNDLE_TMP_DIR)/README
 	sed -i 's/%%VERSION%%/$(VERSION)/' $(WINDOWS_BUNDLE_TMP_DIR)/README
