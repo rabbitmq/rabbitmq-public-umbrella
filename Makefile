@@ -30,7 +30,7 @@ all:
 	$(foreach DIR, $(REPOS), $(MAKE) -C $(DIR) all &&) true
 
 package:
-	$(foreach DIR, $(REPOS), $(MAKE) -C $(DIR) package &&) true
+	$(foreach DIR, $(PLUGINS), $(MAKE) -C $(DIR) package &&) true
 
 #----------------------------------
 # Convenience aliases
