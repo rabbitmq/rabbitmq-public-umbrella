@@ -31,10 +31,12 @@ DEPS_DIR=deps
 PRIV_DEPS_DIR=build/deps
 ROOT_DIR=..
 
-SHELL=/bin/bash
-ERLC=erlc
-ERL=erl
-ERL_CALL=erl_call
+SHELL ?= /bin/bash
+ERLC ?= erlc
+ERL ?= erl
+ERL_CALL ?= erl_call
+
+TMPDIR ?= /tmp
 
 SOURCES=$(wildcard $(SOURCE_DIR)/*.erl)
 TEST_SOURCES=$(wildcard $(TEST_DIR)/*.erl)
@@ -60,7 +62,7 @@ TEST_LOAD_PATH=-pa $(EBIN_DIR) -pa $(TEST_EBIN_DIR) $(DEPS_LOAD_PATH)
 
 INCLUDE_OPTS=-I $(INCLUDE_DIR) $(DEPS_LOAD_PATH)
 
-LOG_BASE=/tmp
+LOG_BASE=$(TMPDIR)
 LOG_IN_FILE=true
 RABBIT_SERVER=rabbitmq-server
 ADD_BROKER_ARGS=-pa $(ROOT_DIR)/$(RABBIT_SERVER)/ebin -mnesia dir tmp -boot start_sasl \
@@ -126,28 +128,27 @@ COVER_DIR=.
 cover: coverage
 coverage:
 	$(MAKE) test BOOT_CMDS='cover:start() rabbit_misc:enable_cover([\"$(COVER_DIR)\"])' CLEANUP_CMDS='rabbit_misc:report_cover() cover:stop()'
-	
 	@echo -e "\n**** Code coverage ****"
 	@cat cover/summary.txt
 
 
 test:	$(TARGETS) $(TEST_TARGETS)
 	OK=true && \
-	echo >/tmp/rabbit-test-output && \
+	echo >$(TMPDIR)/rabbit-test-output && \
 	{ $(ERL) $(TEST_LOAD_PATH) -noshell -sname $(NODE_NAME) $(FULL_TEST_ARGS) & sleep 1 && \
 	  $(foreach BOOT_CMD,$(FULL_BOOT_CMDS),\
-            echo "$(BOOT_CMD)." | tee -a /tmp/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a /tmp/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
+            echo "$(BOOT_CMD)." | tee -a $(TMPDIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $(TMPDIR)/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
 	  $(foreach APP,$(TEST_APPS),\
-	    echo >>/tmp/rabbit-test-output && \
-            echo "ok = application:start($(APP))." | tee -a /tmp/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a /tmp/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
+	    echo >>$(TMPDIR)/rabbit-test-output && \
+            echo "ok = application:start($(APP))." | tee -a $(TMPDIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $(TMPDIR)/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
 	  $(foreach CMD,$(TEST_COMMANDS), \
-	    echo >>/tmp/rabbit-test-output && \
-	    echo "$(CMD)." | tee -a /tmp/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a /tmp/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
+	    echo >>$(TMPDIR)/rabbit-test-output && \
+	    echo "$(CMD)." | tee -a $(TMPDIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $(TMPDIR)/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
 	  $(foreach SCRIPT,$(TEST_SCRIPTS), \
 	    $(SCRIPT) && ) true || OK=false; } && \
-	{ [ "$$OK" == "true" ] || cat /tmp/rabbit-test-output; echo; } && \
+	{ [ "$$OK" == "true" ] || cat $(TMPDIR)/rabbit-test-output; echo; } && \
 	$(foreach CLEANUP_CMD,$(FULL_CLEANUP_CMDS),\
-            echo "$(CLEANUP_CMD)." | tee -a /tmp/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a /tmp/rabbit-test-output | egrep "{ok, " >/dev/null; ) true && \
+            echo "$(CLEANUP_CMD)." | tee -a $(TMPDIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $(TMPDIR)/rabbit-test-output | egrep "{ok, " >/dev/null; ) true && \
 	sleep 1 && \
 	$$OK
 
