@@ -16,12 +16,13 @@ bug fixes
   error log entries and causing considerable CPU and memory pressure
 
 enhancements
-- support SSL natively - see <link>
+- support SSL natively - see <http://www.rabbitmq.com/ssl.html>
 - add a plugin mechanism to provide a framework for developing rabbit
-  extensions and managing their installation - see <link>
+  extensions and managing their installation - see 
+  <http://www.rabbitmq.com/plugin-development.html>
 - support configuration via erlang config file, which has fewer
   escaping and formatting requirements than the other configuration
-  mechanisms - see <link> 
+  mechanisms - see <http://www.rabbitmq.com/install.html#configfile>
 - display diagnostics when rabbitmqctl fails with a badrpc error,
   making it easier to track down the cause
 - improve queue hibernation logic to reduce system load in
@@ -96,7 +97,7 @@ The database schema has not changed since the 1.6.0 release, so user
 accounts, durable exchanges and queues, and persistent messages will
 all be retained during the upgrade.
 
-If, however, you are upgrading from an earlier release, when the
+If, however, you are upgrading from a release prior to 1.6.0, when the
 RabbitMQ server detects the presence of an old database, it moves it
 to a backup location, creates a fresh, empty database, and logs a
 warning. If your RabbitMQ installation contains important data then we
