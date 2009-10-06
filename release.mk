@@ -201,7 +201,7 @@ RSYNC_CMD=rsync -irvpl --delete-after
 DEPLOY_RSYNC_CMDS=\
 	set -x -e; \
 	for subdirectory in rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client bundles; do \
-		ssh $$deploy_host "(cd $$deploy_path/releases; mkdir -p $$subdirectory; chmod g+w $$subdirectory)"; \
+		ssh $$deploy_host "(cd $$deploy_path/releases; if [ ! -d $$subdirectory ] ; then mkdir -p $$subdirectory; chmod g+w $$subdirectory; fi)"; \
 		$(RSYNC_CMD) $(PACKAGES_DIR)/$$subdirectory/* \
 		    $$deploy_host:$$deploy_path/releases/$$subdirectory ; \
 	done; \
