@@ -55,7 +55,7 @@ prepare:
 		echo "Alternatively, set the makefile variable REQUIRED_EMULATOR_VERSION=$(ACTUAL_EMULATOR_VERSION) ."; \
 		false)
 	@echo Checking the presence of the tools necessary to build a release on a Debian based OS.
-	dpkg -L cdbs elinks findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip > /dev/null
+	dpkg -L cdbs elinks findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip python-pexpect > /dev/null
 	@echo All required tools are installed, great!
 	mkdir -p $(PACKAGES_DIR)
 	mkdir -p $(SERVER_PACKAGES_DIR)
@@ -78,7 +78,8 @@ sign_everything:
 	true
 else
 sign_everything:
-	rpm --addsign \
+	python util/nopassphrase.py \
+            rpm --addsign \
 		--define '_signature gpg' \
 		--define '_gpg_path $(GNUPG_PATH)/.gnupg/' \
 		--define '_gpg_name $(SIGNING_USER_ID)' \
