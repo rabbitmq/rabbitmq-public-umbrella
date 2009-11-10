@@ -215,7 +215,7 @@ deploy-stage: fixup-permissions-for-deploy
 	     deploy_path=$(STAGE_DEPLOY_PATH); \
 	     $(DEPLOY_RSYNC_CMDS)
 
-deploy-live: fixup-permissions-for-deploy
+deploy-live: fixup-permissions-for-deploy deploy-cloudfront cloudfront-verify
 	deploy_host=$(LIVE_DEPLOY_HOST); \
 	     deploy_path=$(LIVE_DEPLOY_PATH); \
 	     $(DEPLOY_RSYNC_CMDS)
@@ -223,3 +223,46 @@ deploy-live: fixup-permissions-for-deploy
 fixup-permissions-for-deploy:
 	chmod -R g+w $(PACKAGES_DIR)
 	chmod g+s `find $(PACKAGES_DIR) -type d`
+
+S3CMD_CONF=$(HOME)/.s3cmd
+S3_BUCKET=s3://rabbitmq-mirror
+CF_DOMAIN=mirror.rabbitmq.com
+
+# Deploys the contents of $(SERVER_PACKAGES_DIR) to cloudfront.
+# Hopefully all the files contain a rabbitmq version in the name.
+deploy-cloudfront: s3cmd $(S3CMD_CONF)
+	(cd $(SERVER_PACKAGES_DIR);	\
+			s3cmd put	\
+				--bucket-location=EU	\
+				--acl-public		\
+				--no-preserve		\
+				 --config=$(S3CMD_CONF)	\
+				`ls` $(S3_BUCKET);	\
+	)
+
+cloudfront-verify:
+	@echo " [*] Verifying Cloudfront uploads"
+	@(cd $(SERVER_PACKAGES_DIR);				\
+		for file in `ls`; do				\
+			echo -en "$$file\t";			\
+			A=`cat $$file|md5sum`;				\
+			B=`wget --quiet -O - http://$(CF_DOMAIN)/$$file|md5sum`;	\
+			if [ "$$A" != "$$B" ]; then			\
+				echo "BAD CLOUDFRONT CHECKSUM FOR http://$(CF_DOMAIN)/$$file";	\
+				exit 1;		\
+			else			\
+				echo "ok!";	\
+			fi			\
+		done)
+
+s3cmd:
+	@[ "`which s3cmd`" != "" ] || \
+		(echo "You need 's3cmd' to deploy to cloudfront."; \
+		echo "Run: sudo apt-get install s3cmd"; \
+		false)
+
+$(S3CMD_CONF): s3cmd
+	@[ "`ls $(S3CMD_CONF) 2>/dev/null`" != "" ] || \
+		(echo "You need s3 access keys!"; \
+		 echo "Run: s3cmd --config=$(S3CMD_CONF) --configure"; \
+	 		false)
