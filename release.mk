@@ -230,38 +230,46 @@ CF_DOMAIN=mirror.rabbitmq.com
 
 # Deploys the contents of $(SERVER_PACKAGES_DIR) to cloudfront.
 # Hopefully all the files contain a rabbitmq version in the name.
-deploy-cloudfront: s3cmd $(S3CMD_CONF)
-	(cd $(SERVER_PACKAGES_DIR);	\
-			s3cmd put	\
-				--bucket-location=EU	\
-				--acl-public		\
-				--no-preserve		\
-				 --config=$(S3CMD_CONF)	\
-				`ls` $(S3_BUCKET);	\
-	)
+deploy-cloudfront: s3cmd_check $(S3CMD_CONF)
+	for subdirectory in rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client bundles; do \
+		(cd $(PACKAGES_DIR)/$$subdirectory;		\
+		FILES=`find $(VDIR) -maxdepth 1 -type f`;	\
+		[ "$$FILES" = "" ] || s3cmd put			\
+			--bucket-location=EU			\
+			--acl-public				\
+			--force					\
+			--no-preserve				\
+				--config=$(S3CMD_CONF)		\
+				$$FILES $(S3_BUCKET)/releases/$$subdirectory/$(VDIR)/;)	\
+	done;
+			
 
-cloudfront-verify:
+cloudfront-verify: s3cmd_check
 	@echo " [*] Verifying Cloudfront uploads"
-	@(cd $(SERVER_PACKAGES_DIR);				\
-		for file in `ls`; do				\
-			echo -en "$$file\t";			\
-			A=`cat $$file|md5sum`;				\
-			B=`wget --quiet -O - http://$(CF_DOMAIN)/$$file|md5sum`;	\
-			if [ "$$A" != "$$B" ]; then			\
-				echo "BAD CLOUDFRONT CHECKSUM FOR http://$(CF_DOMAIN)/$$file";	\
+	@for subdirectory in rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client bundles; do \
+		cd $(PACKAGES_DIR)/$$subdirectory;			\
+		for file in `find $(VDIR) -maxdepth 1 -type f`; do						\
+			echo -en "$$file\t";					\
+			A=`cat $$file|md5sum`;					\
+			URL=http://$(CF_DOMAIN)/releases/$$subdirectory/$$file;	\
+			B=`wget --quiet -O - $$URL|md5sum`;					\
+			if [ "$$A" != "$$B" ]; then						\
+				echo "BAD CLOUDFRONT CHECKSUM FOR $$URL";			\
 				exit 1;		\
 			else			\
 				echo "ok!";	\
 			fi			\
-		done)
+		done;				\
+		cd $(PWD);			\
+	done
 
-s3cmd:
+s3cmd_check:
 	@[ "`which s3cmd`" != "" ] || \
 		(echo "You need 's3cmd' to deploy to cloudfront."; \
 		echo "Run: sudo apt-get install s3cmd"; \
 		false)
 
-$(S3CMD_CONF): s3cmd
+$(S3CMD_CONF): s3cmd_check
 	@[ "`ls $(S3CMD_CONF) 2>/dev/null`" != "" ] || \
 		(echo "You need s3 access keys!"; \
 		 echo "Run: s3cmd --config=$(S3CMD_CONF) --configure"; \
