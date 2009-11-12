@@ -226,41 +226,45 @@ fixup-permissions-for-deploy:
 
 S3CMD_CONF=$(HOME)/.s3cmd
 S3_BUCKET=s3://rabbitmq-mirror
-CF_DOMAIN=mirror.rabbitmq.com
+CF_URL=http://mirror.rabbitmq.com
+## Mirror behaves badly if the data was changed. To force script to continue
+## in such case, set this path to s3 bucket path:
+# CF_URL=http://s3.amazonaws.com/rabbitmq-mirror
 
 # Deploys the contents of $(SERVER_PACKAGES_DIR) to cloudfront.
 # Hopefully all the files contain a rabbitmq version in the name.
+#  We do have to iterate through every file, as for buggy s3cmd.
+SUBDIRECTORIES=rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client bundles
 deploy-cloudfront: s3cmd_check $(S3CMD_CONF)
-	for subdirectory in rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client bundles; do \
-		(cd $(PACKAGES_DIR)/$$subdirectory;		\
-		FILES=`find $(VDIR) -maxdepth 1 -type f`;	\
-		[ "$$FILES" = "" ] || s3cmd put			\
-			--bucket-location=EU			\
-			--acl-public				\
-			--force					\
-			--no-preserve				\
-				--config=$(S3CMD_CONF)		\
-				$$FILES $(S3_BUCKET)/releases/$$subdirectory/$(VDIR)/;)	\
+	cd $(PACKAGES_DIR);	\
+	VSUBDIRS=`for subdir in $(SUBDIRECTORIES); do echo $$subdir/$(VDIR); done`;	\
+	for file in `find $$VSUBDIRS -maxdepth 1 -type f|egrep -v '.asc$$'`; do	\
+		DST=$(S3_BUCKET)/releases/$$file; 	\
+		s3cmd put				\
+			--bucket-location=EU		\
+			--acl-public			\
+			--force				\
+			--no-preserve			\
+			--config=$(S3CMD_CONF)		\
+				$$file $$DST;		\
 	done;
-			
+
 
 cloudfront-verify: s3cmd_check
 	@echo " [*] Verifying Cloudfront uploads"
-	@for subdirectory in rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client bundles; do \
-		cd $(PACKAGES_DIR)/$$subdirectory;			\
-		for file in `find $(VDIR) -maxdepth 1 -type f`; do						\
-			echo -en "$$file\t";					\
-			A=`cat $$file|md5sum`;					\
-			URL=http://$(CF_DOMAIN)/releases/$$subdirectory/$$file;	\
-			B=`wget --quiet -O - $$URL|md5sum`;					\
-			if [ "$$A" != "$$B" ]; then						\
-				echo "BAD CLOUDFRONT CHECKSUM FOR $$URL";			\
-				exit 1;		\
-			else			\
-				echo "ok!";	\
-			fi			\
-		done;				\
-		cd $(PWD);			\
+	cd $(PACKAGES_DIR);	\
+	VSUBDIRS=`for subdir in $(SUBDIRECTORIES); do echo $$subdir/$(VDIR); done`;	\
+	for file in `find $$VSUBDIRS -maxdepth 1 -type f|egrep -v '.asc$$'`; do	\
+		URL=$(CF_URL)/releases/$$file;	\
+		echo -en "$$file\t";				\
+		A=`cat $$file|md5sum`;				\
+		B=`wget --quiet -O - $$URL|md5sum`;		\
+		if [ "$$A" != "$$B" ]; then			\
+			echo "BAD CLOUDFRONT CHECKSUM FOR $$URL"; \
+			exit 1;					\
+		else						\
+			echo "ok!";				\
+		fi						\
 	done
 
 s3cmd_check:
