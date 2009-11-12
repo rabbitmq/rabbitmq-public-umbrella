@@ -224,6 +224,9 @@ fixup-permissions-for-deploy:
 	chmod -R g+w $(PACKAGES_DIR)
 	chmod g+s `find $(PACKAGES_DIR) -type d`
 
+# The major problem with CloudFront is that they _don't see updates_!
+# So you can upload stuff to CF only once, never reuse the same filenames.
+# That's why we are interested only in deploy-live.
 S3CMD_CONF=$(HOME)/.s3cmd
 S3_BUCKET=s3://rabbitmq-mirror
 CF_URL=http://mirror.rabbitmq.com
