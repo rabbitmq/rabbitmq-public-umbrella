@@ -9,6 +9,11 @@ SIGNING_KEY=056E8E56
 SIGNING_USER_EMAIL=info@rabbitmq.com
 SIGNING_USER_ID=RabbitMQ Release Signing Key <info@rabbitmq.com>
 
+# Misc options to pass to hg commands
+HG_OPTS=
+
+# Misc options to pass to ssh commands
+
 PACKAGES_DIR=packages
 
 SERVER_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-server/$(VDIR)
@@ -38,7 +43,7 @@ tag: checkout
 	$(foreach DIR,. $(REPOS),(cd $(DIR); hg tag $(TAG));)
 
 push: checkout
-	$(foreach DIR,. $(REPOS),(cd $(DIR); hg push -f);)
+	$(foreach DIR,. $(REPOS),(cd $(DIR); hg push $(HG_OPTS) -f);)
 
 ifeq "$(UNOFFICIAL_RELEASE)$(GNUPG_PATH)" ""
 dist:
@@ -168,16 +173,16 @@ windows_bundle:
 	rm -rf $(WINDOWS_BUNDLE_TMP_DIR)
 
 rabbitmq-server: rabbitmq-codegen
-	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
+	[ -d $@ ] || hg clone $(HG_OPTS) $(HGREPOBASE)/$@
 
 rabbitmq-java-client: rabbitmq-codegen
-	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
+	[ -d $@ ] || hg clone $(HG_OPTS) $(HGREPOBASE)/$@
 
 rabbitmq-dotnet-client:
-	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
+	[ -d $@ ] || hg clone $(HG_OPTS) $(HGREPOBASE)/$@
 
 rabbitmq-codegen:
-	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
+	[ -d $@ ] || hg clone $(HG_OPTS) $(HGREPOBASE)/$@
 
 clean:
 	rm -rf $(PACKAGES_DIR)
@@ -202,14 +207,14 @@ RSYNC_CMD=rsync -irvpl --delete-after
 DEPLOY_RSYNC_CMDS=\
 	set -x -e; \
 	for subdirectory in rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client bundles; do \
-		ssh $$deploy_host "(cd $$deploy_path/releases; if [ ! -d $$subdirectory ] ; then mkdir -p $$subdirectory; chmod g+w $$subdirectory; fi)"; \
+		ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/releases; if [ ! -d $$subdirectory ] ; then mkdir -p $$subdirectory; chmod g+w $$subdirectory; fi)"; \
 		$(RSYNC_CMD) $(PACKAGES_DIR)/$$subdirectory/* \
 		    $$deploy_host:$$deploy_path/releases/$$subdirectory ; \
 	done; \
 	$(RSYNC_CMD) $(PACKAGES_DIR)/debian \
 	    $$deploy_host:$$deploy_path/releases; \
 	unpacked_javadoc_dir=`(cd packages/rabbitmq-java-client; ls -td */rabbitmq-java-client-javadoc-*/ | head -1)`; \
-	ssh $$deploy_host "(cd $$deploy_path/releases/rabbitmq-java-client; rm -f current-javadoc; ln -s $$unpacked_javadoc_dir current-javadoc)"; \
+	ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/releases/rabbitmq-java-client; rm -f current-javadoc; ln -s $$unpacked_javadoc_dir current-javadoc)"; \
 
 deploy-stage: fixup-permissions-for-deploy
 	deploy_host=$(STAGE_DEPLOY_HOST); \

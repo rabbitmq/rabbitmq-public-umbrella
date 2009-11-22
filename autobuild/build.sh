@@ -138,7 +138,7 @@ for repo in $REPOS ; do
     cp -a $repo .
 done
 
-make checkout
+make checkout HG_OPTS="-e 'ssh $SSH_OPTS'"
 
 if [[ -n "$CHANGELOG_EMAIL" ]] ; then
     # Tweak changelogs
@@ -170,7 +170,7 @@ if [ -z "$WEB_URL" ] ; then
         cd $WEBSITE_REPO
     else
         cd $TOPDIR
-        hg clone -r next ssh://hg@hg.lshift.net/rabbitmq-website
+        hg clone -e "ssh $SSH_OPTS" -r next ssh://hg@hg.lshift.net/rabbitmq-website
         cd rabbitmq-website
     fi
 
@@ -258,5 +258,5 @@ ssh $SSH_OPTS $BUILD_USERHOST "rm -rf $topdir"
 # Nearly there!
 if [[ -n "$DEPLOY_USERHOST" ]] ; then
     cd $TOPDIR/rabbitmq-umbrella
-    make deploy-stage STAGE_DEPLOY_HOST="$DEPLOY_USERHOST"
+    make deploy-stage STAGE_DEPLOY_HOST="$DEPLOY_USERHOST" SSH_OPTS="$SSH_OPTS"
 fi
