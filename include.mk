@@ -146,7 +146,7 @@ test:	$(TARGETS) $(TEST_TARGETS)
 	    echo "$(CMD)." | tee -a $(TMPDIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $(TMPDIR)/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
 	  $(foreach SCRIPT,$(TEST_SCRIPTS), \
 	    $(SCRIPT) && ) true || OK=false; } && \
-	{ [ "$$OK" == "true" ] || cat $(TMPDIR)/rabbit-test-output; echo; } && \
+	{ $$OK || cat $(TMPDIR)/rabbit-test-output; echo; } && \
 	$(foreach CLEANUP_CMD,$(FULL_CLEANUP_CMDS),\
             echo "$(CLEANUP_CMD)." | tee -a $(TMPDIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $(TMPDIR)/rabbit-test-output | egrep "{ok, " >/dev/null; ) true && \
 	sleep 1 && \
