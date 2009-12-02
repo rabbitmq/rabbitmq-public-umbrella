@@ -66,7 +66,8 @@ LOG_BASE=$(TMPDIR)
 LOG_IN_FILE=true
 RABBIT_SERVER=rabbitmq-server
 ADD_BROKER_ARGS=-pa $(ROOT_DIR)/$(RABBIT_SERVER)/ebin -mnesia dir tmp -boot start_sasl \
-        $(shell [ $(LOG_IN_FILE) = "true" ] && echo "-sasl sasl_error_logger '{file, \"'${LOG_BASE}'/rabbit-sasl.log\"}' -kernel error_logger '{file, \"'${LOG_BASE}'/rabbit.log\"}'")
+        $(shell [ $(LOG_IN_FILE) = "true" ] && echo "-sasl sasl_error_logger '{file, \"'${LOG_BASE}'/rabbit-sasl.log\"}' -kernel error_logger '{file, \"'${LOG_BASE}'/rabbit.log\"}'") \
+	-os_mon start_memsup false
 ifeq ($(START_RABBIT_IN_TESTS),)
 FULL_TEST_ARGS=$(TEST_ARGS)
 FULL_BOOT_CMDS=$(BOOT_CMDS)
