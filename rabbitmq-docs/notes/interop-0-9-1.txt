@@ -1,0 +1,7 @@
+Interop testing at 0-9-1
+
+OpenAMQ:
+
+ - binding to the default exchange, "", doesn't seem to work
+
+ - server issues 502 if you channel.close with an empty string for the text

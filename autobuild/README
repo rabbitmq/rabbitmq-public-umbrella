@@ -1,0 +1,73 @@
+Automatic RabbitMQ release builds
+=================================
+
+The build.sh script in this directory automates the process of
+performing a RabbitMQ release build.  The rabbitmq-umbrella Makefile
+already automates most of the Linux side of the build, and there are
+also shell scripts to automated the Windows side of the build.  But
+there remains an intricate back-and-forth between Linux and Windows to
+perform the build.  This script contains the ssh-and-rsync glue to
+pull the whole thing together into a single command.
+
+
+Prerequisites
+-------------
+
+A number of hosts are involved in the build process.  You probably
+should use your favourite full-system virtualization technology to run
+some of these as guest VMs.
+
+- Master host: Runs the build.sh script, performs the hg commands,
+  ssh's into the other hosts to make the build happen, signs the
+  results of the build, deploys them, and generally runs the show.
+  Any Linux should be suitable. There are few otherwise-inessential
+  dependencies; probably just make and rsync.
+
+- Build host: Runs the rabbitmq-umbrella Makefile 'dist' target, and
+  the Linux bits of the rabbitmq-dotnet-client build process.  In
+  order to maximise the compatibility of the BEAM files produced by
+  erlc, this should be have OTP R11B5 installed.  build.sh will take
+  care of the process of downloading, building, and locally installing
+  OTP (via the install-otp.sh script), but you will find that R11B5
+  doesn't actually build on anything more recent than Debian etch.
+  Thus the build host should be running etch, and this is the key
+  reason why it is convenient to distinguish the build host from the
+  master host.  The build.sh script will ensure that all prerequisite
+  packages for the build are installed on the build host.  So that it
+  can do this, the ssh key in use should be in root's authorized_keys
+  file on the build host.
+
+- Windows host: Used for the Windows-only bits of the
+  rabbitmq-dotnet-client build.  There are a number of prerequisite
+  packages that have to be installed by hand for this; see
+  <http://moshi.lshift.net/RabbitMQDotnetClientReleaseProcess>.  You
+  will also need to have various cygwin packages installed, in
+  particular the ssh server (see
+  <http://moshi.lshift.net/CygwinSshd>).
+
+- Deployment host: Once the build is complete, the rabbitmq-umbrella
+  Makefile will deploy the resulting artifacts to the
+  /home/rabbitmq/extras directory on the deployment host via ssh and
+  sync.
+
+Some of these hosts may be the same.  For my test builds, the master
+host and deployment host are my desktop machine, and the build host
+and windows host are guests VM running under kvm.
+
+
+Build.sh parameters
+-------------------
+
+build.sh takes a large number of parameters in order to configure it
+for the build environment.  These are set on the command line in a
+similar way to make variables, for example,
+
+$ autobuild/build.sh BUILD_USERHOST=etch VERSION=1.7.1234 KEYSDIR=/home/dpw/work/rabbit/autobuild/keys CHANGELOG_EMAIL="David Wragg <dpw@lshift.net>" SIGNING_PARAMS='SIGNING_KEY=BE8CA7D4 SIGNING_USER_EMAIL=dpw@lshift.net SIGNING_USER_ID="David Wragg (RabbitMQ Test Build) <dpw@lshift.net>"' WIN_USERHOST="David Wragg@192.168.122.85" DEPLOY_USERHOST=rabbitmq-deploy@mrbraver.lshift.net SSH_OPTS="-i /home/dpw/work/rabbit/autobuild/ssh-key/id_rsa"
+
+Many of these variables are optional, though omitting them may result
+in parts of the build being skipped.  The variables are documented at
+the top of build.sh.  The minimal set required for a full build and
+deployment is VERSION, BUILD_USERHOST, WIN_USERHOST and
+DEPLOY_USERHOST (the last three specifying the hosts to use during the
+build).
+
