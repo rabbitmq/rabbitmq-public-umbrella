@@ -36,6 +36,11 @@ SIGNING_PARAMS=
 # trailing slash.
 WEB_URL=
 
+# The base URL of the rabbitmq website where the results of the build
+# will actually be available.  Optional, defaults to the rabbitmq.com
+# site
+REAL_WEB_URL=
+
 # The directory in which the rabbitmq-website repo lives.  If empty,
 # we will do a fresh clone of the 'next' branch
 WEBSITE_REPO=
@@ -98,13 +103,15 @@ if [[ -z "$KEYSDIR" ]] ; then
   UNOFFICIAL_RELEASE=1
 fi
 
+[[ -n "$REAL_WEB_URL" ]] || REAL_WEB_URL=http://www.rabbitmq.com/
+
 # Lower-case topdir is the directory in /var/tmp where we do the build
 # on the remote hosts.  TOPDIR may be different.
 topdir=/var/tmp/rabbit-build.$$
 [[ -z "$TOPDIR" ]] && TOPDIR="$topdir"
 
 echo "Build settings:"
-for v in VERSION SCRIPTDIR BUILD_USERHOST ROOT_USERHOST WIN_USERHOST SSH_OPTS KEYSDIR SIGNING_PARAMS WEB_URL CHANGELOG_EMAIL CHANGELOG_COMMENT TOPDIR topdir REPOS WEBSITE_REPO UNOFFICIAL_RELEASE ; do
+for v in VERSION SCRIPTDIR BUILD_USERHOST ROOT_USERHOST WIN_USERHOST SSH_OPTS KEYSDIR SIGNING_PARAMS WEB_URL REAL_WEB_URL CHANGELOG_EMAIL CHANGELOG_COMMENT TOPDIR topdir REPOS WEBSITE_REPO UNOFFICIAL_RELEASE ; do
   echo "${v}=${!v}"
 done
 
@@ -124,7 +131,7 @@ ssh $SSH_OPTS $ROOT_USERHOST '
     DEBIAN_FRONTEND=noninteractive ; export DEBIAN_FRONTEND
     apt-get -y update
     apt-get -y dist-upgrade
-    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm reprepro tofrodos zip unzip ant sun-java5-jdk htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev python-pexpect'
+    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm reprepro tofrodos zip unzip ant sun-java5-jdk htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev openssl python-pexpect'
 
 mkdir -p $TOPDIR
 cp -a $SCRIPTDIR/install-otp.sh $TOPDIR
@@ -233,10 +240,10 @@ if [ -n "$WIN_USERHOST" ] ; then
     ssh $SSH_OPTS "$WIN_USERHOST" "rm -rf $topdir"
 fi
 
-vars="VERSION=$VERSION WEB_URL=\"$WEB_URL\" UNOFFICIAL_RELEASE=$UNOFFICIAL_RELEASE"
+vars="VERSION=$VERSION WEB_URL=\"$WEB_URL\" REAL_WEB_URL=\"$REAL_WEB_URL\" UNOFFICIAL_RELEASE=$UNOFFICIAL_RELEASE"
 
 if [ -n "$KEYSDIR" ] ; then
-    # Need to sign
+    # Set things up for signing
     rsync -rv $KEYSDIR/keyring/ $BUILD_USERHOST:$topdir/keyring/
     vars="$vars GNUPG_PATH=$topdir/keyring $SIGNING_PARAMS"
 fi

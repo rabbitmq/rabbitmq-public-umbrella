@@ -60,7 +60,7 @@ prepare:
 		echo "Alternatively, set the makefile variable REQUIRED_EMULATOR_VERSION=$(ACTUAL_EMULATOR_VERSION) ."; \
 		false)
 	@echo Checking the presence of the tools necessary to build a release on a Debian based OS.
-	dpkg -L cdbs elinks findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip python-pexpect > /dev/null
+	dpkg -L cdbs elinks findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip openssl python-pexpect > /dev/null
 	@echo All required tools are installed, great!
 	mkdir -p $(PACKAGES_DIR)
 	mkdir -p $(SERVER_PACKAGES_DIR)
@@ -75,6 +75,7 @@ packages: prepare
 	$(MAKE) $(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip
 	$(MAKE) debian_packages
 	$(MAKE) rpm_packages
+	$(MAKE) macports
 	$(MAKE) java_packages
 	$(MAKE) dotnet_packages
 
@@ -141,6 +142,10 @@ rpm_packages: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz r
 	$(MAKE) -C rabbitmq-server/packaging/RPMS/Fedora rpms VERSION=$(VERSION) RPM_OS=suse
 	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/i386/rabbitmq-server*suse*.rpm $(SERVER_PACKAGES_DIR)
 	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/x86_64/rabbitmq-server*suse*.rpm $(SERVER_PACKAGES_DIR)
+
+macports: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
+	$(MAKE) -C rabbitmq-server/packaging/macports macports VERSION=$(VERSION)
+	cp -r rabbitmq-server/packaging/macports/macports $(PACKAGES_DIR)
 
 java_packages: prepare rabbitmq-java-client
 	$(MAKE) -C rabbitmq-java-client clean dist VERSION=$(VERSION)
@@ -211,8 +216,10 @@ DEPLOY_RSYNC_CMDS=\
 		$(RSYNC_CMD) $(PACKAGES_DIR)/$$subdirectory/* \
 		    $$deploy_host:$$deploy_path/releases/$$subdirectory ; \
 	done; \
-	$(RSYNC_CMD) $(PACKAGES_DIR)/debian \
-	    $$deploy_host:$$deploy_path/releases; \
+	for subdirectory in debian macports ; do \
+		$(RSYNC_CMD) $(PACKAGES_DIR)/$$subdirectory \
+	    	    $$deploy_host:$$deploy_path/releases; \
+	done; \
 	unpacked_javadoc_dir=`(cd packages/rabbitmq-java-client; ls -td */rabbitmq-java-client-javadoc-*/ | head -1)`; \
 	ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/releases/rabbitmq-java-client; rm -f current-javadoc; ln -s $$unpacked_javadoc_dir current-javadoc)"; \
 
