@@ -147,6 +147,9 @@ macports: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbi
 	$(MAKE) -C rabbitmq-server/packaging/macports macports VERSION=$(VERSION)
 	cp -r rabbitmq-server/packaging/macports/macports $(PACKAGES_DIR)
 
+macports_index:
+	$(MAKE) -C rabbitmq-server/packaging/macports macports_index VERSION=$(VERSION) MACPORTS_DIR=$(realpath $(PACKAGES_DIR))/macports
+
 java_packages: prepare rabbitmq-java-client
 	$(MAKE) -C rabbitmq-java-client clean dist VERSION=$(VERSION)
 	cp rabbitmq-java-client/build/*.tar.gz $(JAVA_CLIENT_PACKAGES_DIR)

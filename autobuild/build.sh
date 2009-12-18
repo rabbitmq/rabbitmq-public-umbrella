@@ -52,6 +52,10 @@ CHANGELOG_EMAIL=
 # The comment for changelog entires
 CHANGELOG_COMMENT="Test release"
 
+# The Apple Mac OS host with macports installed used for generating
+# the macports artifacts
+MACPORTS_USERHOST=
+
 # RSync user/host to deploy to.  If empty, we don't deploy.
 DEPLOY_USERHOST=
 
@@ -111,7 +115,7 @@ topdir=/var/tmp/rabbit-build.$$
 [[ -z "$TOPDIR" ]] && TOPDIR="$topdir"
 
 echo "Build settings:"
-for v in VERSION SCRIPTDIR BUILD_USERHOST ROOT_USERHOST WIN_USERHOST SSH_OPTS KEYSDIR SIGNING_PARAMS WEB_URL REAL_WEB_URL CHANGELOG_EMAIL CHANGELOG_COMMENT TOPDIR topdir REPOS WEBSITE_REPO UNOFFICIAL_RELEASE ; do
+for v in VERSION SCRIPTDIR BUILD_USERHOST ROOT_USERHOST WIN_USERHOST SSH_OPTS KEYSDIR SIGNING_PARAMS WEB_URL REAL_WEB_URL CHANGELOG_EMAIL CHANGELOG_COMMENT DEPLY_USERHOST MACPORTS_USERHOST TOPDIR topdir REPOS WEBSITE_REPO UNOFFICIAL_RELEASE ; do
   echo "${v}=${!v}"
 done
 
@@ -259,11 +263,15 @@ ssh $SSH_OPTS $BUILD_USERHOST '
     { make dist '"$vars"' ERLANG_CLIENT_OTP_HOME=$HOME/otp-R12B-5 && touch dist.ok ; rm -rf '$topdir'/keyring ; } 2>&1 | tee dist.log ; test -e dist.ok
 '
 
+# Copy everything back from the build host
 rsync -av $BUILD_USERHOST:$topdir/ $TOPDIR 
 ssh $SSH_OPTS $BUILD_USERHOST "rm -rf $topdir"
 
-# Nearly there!
+# Do macports indexing
+cd $TOPDIR/rabbitmq-umbrella
+make macports_index MACPORTS_USERHOST="$MACPORTS_USERHOST" SSH_OPTS="$SSH_OPTS"
+
+# Finally, deploy
 if [[ -n "$DEPLOY_USERHOST" ]] ; then
-    cd $TOPDIR/rabbitmq-umbrella
     make deploy-stage STAGE_DEPLOY_HOST="$DEPLOY_USERHOST" SSH_OPTS="$SSH_OPTS"
 fi
