@@ -55,7 +55,7 @@ prepare:
 		echo "Alternatively, set the makefile variable REQUIRED_EMULATOR_VERSION=$(ACTUAL_EMULATOR_VERSION) ."; \
 		false)
 	@echo Checking the presence of the tools necessary to build a release on a Debian based OS.
-	dpkg -L cdbs elinks findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip > /dev/null
+	dpkg -L cdbs elinks findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip s3cmd > /dev/null
 	@echo All required tools are installed, great!
 	mkdir -p $(PACKAGES_DIR)
 	mkdir -p $(SERVER_PACKAGES_DIR)
@@ -238,7 +238,7 @@ CF_URL=http://mirror.rabbitmq.com
 # Hopefully all the files contain a rabbitmq version in the name.
 #  We do have to iterate through every file, as for buggy s3cmd.
 SUBDIRECTORIES=rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client bundles
-deploy-cloudfront: s3cmd_check $(S3CMD_CONF)
+deploy-cloudfront: $(S3CMD_CONF)
 	cd $(PACKAGES_DIR);	\
 	VSUBDIRS=`for subdir in $(SUBDIRECTORIES); do echo $$subdir/$(VDIR); done`;	\
 	for file in `find $$VSUBDIRS -maxdepth 1 -type f|egrep -v '.asc$$'`; do	\
@@ -253,7 +253,7 @@ deploy-cloudfront: s3cmd_check $(S3CMD_CONF)
 	done;
 
 
-cloudfront-verify: s3cmd_check
+cloudfront-verify:
 	@echo " [*] Verifying Cloudfront uploads"
 	cd $(PACKAGES_DIR);	\
 	VSUBDIRS=`for subdir in $(SUBDIRECTORIES); do echo $$subdir/$(VDIR); done`;	\
@@ -270,13 +270,8 @@ cloudfront-verify: s3cmd_check
 		fi						\
 	done
 
-s3cmd_check:
-	@[ "`which s3cmd`" != "" ] || \
-		(echo "You need 's3cmd' to deploy to cloudfront."; \
-		echo "Run: sudo apt-get install s3cmd"; \
-		false)
 
-$(S3CMD_CONF): s3cmd_check
+$(S3CMD_CONF):
 	@[ "`ls $(S3CMD_CONF) 2>/dev/null`" != "" ] || \
 		(echo "You need s3 access keys!"; \
 		 echo "Run: s3cmd --config=$(S3CMD_CONF) --configure"; \
