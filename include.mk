@@ -2,12 +2,12 @@
 # will include it with a command similar to "include ../include.mk". Before
 # inclusion, the following variables MUST be set:
 #  PACKAGE=    -- The name of the package
-# 
+#
 # The following optional variables can be set if your build requires it:
 #  DEPS                 -- Other projects that your build depends on (eg rabbitmq-server)
 #  INTERNAL_DEPS        -- Internal dependencies that need to be built and included.
 #  GENERATED_SOURCES	-- The names of modules that are automatically generated.
-#			   Note that the names provided should EXCLUDE the .erl extension 
+#			   Note that the names provided should EXCLUDE the .erl extension
 #  EXTRA_PACKAGE_DIRS   -- The names of extra directories (over ebin) that should be included
 #			   in distribution packages
 #  TEST_APPS            -- Applications that should be started as part of the VM that your tests
@@ -45,7 +45,6 @@ DEP_NAMES=$(patsubst %.ez, %, $(foreach DEP_EZ, $(DEP_EZS), $(shell basename $(D
 
 TARGETS=$(foreach DEP, $(INTERNAL_DEPS), $(DEPS_DIR)/$(DEP)/ebin) \
 	$(foreach DEP_NAME, $(DEP_NAMES), $(PRIV_DEPS_DIR)/$(DEP_NAME)/ebin) \
-	$(foreach GEN, $(GENERATED_SOURCES), src/$(GEN).erl)  \
         $(patsubst $(SOURCE_DIR)/%.erl, $(EBIN_DIR)/%.beam, $(SOURCES)) \
         $(foreach GEN, $(GENERATED_SOURCES), ebin/$(GEN).beam)
 TEST_TARGETS=$(patsubst $(TEST_DIR)/%.erl, $(TEST_EBIN_DIR)/%.beam, $(TEST_SOURCES))
@@ -161,6 +160,6 @@ clean::
 	rm -f $(TEST_EBIN_DIR)/*.beam
 	rm -f erl_crash.dump
 	rm -rf $(PRIV_DEPS_DIR)
-	$(foreach GEN, $(GENERATED_SOURCES), rm -f src/$(GEN);)
+	$(foreach GEN, $(GENERATED_SOURCES), rm -f src/$(GEN).erl;)
 	$(foreach DEP, $(INTERNAL_DEPS), $(MAKE) -C $(DEPS_DIR)/$(DEP) clean)
 	rm -rf $(DIST_DIR)
