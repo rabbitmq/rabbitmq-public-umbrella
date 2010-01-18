@@ -147,6 +147,8 @@ macports: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbi
 	$(MAKE) -C rabbitmq-server/packaging/macports macports VERSION=$(VERSION)
 	cp -r rabbitmq-server/packaging/macports/macports $(PACKAGES_DIR)
 
+# This target ssh's into the OSX host in order to finalize the
+# macports repo
 macports_index:
 	$(MAKE) -C rabbitmq-server/packaging/macports macports_index VERSION=$(VERSION) MACPORTS_DIR=$(realpath $(PACKAGES_DIR))/macports
 
