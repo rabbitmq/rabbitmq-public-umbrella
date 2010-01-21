@@ -195,8 +195,6 @@ if [ -n "$WIN_USERHOST" ] ; then
     # Do the initial nant-based build
     ssh $SSH_OPTS "$WIN_USERHOST" '
         set -e -x
-        # The PATH when you ssh in to the cygwin sshd is missing things
-        PATH="$PATH:$(cygpath -p "$SYSTEMROOT\microsoft.net\framework\v3.5;$PROGRAMFILES\msival2;$PROGRAMFILES\wix;$PROGRAMFILES\Microsoft SDKs\Windows\v6.1\Bin")"
         cd '$dotnetdir'
         { '"$vars"' ./dist.sh && touch dist.ok ; rm -f rabbit.snk ; } 2>&1 | tee dist.log ; test -e dist.ok
     '
