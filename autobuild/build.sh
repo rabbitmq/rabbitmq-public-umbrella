@@ -120,11 +120,15 @@ ssh $SSH_OPTS $ROOT_USERHOST '
     set -e -x
     if [ "$(cat /etc/debian_version)" = "4.0" ] ; then
         echo "deb http://ftp.uk.debian.org/debian/ etch-proposed-updates main" >/etc/apt/sources.list.d/proposed-updates.list
+        java_package=sun-java5-jdk
+    else
+        java_package=default-jdk
     fi
+         
     DEBIAN_FRONTEND=noninteractive ; export DEBIAN_FRONTEND
     apt-get -y update
     apt-get -y dist-upgrade
-    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm reprepro tofrodos zip unzip ant sun-java5-jdk htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev python-pexpect'
+    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm reprepro tofrodos zip unzip ant $java_package htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev python-pexpect'
 
 mkdir -p $TOPDIR
 cd $TOPDIR
