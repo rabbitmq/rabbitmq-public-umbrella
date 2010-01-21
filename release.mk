@@ -60,7 +60,7 @@ prepare:
 		echo "Alternatively, set the makefile variable REQUIRED_EMULATOR_VERSION=$(ACTUAL_EMULATOR_VERSION) ."; \
 		false)
 	@echo Checking the presence of the tools necessary to build a release on a Debian based OS.
-	dpkg -L cdbs links findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip python-pexpect s3cmd > /dev/null
+	dpkg -L cdbs elinks findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip python-pexpect s3cmd > /dev/null
 	@echo All required tools are installed, great!
 	mkdir -p $(PACKAGES_DIR)
 	mkdir -p $(SERVER_PACKAGES_DIR)
