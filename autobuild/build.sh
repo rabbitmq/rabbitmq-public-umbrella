@@ -242,8 +242,6 @@ fi
 ssh $SSH_OPTS $BUILD_USERHOST '
     set -e -x
     PATH=$HOME/otp-R11B-5/bin:$PATH
-    JAVA_HOME=/usr/lib/jvm/java-1.5.0-sun
-    export JAVA_HOME
     cd '$topdir'
     [ -d keyring ] && chmod -R a+rX,u+w keyring
     cd rabbitmq-umbrella
