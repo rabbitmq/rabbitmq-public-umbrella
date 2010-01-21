@@ -233,7 +233,7 @@ fixup-permissions-for-deploy:
 # The major problem with CloudFront is that they _don't see updates_!
 # So you can upload stuff to CF only once, never reuse the same filenames.
 # That's why we are interested only in deploy-live.
-S3CMD_CONF=$(HOME)/.s3cmd
+S3CMD_CONF=$(GNUPG_PATH)/../s3cmd-cloudfront-amazon-aws
 S3_BUCKET=s3://rabbitmq-mirror
 CF_URL=http://mirror.rabbitmq.com
 ## Mirror behaves badly if the data was changed. To force script to continue
