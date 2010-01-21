@@ -10,6 +10,9 @@
 #			   Note that the names provided should EXCLUDE the .erl extension
 #  EXTRA_PACKAGE_DIRS   -- The names of extra directories (over ebin) that should be included
 #			   in distribution packages
+#  EXTRA_PACKAGE_ARTIFACTS -- The names of additional artifacts that are produced as part of
+#                             the packaging process. Files will be created in dist/, but the
+#                             name listed here should exclude the dist/ prefix.
 #  TEST_APPS            -- Applications that should be started as part of the VM that your tests
 #                          run in
 #  TEST_SCRIPTS         -- A space seperated list of shell-executable scripts that should be run to
@@ -42,6 +45,8 @@ SOURCES=$(wildcard $(SOURCE_DIR)/*.erl)
 TEST_SOURCES=$(wildcard $(TEST_DIR)/*.erl)
 DEP_EZS=$(foreach DEP, $(DEPS), $(wildcard $(ROOT_DIR)/$(DEP)/$(DIST_DIR)/*.ez))
 DEP_NAMES=$(patsubst %.ez, %, $(foreach DEP_EZ, $(DEP_EZS), $(shell basename $(DEP_EZ))))
+
+EXTRA_PACKAGES=$(foreach PACKAGE_NAME, $(EXTRA_PACKAGE_ARTIFACTS), $(DIST_DIR)/$(PACKAGE_NAME))
 
 TARGETS=$(foreach DEP, $(INTERNAL_DEPS), $(DEPS_DIR)/$(DEP)/ebin) \
 	$(foreach DEP_NAME, $(DEP_NAMES), $(PRIV_DEPS_DIR)/$(DEP_NAME)/ebin) \
@@ -112,7 +117,7 @@ $(PRIV_DEPS_DIR)/%/ebin:
 list-deps:
 	@echo $(foreach DEP, $(INTERNAL_DEPS), $(DEPS_DIR)/$(DEP))
 
-package: $(DIST_DIR)/$(PACKAGE).ez
+package: $(DIST_DIR)/$(PACKAGE).ez $(EXTRA_PACKAGES)
 
 $(DIST_DIR)/$(PACKAGE).ez: $(TARGETS)
 	rm -rf $(DIST_DIR)
