@@ -256,3 +256,5 @@ if [[ -n "$DEPLOY_USERHOST" ]] ; then
     cd $TOPDIR/rabbitmq-umbrella
     make deploy-stage STAGE_DEPLOY_HOST="$DEPLOY_USERHOST" SSH_OPTS="$SSH_OPTS"
 fi
+
+echo "Build completed successfully (don't worry about the following kill)"
