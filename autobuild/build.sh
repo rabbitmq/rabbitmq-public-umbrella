@@ -127,7 +127,6 @@ ssh $SSH_OPTS $ROOT_USERHOST '
     apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm reprepro tofrodos zip unzip ant sun-java5-jdk htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev python-pexpect'
 
 mkdir -p $TOPDIR
-cp -a $SCRIPTDIR/install-otp.sh $TOPDIR
 cd $TOPDIR
 
 # Copy rabbitmq-umbrella into place
@@ -160,9 +159,6 @@ RSYNC_RSH="ssh $SSH_OPTS"
 export RSYNC_RSH
 
 rsync -a $TOPDIR/ $BUILD_USERHOST:$topdir
-
-# Do per-user install of the required erlang/OTP versions
-ssh $SSH_OPTS $BUILD_USERHOST $topdir/install-otp.sh
 
 if [ -z "$WEB_URL" ] ; then
     # Run the website under a local python process
