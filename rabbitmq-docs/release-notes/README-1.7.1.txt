@@ -12,7 +12,7 @@ bug fixes
   connection acceptance
 - prohibit the (re)declaration of queues that reside on node that is
   currently stopped, thus preventing message loss or duplication when
-  that node recovers.
+  that node recovers
 - eliminate race condition in queue auto-deletion, ensuring that it
   has completed before channel/connection closure completes
 - ensure that ack processing cannot stall under heavy load when using
@@ -23,7 +23,7 @@ bug fixes
   (%APPDATA%\RabbitMQ\erl_crash.dump by default) when running as a
   Windows service
 - get the Windows service to use Erlang/OTP R12B-5 by default, since
-  that's what we ship in the Windows bundle, rather than R11B-5.
+  that, rather than R11B-5, is what we ship in the Windows bundle
 - correct formatting of plug-in activation errors
 - make column order of 'rabbitmqctl list_bindings' match the
   documentation
@@ -35,7 +35,7 @@ bug fixes
 
 enhancements
 - make the various scripts work with complete short node names
-- improved memory monitoring and producer throttling. See the updated
+- improve memory monitoring and producer throttling. See the updated
   documentation at http://www.rabbitmq.com/extensions.html#memsup.
 - make tcp_listeners configurable via the rabbitmq.config file
 - use the base64 module instead of ssl_base64 if we can, since the
@@ -45,7 +45,7 @@ enhancements
 - add capability to display the transmitted client_properties in
   'rabbitmqctl list_connections'
 - extend codec with array type ('A')
-- add proper header to auto-generated code
+- add proper headers to auto-generated code
 
 Java client
 -----------
@@ -64,7 +64,7 @@ enhancements
 - extend codec with array type ('A')
 - throw a more informative exception (UnknownChannelException) when
   receiving a frame for an unknown channel
-- add proper header to auto-generated code
+- add proper headers to auto-generated code
 
 .net client
 -----------
@@ -72,7 +72,7 @@ bug fixes
 - close connections on app domain unload, thus preventing spurious
   errors and possible connection leaks when the client is run in
   certain app containers, e.g. IIS
-- close socket on ssl upgrade error, thus curing a socket leak
+- close socket on ssl upgrade error, thus plugging a socket leak
 - resolve various bugs in the ssl negotiation code that cause it to
   fail on .Net proper (though not mono)
 
@@ -82,9 +82,9 @@ enhancements
 - improve standard display of BrokerUnreachableException
 - make SharedQueue implement IEnumerable and allow multiple concurrent
   enumerators per instance
-- switch the code gen to the BSD-licensed version of the AMPQ spec
+- switch the code gen to the BSD-licensed version of the AMQP spec
 - extend codec with array type ('A')
-- add proper header to auto-generated code
+- add proper headers to auto-generated code
 
 building & packaging
 --------------------
@@ -95,10 +95,10 @@ bug fixes
 - fix error handling in rabbit.app generation, ensuring that errors
   are reported rather than written to the generated file
 - during Debian package removal, only kill epmd if it was started by
-  the rabbitmq user, in order to reduce likelihood of interference
+  the rabbitmq user, in order to reduce the likelihood of interference
   with other Erlang applications
-- resolve minor incompatibility with old version of 'echo' that could
-  result in spurious '-e's appearing in script errors
+- resolve minor incompatibility with some versions of 'echo' that
+  could result in spurious '-e's appearing in script error messages
 
 enhancements
 - make MacPorts package work on Snow Leopard
