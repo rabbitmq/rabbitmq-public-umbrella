@@ -58,9 +58,9 @@ prepare:
 		(echo "You are trying to compile with the wrong Erlang/OTP release."; \
 		echo "Please use emulator version $(REQUIRED_EMULATOR_VERSION)."; \
 		echo "Alternatively, set the makefile variable REQUIRED_EMULATOR_VERSION=$(ACTUAL_EMULATOR_VERSION) ."; \
-		false)
+		[ -n "$(UNOFFICIAL_RELEASE)" ] )
 	@echo Checking the presence of the tools necessary to build a release on a Debian based OS.
-	dpkg -L cdbs elinks findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip openssl python-pexpect > /dev/null
+	dpkg -L cdbs elinks findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip python-pexpect s3cmd openssl > /dev/null
 	@echo All required tools are installed, great!
 	mkdir -p $(PACKAGES_DIR)
 	mkdir -p $(SERVER_PACKAGES_DIR)
@@ -233,7 +233,7 @@ deploy-stage: fixup-permissions-for-deploy
 	     deploy_path=$(STAGE_DEPLOY_PATH); \
 	     $(DEPLOY_RSYNC_CMDS)
 
-deploy-live: fixup-permissions-for-deploy
+deploy-live: fixup-permissions-for-deploy deploy-cloudfront cloudfront-verify
 	deploy_host=$(LIVE_DEPLOY_HOST); \
 	     deploy_path=$(LIVE_DEPLOY_PATH); \
 	     $(DEPLOY_RSYNC_CMDS)
@@ -241,3 +241,56 @@ deploy-live: fixup-permissions-for-deploy
 fixup-permissions-for-deploy:
 	chmod -R g+w $(PACKAGES_DIR)
 	chmod g+s `find $(PACKAGES_DIR) -type d`
+
+# The major problem with CloudFront is that they _don't see updates_!
+# So you can upload stuff to CF only once, never reuse the same filenames.
+# That's why we are interested only in deploy-live.
+S3CMD_CONF=$(GNUPG_PATH)/../s3cmd-cloudfront-amazon-aws
+S3_BUCKET=s3://rabbitmq-mirror
+CF_URL=http://mirror.rabbitmq.com
+## Mirror behaves badly if the data was changed. To force script to continue
+## in such case, set this path to s3 bucket path:
+# CF_URL=http://s3.amazonaws.com/rabbitmq-mirror
+
+# Deploys the contents of $(SERVER_PACKAGES_DIR) to cloudfront.
+# Hopefully all the files contain a rabbitmq version in the name.
+#  We do have to iterate through every file, as for buggy s3cmd.
+SUBDIRECTORIES=rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client bundles
+deploy-cloudfront: $(S3CMD_CONF)
+	cd $(PACKAGES_DIR);	\
+	VSUBDIRS=`for subdir in $(SUBDIRECTORIES); do echo $$subdir/$(VDIR); done`;	\
+	for file in `find $$VSUBDIRS -maxdepth 1 -type f|egrep -v '.asc$$'`; do	\
+		DST=$(S3_BUCKET)/releases/$$file; 	\
+		s3cmd put				\
+			--bucket-location=EU		\
+			--acl-public			\
+			--force				\
+			--no-preserve			\
+			--config=$(S3CMD_CONF)		\
+				$$file $$DST;		\
+	done;
+
+
+cloudfront-verify:
+	@echo " [*] Verifying Cloudfront uploads"
+	cd $(PACKAGES_DIR);	\
+	VSUBDIRS=`for subdir in $(SUBDIRECTORIES); do echo $$subdir/$(VDIR); done`;	\
+	for file in `find $$VSUBDIRS -maxdepth 1 -type f|egrep -v '.asc$$'`; do	\
+		URL=$(CF_URL)/releases/$$file;	\
+		echo -en "$$file\t";				\
+		A=`cat $$file|md5sum`;				\
+		B=`wget --quiet -O - $$URL|md5sum`;		\
+		if [ "$$A" != "$$B" ]; then			\
+			echo "BAD CLOUDFRONT CHECKSUM FOR $$URL"; \
+			exit 1;					\
+		else						\
+			echo "ok!";				\
+		fi						\
+	done
+
+
+$(S3CMD_CONF):
+	@[ "`ls $(S3CMD_CONF) 2>/dev/null`" != "" ] || \
+		(echo "You need s3 access keys!"; \
+		 echo "Run: s3cmd --config=$(S3CMD_CONF) --configure"; \
+	 		false)

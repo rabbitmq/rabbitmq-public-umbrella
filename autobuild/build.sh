@@ -131,14 +131,17 @@ ssh $SSH_OPTS $ROOT_USERHOST '
     set -e -x
     if [ "$(cat /etc/debian_version)" = "4.0" ] ; then
         echo "deb http://ftp.uk.debian.org/debian/ etch-proposed-updates main" >/etc/apt/sources.list.d/proposed-updates.list
+        java_package=sun-java5-jdk
+    else
+        java_package=default-jdk
     fi
+         
     DEBIAN_FRONTEND=noninteractive ; export DEBIAN_FRONTEND
     apt-get -y update
     apt-get -y dist-upgrade
-    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm reprepro tofrodos zip unzip ant sun-java5-jdk htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev openssl python-pexpect'
+    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm reprepro tofrodos zip unzip ant $java_package htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev python-pexpect openssl'
 
 mkdir -p $TOPDIR
-cp -a $SCRIPTDIR/install-otp.sh $TOPDIR
 cd $TOPDIR
 
 # Copy rabbitmq-umbrella into place
@@ -171,9 +174,6 @@ RSYNC_RSH="ssh $SSH_OPTS"
 export RSYNC_RSH
 
 rsync -a $TOPDIR/ $BUILD_USERHOST:$topdir
-
-# Do per-user install of the required erlang/OTP versions
-ssh $SSH_OPTS $BUILD_USERHOST $topdir/install-otp.sh
 
 if [ -z "$WEB_URL" ] ; then
     # Run the website under a local python process
@@ -210,8 +210,6 @@ if [ -n "$WIN_USERHOST" ] ; then
     # Do the initial nant-based build
     ssh $SSH_OPTS "$WIN_USERHOST" '
         set -e -x
-        # The PATH when you ssh in to the cygwin sshd is missing things
-        PATH="$PATH:$(cygpath -p "$SYSTEMROOT\microsoft.net\framework\v3.5;$PROGRAMFILES\msival2;$PROGRAMFILES\wix;$PROGRAMFILES\Microsoft SDKs\Windows\v6.1\Bin")"
         cd '$dotnetdir'
         { '"$vars"' ./dist.sh && touch dist.ok ; rm -f rabbit.snk ; } 2>&1 | tee dist.log ; test -e dist.ok
     '
@@ -255,8 +253,6 @@ fi
 ssh $SSH_OPTS $BUILD_USERHOST '
     set -e -x
     PATH=$HOME/otp-R11B-5/bin:$PATH
-    JAVA_HOME=/usr/lib/jvm/java-1.5.0-sun
-    export JAVA_HOME
     cd '$topdir'
     [ -d keyring ] && chmod -R a+rX,u+w keyring
     cd rabbitmq-umbrella
@@ -275,3 +271,5 @@ make macports_index MACPORTS_USERHOST="$MACPORTS_USERHOST" SSH_OPTS="$SSH_OPTS"
 if [[ -n "$DEPLOY_USERHOST" ]] ; then
     make deploy-stage STAGE_DEPLOY_HOST="$DEPLOY_USERHOST" SSH_OPTS="$SSH_OPTS"
 fi
+
+echo "Build completed successfully (don't worry about the following kill)"
