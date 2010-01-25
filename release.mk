@@ -276,10 +276,15 @@ cloudfront-verify:
 	cd $(PACKAGES_DIR);	\
 	VSUBDIRS=`for subdir in $(SUBDIRECTORIES); do echo $$subdir/$(VDIR); done`;	\
 	for file in `find $$VSUBDIRS -maxdepth 1 -type f|egrep -v '.asc$$'`; do	\
-		URL=$(CF_URL)/releases/$$file;	\
-		echo -en "$$file\t";				\
-		A=`cat $$file|md5sum`;				\
-		B=`wget --quiet -O - $$URL|md5sum`;		\
+		URL=$(CF_URL)/releases/$$file; \
+		echo -en "$$file\t"; \
+		A=`md5sum $$file | awk '{print $$1}'`; \
+		rm -f $$file.fetched; \
+		wget $$URL -O $$file.fetched; \
+		B=`md5sum $$file.fetched  | awk '{print $$1}'`; \
+		echo $$A $$B; \
+		ls -l $$file $$file.fetched; \
+		rm -f $$file.fetched; \
 		if [ "$$A" != "$$B" ]; then			\
 			echo "BAD CLOUDFRONT CHECKSUM FOR $$URL"; \
 			exit 1;					\
