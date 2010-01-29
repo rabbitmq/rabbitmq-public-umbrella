@@ -13,6 +13,7 @@
 #  EXTRA_PACKAGE_ARTIFACTS -- The names of additional artifacts that are produced as part of
 #                             the packaging process. Files will be created in dist/, but the
 #                             name listed here should exclude the dist/ prefix.
+#  EXTRA_TARGETS        -- Additional prerequisites for building the plugin.
 #  TEST_APPS            -- Applications that should be started as part of the VM that your tests
 #                          run in
 #  TEST_SCRIPTS         -- A space seperated list of shell-executable scripts that should be run to
@@ -41,6 +42,7 @@ ERL_CALL ?= erl_call
 
 TMPDIR ?= /tmp
 
+INCLUDES=$(wildcard $(INCLUDE_DIR)/*.hrl)
 SOURCES=$(wildcard $(SOURCE_DIR)/*.erl)
 TEST_SOURCES=$(wildcard $(TEST_DIR)/*.erl)
 DEP_EZS=$(foreach DEP, $(DEPS), $(wildcard $(ROOT_DIR)/$(DEP)/$(DIST_DIR)/*.ez))
