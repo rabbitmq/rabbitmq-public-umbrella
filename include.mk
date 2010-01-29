@@ -48,10 +48,13 @@ DEP_NAMES=$(patsubst %.ez, %, $(foreach DEP_EZ, $(DEP_EZS), $(shell basename $(D
 
 EXTRA_PACKAGES=$(foreach PACKAGE_NAME, $(EXTRA_PACKAGE_ARTIFACTS), $(DIST_DIR)/$(PACKAGE_NAME))
 
+EXTRA_TARGETS ?=
+
 TARGETS=$(foreach DEP, $(INTERNAL_DEPS), $(DEPS_DIR)/$(DEP)/ebin) \
 	$(foreach DEP_NAME, $(DEP_NAMES), $(PRIV_DEPS_DIR)/$(DEP_NAME)/ebin) \
         $(patsubst $(SOURCE_DIR)/%.erl, $(EBIN_DIR)/%.beam, $(SOURCES)) \
-        $(foreach GEN, $(GENERATED_SOURCES), ebin/$(GEN).beam)
+        $(foreach GEN, $(GENERATED_SOURCES), ebin/$(GEN).beam) \
+	$(EXTRA_TARGETS)
 TEST_TARGETS=$(patsubst $(TEST_DIR)/%.erl, $(TEST_EBIN_DIR)/%.beam, $(TEST_SOURCES))
 
 NODE_NAME=rabbit
