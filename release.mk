@@ -232,6 +232,7 @@ deploy-stage: fixup-permissions-for-deploy
 	deploy_host=$(STAGE_DEPLOY_HOST); \
 	     deploy_path=$(STAGE_DEPLOY_PATH); \
 	     $(DEPLOY_RSYNC_CMDS)
+	$(MAKE) -C rabbitmq-java-client deploy-maven-bundle SIGNING_KEY=$(SIGNING_KEY) VERSION=$(VERSION)
 
 deploy-live: fixup-permissions-for-deploy deploy-cloudfront cloudfront-verify
 	deploy_host=$(LIVE_DEPLOY_HOST); \
