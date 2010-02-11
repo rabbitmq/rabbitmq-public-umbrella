@@ -75,7 +75,6 @@ packages: prepare
 	$(MAKE) $(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip
 	$(MAKE) debian_packages
 	$(MAKE) rpm_packages
-	$(MAKE) macports
 	$(MAKE) java_packages
 	$(MAKE) dotnet_packages
 
@@ -103,23 +102,23 @@ endif
 bundles: packages
 	$(MAKE) windows_bundle
 
-$(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz: prepare rabbitmq-server
+$(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz: rabbitmq-server
 	$(MAKE) -C rabbitmq-server clean srcdist VERSION=$(VERSION)
 	cp rabbitmq-server/dist/rabbitmq-server-*.tar.gz $(SERVER_PACKAGES_DIR)
 
-$(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).zip: prepare rabbitmq-server
+$(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).zip: rabbitmq-server
 	$(MAKE) -C rabbitmq-server clean srcdist VERSION=$(VERSION)
 	cp rabbitmq-server/dist/rabbitmq-server-*.zip $(SERVER_PACKAGES_DIR)
 
-$(SERVER_PACKAGES_DIR)/rabbitmq-server-generic-unix-$(VERSION).tar.gz: prepare rabbitmq-server
+$(SERVER_PACKAGES_DIR)/rabbitmq-server-generic-unix-$(VERSION).tar.gz: rabbitmq-server
 	$(MAKE) -C rabbitmq-server/packaging/generic-unix clean dist VERSION=$(VERSION)
 	cp rabbitmq-server/packaging/generic-unix/rabbitmq-server-generic-unix-*.tar.gz $(SERVER_PACKAGES_DIR)
 
-$(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip: prepare rabbitmq-server
+$(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip: rabbitmq-server
 	$(MAKE) -C rabbitmq-server/packaging/windows clean dist VERSION=$(VERSION)
 	cp rabbitmq-server/packaging/windows/rabbitmq-server-windows-*.zip $(SERVER_PACKAGES_DIR)
 
-debian_packages: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
+debian_packages: $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
 	$(MAKE) -C rabbitmq-server/packaging/debs/Debian clean package \
 		UNOFFICIAL_RELEASE=$(UNOFFICIAL_RELEASE) \
 		GNUPG_PATH=$(GNUPG_PATH) \
@@ -135,7 +134,7 @@ debian_packages: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.g
 		SIGNING_USER_EMAIL=$(SIGNING_USER_EMAIL)
 	cp -r rabbitmq-server/packaging/debs/apt-repository/debian $(PACKAGES_DIR)
 
-rpm_packages: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
+rpm_packages: $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
 	$(MAKE) -C rabbitmq-server/packaging/RPMS/Fedora rpms VERSION=$(VERSION) RPM_OS=fedora
 	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/i386/rabbitmq-server*.rpm $(SERVER_PACKAGES_DIR)
 	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/x86_64/rabbitmq-server*.rpm $(SERVER_PACKAGES_DIR)
@@ -143,16 +142,13 @@ rpm_packages: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz r
 	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/i386/rabbitmq-server*suse*.rpm $(SERVER_PACKAGES_DIR)
 	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/x86_64/rabbitmq-server*suse*.rpm $(SERVER_PACKAGES_DIR)
 
-macports: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
+# This target ssh's into the OSX host in order to finalize the
+# macports repo, so it is not invoked by packages
+macports: $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
 	$(MAKE) -C rabbitmq-server/packaging/macports macports VERSION=$(VERSION)
 	cp -r rabbitmq-server/packaging/macports/macports $(PACKAGES_DIR)
 
-# This target ssh's into the OSX host in order to finalize the
-# macports repo
-macports_index:
-	$(MAKE) -C rabbitmq-server/packaging/macports macports_index VERSION=$(VERSION) MACPORTS_DIR=$(realpath $(PACKAGES_DIR))/macports
-
-java_packages: prepare rabbitmq-java-client
+java_packages: rabbitmq-java-client
 	$(MAKE) -C rabbitmq-java-client clean dist VERSION=$(VERSION)
 	cp rabbitmq-java-client/build/*.tar.gz $(JAVA_CLIENT_PACKAGES_DIR)
 	cp rabbitmq-java-client/build/*.zip $(JAVA_CLIENT_PACKAGES_DIR)
