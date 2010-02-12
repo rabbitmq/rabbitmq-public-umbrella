@@ -61,5 +61,5 @@ eval "make macports $vars"
 
 # Finally, deploy
 if [[ -n "$DEPLOY_USERHOST" ]] ; then
-    eval "make deploy-stage $vars"
+    eval "make $DEPLOY_TARGET $vars"
 fi
