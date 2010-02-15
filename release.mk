@@ -276,3 +276,8 @@ $(S3CMD_CONF):
 		(echo "You need s3 access keys!"; \
 		 echo "Run: s3cmd --config=$(S3CMD_CONF) --configure"; \
 	 		false)
+
+# CI tasks
+.PHONY: check_for_updates
+check_for_updates: 
+	./check_for_updates
