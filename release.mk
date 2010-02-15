@@ -9,6 +9,11 @@ SIGNING_KEY=056E8E56
 SIGNING_USER_EMAIL=info@rabbitmq.com
 SIGNING_USER_ID=RabbitMQ Release Signing Key <info@rabbitmq.com>
 
+# Misc options to pass to hg commands
+HG_OPTS=
+
+# Misc options to pass to ssh commands
+
 PACKAGES_DIR=packages
 
 SERVER_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-server/$(VDIR)
@@ -38,7 +43,7 @@ tag: checkout
 	$(foreach DIR,. $(REPOS),(cd $(DIR); hg tag $(TAG));)
 
 push: checkout
-	$(foreach DIR,. $(REPOS),(cd $(DIR); hg push -f);)
+	$(foreach DIR,. $(REPOS),(cd $(DIR); hg push $(HG_OPTS) -f);)
 
 ifeq "$(UNOFFICIAL_RELEASE)$(GNUPG_PATH)" ""
 dist:
@@ -53,9 +58,9 @@ prepare:
 		(echo "You are trying to compile with the wrong Erlang/OTP release."; \
 		echo "Please use emulator version $(REQUIRED_EMULATOR_VERSION)."; \
 		echo "Alternatively, set the makefile variable REQUIRED_EMULATOR_VERSION=$(ACTUAL_EMULATOR_VERSION) ."; \
-		false)
+		[ -n "$(UNOFFICIAL_RELEASE)" ] )
 	@echo Checking the presence of the tools necessary to build a release on a Debian based OS.
-	dpkg -L cdbs elinks findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip > /dev/null
+	dpkg -L cdbs elinks findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip python-pexpect s3cmd openssl > /dev/null
 	@echo All required tools are installed, great!
 	mkdir -p $(PACKAGES_DIR)
 	mkdir -p $(SERVER_PACKAGES_DIR)
@@ -70,6 +75,7 @@ packages: prepare
 	$(MAKE) $(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip
 	$(MAKE) debian_packages
 	$(MAKE) rpm_packages
+	$(MAKE) macports
 	$(MAKE) java_packages
 	$(MAKE) dotnet_packages
 
@@ -78,7 +84,8 @@ sign_everything:
 	true
 else
 sign_everything:
-	rpm --addsign \
+	python util/nopassphrase.py \
+            rpm --addsign \
 		--define '_signature gpg' \
 		--define '_gpg_path $(GNUPG_PATH)/.gnupg/' \
 		--define '_gpg_name $(SIGNING_USER_ID)' \
@@ -136,6 +143,15 @@ rpm_packages: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz r
 	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/i386/rabbitmq-server*suse*.rpm $(SERVER_PACKAGES_DIR)
 	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/x86_64/rabbitmq-server*suse*.rpm $(SERVER_PACKAGES_DIR)
 
+macports: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
+	$(MAKE) -C rabbitmq-server/packaging/macports macports VERSION=$(VERSION)
+	cp -r rabbitmq-server/packaging/macports/macports $(PACKAGES_DIR)
+
+# This target ssh's into the OSX host in order to finalize the
+# macports repo
+macports_index:
+	$(MAKE) -C rabbitmq-server/packaging/macports macports_index VERSION=$(VERSION) MACPORTS_DIR=$(realpath $(PACKAGES_DIR))/macports
+
 java_packages: prepare rabbitmq-java-client
 	$(MAKE) -C rabbitmq-java-client clean dist VERSION=$(VERSION)
 	cp rabbitmq-java-client/build/*.tar.gz $(JAVA_CLIENT_PACKAGES_DIR)
@@ -150,9 +166,9 @@ WINDOWS_BUNDLE_TMP_DIR=$(PACKAGES_DIR)/complete-rabbitmq-bundle-$(VERSION)
 windows_bundle:
 	rm -rf $(WINDOWS_BUNDLE_TMP_DIR)
 	mkdir -p $(WINDOWS_BUNDLE_TMP_DIR)
-	[ -f /tmp/otp_win32_R12B-5.exe ] || \
-		wget -P /tmp http://erlang.org/download/otp_win32_R12B-5.exe
-	cp /tmp/otp_win32_R12B-5.exe $(WINDOWS_BUNDLE_TMP_DIR)
+	[ -f /tmp/otp_win32_R13B03.exe ] || \
+		wget -P /tmp http://erlang.org/download/otp_win32_R13B03.exe
+	cp /tmp/otp_win32_R13B03.exe $(WINDOWS_BUNDLE_TMP_DIR)
 	cp \
 		$(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip \
 		$(JAVA_CLIENT_PACKAGES_DIR)/rabbitmq-java-client-bin-$(VERSION).zip \
@@ -167,16 +183,16 @@ windows_bundle:
 	rm -rf $(WINDOWS_BUNDLE_TMP_DIR)
 
 rabbitmq-server: rabbitmq-codegen
-	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
+	[ -d $@ ] || hg clone $(HG_OPTS) $(HGREPOBASE)/$@
 
 rabbitmq-java-client: rabbitmq-codegen
-	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
+	[ -d $@ ] || hg clone $(HG_OPTS) $(HGREPOBASE)/$@
 
 rabbitmq-dotnet-client:
-	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
+	[ -d $@ ] || hg clone $(HG_OPTS) $(HGREPOBASE)/$@
 
 rabbitmq-codegen:
-	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
+	[ -d $@ ] || hg clone $(HG_OPTS) $(HGREPOBASE)/$@
 
 clean:
 	rm -rf $(PACKAGES_DIR)
@@ -201,21 +217,23 @@ RSYNC_CMD=rsync -irvpl --delete-after
 DEPLOY_RSYNC_CMDS=\
 	set -x -e; \
 	for subdirectory in rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client bundles; do \
-		ssh $$deploy_host "(cd $$deploy_path/releases; if [ ! -d $$subdirectory ] ; then mkdir -p $$subdirectory; chmod g+w $$subdirectory; fi)"; \
+		ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/releases; if [ ! -d $$subdirectory ] ; then mkdir -p $$subdirectory; chmod g+w $$subdirectory; fi)"; \
 		$(RSYNC_CMD) $(PACKAGES_DIR)/$$subdirectory/* \
 		    $$deploy_host:$$deploy_path/releases/$$subdirectory ; \
 	done; \
-	$(RSYNC_CMD) $(PACKAGES_DIR)/debian \
-	    $$deploy_host:$$deploy_path/releases; \
+	for subdirectory in debian macports ; do \
+		$(RSYNC_CMD) $(PACKAGES_DIR)/$$subdirectory \
+	    	    $$deploy_host:$$deploy_path/releases; \
+	done; \
 	unpacked_javadoc_dir=`(cd packages/rabbitmq-java-client; ls -td */rabbitmq-java-client-javadoc-*/ | head -1)`; \
-	ssh $$deploy_host "(cd $$deploy_path/releases/rabbitmq-java-client; rm -f current-javadoc; ln -s $$unpacked_javadoc_dir current-javadoc)"; \
+	ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/releases/rabbitmq-java-client; rm -f current-javadoc; ln -s $$unpacked_javadoc_dir current-javadoc)"; \
 
 deploy-stage: fixup-permissions-for-deploy
 	deploy_host=$(STAGE_DEPLOY_HOST); \
 	     deploy_path=$(STAGE_DEPLOY_PATH); \
 	     $(DEPLOY_RSYNC_CMDS)
 
-deploy-live: fixup-permissions-for-deploy
+deploy-live: fixup-permissions-for-deploy deploy-cloudfront cloudfront-verify
 	deploy_host=$(LIVE_DEPLOY_HOST); \
 	     deploy_path=$(LIVE_DEPLOY_PATH); \
 	     $(DEPLOY_RSYNC_CMDS)
@@ -223,3 +241,61 @@ deploy-live: fixup-permissions-for-deploy
 fixup-permissions-for-deploy:
 	chmod -R g+w $(PACKAGES_DIR)
 	chmod g+s `find $(PACKAGES_DIR) -type d`
+
+# The major problem with CloudFront is that they _don't see updates_!
+# So you can upload stuff to CF only once, never reuse the same filenames.
+# That's why we are interested only in deploy-live.
+S3CMD_CONF=$(GNUPG_PATH)/../s3cmd-cloudfront-amazon-aws
+S3_BUCKET=s3://rabbitmq-mirror
+CF_URL=http://mirror.rabbitmq.com
+## Mirror behaves badly if the data was changed. To force script to continue
+## in such case, set this path to s3 bucket path:
+# CF_URL=http://s3.amazonaws.com/rabbitmq-mirror
+
+# Deploys the contents of $(SERVER_PACKAGES_DIR) to cloudfront.
+# Hopefully all the files contain a rabbitmq version in the name.
+#  We do have to iterate through every file, as for buggy s3cmd.
+SUBDIRECTORIES=rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client bundles
+deploy-cloudfront: $(S3CMD_CONF)
+	cd $(PACKAGES_DIR);	\
+	VSUBDIRS=`for subdir in $(SUBDIRECTORIES); do echo $$subdir/$(VDIR); done`;	\
+	for file in `find $$VSUBDIRS -maxdepth 1 -type f|egrep -v '.asc$$'`; do	\
+		DST=$(S3_BUCKET)/releases/$$file; 	\
+		s3cmd put				\
+			--bucket-location=EU		\
+			--acl-public			\
+			--force				\
+			--no-preserve			\
+			--config=$(S3CMD_CONF)		\
+				$$file $$DST;		\
+	done;
+
+
+cloudfront-verify:
+	@echo " [*] Verifying Cloudfront uploads"
+	cd $(PACKAGES_DIR);	\
+	VSUBDIRS=`for subdir in $(SUBDIRECTORIES); do echo $$subdir/$(VDIR); done`;	\
+	for file in `find $$VSUBDIRS -maxdepth 1 -type f|egrep -v '.asc$$'`; do	\
+		URL=$(CF_URL)/releases/$$file; \
+		echo -en "$$file\t"; \
+		A=`md5sum $$file | awk '{print $$1}'`; \
+		rm -f $$file.fetched; \
+		wget $$URL -O $$file.fetched; \
+		B=`md5sum $$file.fetched  | awk '{print $$1}'`; \
+		echo $$A $$B; \
+		ls -l $$file $$file.fetched; \
+		rm -f $$file.fetched; \
+		if [ "$$A" != "$$B" ]; then			\
+			echo "BAD CLOUDFRONT CHECKSUM FOR $$URL"; \
+			exit 1;					\
+		else						\
+			echo "ok!";				\
+		fi						\
+	done
+
+
+$(S3CMD_CONF):
+	@[ "`ls $(S3CMD_CONF) 2>/dev/null`" != "" ] || \
+		(echo "You need s3 access keys!"; \
+		 echo "Run: s3cmd --config=$(S3CMD_CONF) --configure"; \
+	 		false)
