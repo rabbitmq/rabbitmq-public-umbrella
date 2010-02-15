@@ -281,3 +281,11 @@ $(S3CMD_CONF):
 .PHONY: check_for_updates
 check_for_updates: 
 	./check_for_updates
+
+checkout_state: check_for_updates
+
+continuous_integration.log: checkout_state
+	./run_continuous_integration
+
+.PHONY: ci
+ci: continuous_integration.log
