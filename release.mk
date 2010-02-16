@@ -287,8 +287,12 @@ $(S3CMD_CONF):
 .PHONY: checkout_plugins
 
 PLUGINS=rabbitmq-erlang-client rabbitmq-stomp rabbitmq-bql rabbitmq-smtp\
-	rabbitmq-jsonrpc
-checkout_plugins:
+	rabbitmq-mochiweb rabbitmq-jsonrpc
+
+erlang-rfc4627:
+	[ -d erlang-rfc4627 ] || hg clone http://hg.opensource.lshift.net/erlang-rfc4627/
+
+checkout_plugins: erlang-rfc4627
 	for plugin in $(PLUGINS) ;\
 		do [ -d $$plugin ] || hg clone $(HGREPOBASE)/$$plugin; done
 
