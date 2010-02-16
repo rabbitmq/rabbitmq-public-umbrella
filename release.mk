@@ -296,7 +296,7 @@ checkout_plugins: erlang-rfc4627
 	for plugin in $(PLUGINS) ;\
 		do [ -d $$plugin ] || hg clone $(HGREPOBASE)/$$plugin; done
 
-check_for_updates: checkout_plugins
+check_for_updates: checkout checkout_plugins
 
 .INTERMEDIATE: checkout_state
 checkout_state: check_for_updates
