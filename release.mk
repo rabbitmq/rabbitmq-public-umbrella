@@ -19,7 +19,7 @@ BUNDLES_PACKAGES_DIR=$(PACKAGES_DIR)/bundles/$(VDIR)
 REQUIRED_EMULATOR_VERSION=5.5.5
 ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
 
-REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client
+REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-public-umbrella
 
 HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
@@ -178,6 +178,9 @@ rabbitmq-dotnet-client:
 rabbitmq-codegen:
 	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
 
+rabbitmq-public-umbrella:
+	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
+
 clean:
 	rm -rf $(PACKAGES_DIR)
 	$(MAKE) -C rabbitmq-server clean
@@ -284,7 +287,11 @@ check_for_updates:
 
 checkout_state: check_for_updates
 
-continuous_integration.log: checkout_state
+include.mk: rabbitmq-public-umbrella
+	rm -f include.mk
+	ln -s rabbitmq-public-umbrella/include.mk
+
+continuous_integration.log: checkout_state include.mk
 	./run_continuous_integration
 
 .PHONY: ci
