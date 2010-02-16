@@ -286,14 +286,13 @@ $(S3CMD_CONF):
 .PHONY: check_for_updates
 .PHONY: checkout_plugins
 
-PLUGINS=rabbitmq-erlang-client rabbitmq-stomp rabbitmq-bql rabbitmq-smtp\
-	rabbitmq-mochiweb rabbitmq-jsonrpc
+DEPENDENT_PROJECTS=rabbitmq-erlang-client rabbitmq-stomp rabbitmq-bql rabbitmq-smtp erlang-rfc4627 rabbitmq-mochiweb  rabbitmq-jsonrpc
 
 erlang-rfc4627:
 	[ -d erlang-rfc4627 ] || hg clone http://hg.opensource.lshift.net/erlang-rfc4627/
 
 checkout_plugins: erlang-rfc4627
-	for plugin in $(PLUGINS) ;\
+	for plugin in $(DEPENDENT_PROJECTS) ;\
 		do [ -d $$plugin ] || hg clone $(HGREPOBASE)/$$plugin; done
 
 check_for_updates: checkout checkout_plugins
@@ -307,7 +306,8 @@ include.mk: rabbitmq-public-umbrella
 	ln -s rabbitmq-public-umbrella/include.mk
 
 continuous_integration.log: checkout_state
-	PLUGINS="$(PLUGINS)" ./run_continuous_integration
+	echo $(DEPENDENT_PROJECTS)
+	PLUGINS="$(DEPENDENT_PROJECTS)" ./run_continuous_integration
 	
 
 .PHONY: ci
