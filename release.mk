@@ -190,6 +190,8 @@ clean:
 	$(MAKE) -C rabbitmq-server/packaging/debs/apt-repository clean
 	$(MAKE) -C rabbitmq-server/packaging/RPMS/Fedora clean
 	$(MAKE) -C rabbitmq-java-client clean
+	rm -f continuous_integration.log
+	rm -f checkout_state
 
 ###########################################################################
 
@@ -284,7 +286,7 @@ $(S3CMD_CONF):
 .PHONY: check_for_updates
 .PHONY: checkout_plugins
 
-PLUGINS=rabbitmq-stomp rabbitmq-smtp
+PLUGINS=rabbitmq-erlang-client rabbitmq-stomp rabbitmq-smtp
 checkout_plugins:
 	for plugin in $(PLUGINS) ;\
 		do [ -d $$plugin ] || hg clone $(HGREPOBASE)/$$plugin; done
