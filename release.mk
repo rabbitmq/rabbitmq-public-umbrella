@@ -286,7 +286,7 @@ $(S3CMD_CONF):
 .PHONY: check_for_updates
 .PHONY: checkout_plugins
 
-PLUGINS=rabbitmq-erlang-client rabbitmq-stomp rabbitmq-smtp
+PLUGINS=rabbitmq-erlang-client rabbitmq-stomp rabbitmq-bql
 checkout_plugins:
 	for plugin in $(PLUGINS) ;\
 		do [ -d $$plugin ] || hg clone $(HGREPOBASE)/$$plugin; done
