@@ -145,7 +145,7 @@ rpm_packages: $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-
 # This target ssh's into the OSX host in order to finalize the
 # macports repo, so it is not invoked by packages
 macports: $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
-	$(MAKE) -C rabbitmq-server/packaging/macports macports VERSION=$(VERSION)
+	$(MAKE) -C rabbitmq-server/packaging/macports clean macports VERSION=$(VERSION)
 	cp -r rabbitmq-server/packaging/macports/macports $(PACKAGES_DIR)
 
 java_packages: rabbitmq-java-client
