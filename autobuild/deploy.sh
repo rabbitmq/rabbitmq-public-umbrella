@@ -13,6 +13,9 @@ VERSION=
 # using a special ssh key.
 SSH_OPTS=
 
+# Where the keys live.  If not set, we will do an "unofficial release"
+KEYSDIR=
+
 # The base URL of the rabbitmq website where the results of the build
 # will actually be available.  Optional, defaults to the rabbitmq.com
 # site
@@ -42,7 +45,7 @@ while [[ $# -gt 0 ]] ; do
 done
 
 mandatory_vars="VERSION"
-optional_vars="SSH_OPTS REAL_WEB_URL MACPORTS_USERHOST DEPLOY_USERHOST TOPDIR DEPLOY_TARGET SCRIPTDIR"
+optional_vars="SSH_OPTS KEYSDIR REAL_WEB_URL MACPORTS_USERHOST DEPLOY_USERHOST TOPDIR DEPLOY_TARGET SCRIPTDIR"
 
 . $SCRIPTDIR/utils.sh
 absolutify_scriptdir
@@ -53,7 +56,7 @@ check_vars
 
 set -e -x
 
-vars="VERSION=$VERSION REAL_WEB_URL=$REAL_WEB_URL MACPORTS_USERHOST=\"$MACPORTS_USERHOST\" SSH_OPTS=\"$SSH_OPTS\" STAGE_DEPLOY_HOST=\"$DEPLOY_USERHOST\""
+vars="VERSION=$VERSION REAL_WEB_URL=$REAL_WEB_URL MACPORTS_USERHOST=\"$MACPORTS_USERHOST\" SSH_OPTS=\"$SSH_OPTS\" STAGE_DEPLOY_HOST=\"$DEPLOY_USERHOST\" GNUPG_PATH=$KEYSDIR/keyring"
 
 # Build macports 
 cd $TOPDIR/rabbitmq-umbrella
