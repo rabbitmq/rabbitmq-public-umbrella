@@ -282,17 +282,27 @@ $(S3CMD_CONF):
 
 # CI tasks
 .PHONY: check_for_updates
-check_for_updates: 
-	./check_for_updates
+.PHONY: checkout_plugins
 
+PLUGINS=rabbitmq-stomp rabbitmq-smtp
+checkout_plugins:
+	for plugin in $(PLUGINS) ;\
+		do [ -d $$plugin ] || hg clone $(HGREPOBASE)/$$plugin; done
+
+check_for_updates: checkout_plugins
+
+.INTERMEDIATE: checkout_state
 checkout_state: check_for_updates
+	./check_for_updates
 
 include.mk: rabbitmq-public-umbrella
 	rm -f include.mk
 	ln -s rabbitmq-public-umbrella/include.mk
 
-continuous_integration.log: checkout_state include.mk
-	./run_continuous_integration
+continuous_integration.log: checkout_state
+	PLUGINS="$(PLUGINS)" ./run_continuous_integration
+	
 
 .PHONY: ci
-ci: continuous_integration.log
+ci: check_for_updates
+	make continuous_integration.log
