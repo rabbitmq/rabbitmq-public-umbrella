@@ -135,12 +135,10 @@ debian_packages: $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbit
 	cp -r rabbitmq-server/packaging/debs/apt-repository/debian $(PACKAGES_DIR)
 
 rpm_packages: $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
-	$(MAKE) -C rabbitmq-server/packaging/RPMS/Fedora rpms VERSION=$(VERSION) RPM_OS=fedora
-	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/i386/rabbitmq-server*.rpm $(SERVER_PACKAGES_DIR)
-	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/x86_64/rabbitmq-server*.rpm $(SERVER_PACKAGES_DIR)
-	$(MAKE) -C rabbitmq-server/packaging/RPMS/Fedora rpms VERSION=$(VERSION) RPM_OS=suse
-	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/i386/rabbitmq-server*suse*.rpm $(SERVER_PACKAGES_DIR)
-	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/x86_64/rabbitmq-server*suse*.rpm $(SERVER_PACKAGES_DIR)
+	for distro in fedora suse ; do \
+	  $(MAKE) -C rabbitmq-server/packaging/RPMS/Fedora rpms VERSION=$(VERSION) RPM_OS=$$distro && \
+	  cp rabbitmq-server/packaging/RPMS/Fedora/{RPMS/i386,RPMS/x86_64,SRPMS}/rabbitmq-server*.rpm $(SERVER_PACKAGES_DIR) ; \
+	done
 
 # This target ssh's into the OSX host in order to finalize the
 # macports repo, so it is not invoked by packages
