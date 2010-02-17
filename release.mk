@@ -297,7 +297,7 @@ checkout_plugins: erlang-rfc4627
 
 check_for_updates: checkout checkout_plugins
 
-.INTERMEDIATE: checkout_state
+.SECONDARY: checkout_state
 checkout_state: check_for_updates
 	./check_for_updates
 
