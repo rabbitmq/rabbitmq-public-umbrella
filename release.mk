@@ -291,7 +291,7 @@ DEPENDENT_PROJECTS=rabbitmq-erlang-client rabbitmq-stomp rabbitmq-bql rabbitmq-s
 erlang-rfc4627:
 	[ -d erlang-rfc4627 ] || hg clone http://hg.opensource.lshift.net/erlang-rfc4627/
 
-checkout_plugins: erlang-rfc4627
+checkout_plugins: erlang-rfc4627 include.mk
 	for plugin in $(DEPENDENT_PROJECTS) ;\
 		do [ -d $$plugin ] || hg clone $(HGREPOBASE)/$$plugin; done
 
