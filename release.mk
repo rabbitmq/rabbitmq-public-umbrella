@@ -137,7 +137,7 @@ debian_packages: $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbit
 rpm_packages: $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
 	for distro in fedora suse ; do \
 	  $(MAKE) -C rabbitmq-server/packaging/RPMS/Fedora rpms VERSION=$(VERSION) RPM_OS=$$distro && \
-	  cp rabbitmq-server/packaging/RPMS/Fedora/{RPMS/i386,RPMS/x86_64,SRPMS}/rabbitmq-server*.rpm $(SERVER_PACKAGES_DIR) ; \
+	  find rabbitmq-server/packaging/RPMS/Fedora -name "*.rpm" -exec cp '{}' $(SERVER_PACKAGES_DIR) ';' ; \
 	done
 
 # This target ssh's into the OSX host in order to finalize the
