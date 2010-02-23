@@ -141,7 +141,7 @@ coverage:
 	@echo -e "\n**** Code coverage ****"
 	@cat cover/summary.txt
 
-
+.PHONY: test
 test:	$(TARGETS) $(TEST_TARGETS)
 	OK=true && \
 	echo >$(TMPDIR)/rabbit-test-output && \
