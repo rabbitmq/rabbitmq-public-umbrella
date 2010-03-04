@@ -73,6 +73,7 @@ packages: prepare
 	$(MAKE) $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).zip
 	$(MAKE) $(SERVER_PACKAGES_DIR)/rabbitmq-server-generic-unix-$(VERSION).tar.gz
 	$(MAKE) $(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip
+	$(MAKE) $(SERVER_PACKAGES_DIR)/rabbitmqctl.xml
 	$(MAKE) debian_packages
 	$(MAKE) rpm_packages
 	$(MAKE) java_packages
@@ -117,6 +118,10 @@ $(SERVER_PACKAGES_DIR)/rabbitmq-server-generic-unix-$(VERSION).tar.gz: rabbitmq-
 $(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip: rabbitmq-server
 	$(MAKE) -C rabbitmq-server/packaging/windows clean dist VERSION=$(VERSION)
 	cp rabbitmq-server/packaging/windows/rabbitmq-server-windows-*.zip $(SERVER_PACKAGES_DIR)
+
+$(SERVER_PACKAGES_DIR)/rabbitmqctl.xml: rabbitmq-server
+	$(MAKE) -C rabbitmq-server docs_all VERSION=$(VERSION)
+	cp rabbitmq-server/rabbitmqctl.xml $(SERVER_PACKAGES_DIR)
 
 debian_packages: $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
 	$(MAKE) -C rabbitmq-server/packaging/debs/Debian clean package \
