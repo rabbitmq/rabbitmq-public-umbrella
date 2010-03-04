@@ -32,7 +32,7 @@ ifeq ($(HGREPOBASE),)
 HGREPOBASE=ssh://hg@hg.lshift.net
 endif
 
-.PHONY: packages
+.PHONY: packages website_manpages
 
 all:
 	@echo Please choose a target from the Makefile.
@@ -73,7 +73,7 @@ packages: prepare
 	$(MAKE) $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).zip
 	$(MAKE) $(SERVER_PACKAGES_DIR)/rabbitmq-server-generic-unix-$(VERSION).tar.gz
 	$(MAKE) $(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip
-	$(MAKE) $(SERVER_PACKAGES_DIR)/rabbitmqctl.xml
+	$(MAKE) website_manpages
 	$(MAKE) debian_packages
 	$(MAKE) rpm_packages
 	$(MAKE) java_packages
@@ -119,9 +119,9 @@ $(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip: rabbitmq-server
 	$(MAKE) -C rabbitmq-server/packaging/windows clean dist VERSION=$(VERSION)
 	cp rabbitmq-server/packaging/windows/rabbitmq-server-windows-*.zip $(SERVER_PACKAGES_DIR)
 
-$(SERVER_PACKAGES_DIR)/rabbitmqctl.xml: rabbitmq-server
+website_manpages: rabbitmq-server
 	$(MAKE) -C rabbitmq-server docs_all VERSION=$(VERSION)
-	cp rabbitmq-server/rabbitmqctl.xml $(SERVER_PACKAGES_DIR)
+	cp rabbitmq-server/docs/*.man.xml $(SERVER_PACKAGES_DIR)
 
 debian_packages: $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
 	$(MAKE) -C rabbitmq-server/packaging/debs/Debian clean package \
@@ -226,6 +226,7 @@ DEPLOY_RSYNC_CMDS=\
 	done; \
 	unpacked_javadoc_dir=`(cd packages/rabbitmq-java-client; ls -td */rabbitmq-java-client-javadoc-*/ | head -1)`; \
 	ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/releases/rabbitmq-java-client; rm -f current-javadoc; ln -s $$unpacked_javadoc_dir current-javadoc)"; \
+	ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/releases/rabbitmq-server; ln -sf $(VDIR) current)"; \
 
 deploy-stage: fixup-permissions-for-deploy
 	deploy_host=$(STAGE_DEPLOY_HOST); \
