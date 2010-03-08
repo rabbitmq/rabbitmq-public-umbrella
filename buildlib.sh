@@ -115,9 +115,11 @@ function buildDeb {
 }
 
 function clean {
+    target="$2"
+    if [ -z "$target" ]; then target=distclean; fi
     if [ -f "$1/Makefile" ]
     then
-	make -C "$1" distclean
+	make -C "$1" $target
     fi
 }
 
@@ -431,7 +433,7 @@ function clean_all {
     clean erlang-rfc4627
     clean rabbitmq-codegen
     clean rabbitmq-server
-    make -C rabbitmq-erlang-client clean
+    clean rabbitmq-erlang-client clean
     clean rabbitmq-c
     clean rabbitmq-xmpp
     clean rabbitmq-stomp
