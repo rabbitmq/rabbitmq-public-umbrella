@@ -1,0 +1,108 @@
+#!/usr/bin/env python
+import sys
+import os
+import email.utils
+import time
+
+rabbit_server_version = sys.argv[1]
+
+def fullname(n):
+    return "rabbitmq-plugin-" + (n.replace("_", "-"))
+
+control_boilerplate = \
+"""Section: net
+Priority: extra
+Maintainer: Tony Garnock-Jones <tonyg@lshift.net>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.8.1
+Homepage: http://www.rabbitmq.com/
+Vcs-Browser: http://hg.rabbitmq.com/rabbitmq-public-umbrella
+
+"""
+
+class Ez:
+    def __init__(self, name):
+        self.name = name
+        self.description = name
+        self.version = None
+        self.runtime_deps = []
+
+    def is_buildable(self):
+        return bool(self.version)
+
+    def prepare(self):
+        if not self.is_buildable():
+            return
+
+        os.system("rm -rf _build/tmp")
+        os.system("mkdir -p _build/tmp")
+        os.system("cp -r ez-debian _build/tmp/debian")
+        os.system("cp _repo/ez/*/%s-%s.ez _build/tmp/." % (self.name, self.version))
+
+        rdeps = ['rabbitmq-server (= %s)' % (rabbit_server_version,)] + [fullname(d) for d in self.runtime_deps]
+
+        d = open("_build/tmp/plugindir", "w")
+        # I hate that it only searches for plugins in a version-specific place
+        d.write("usr/lib/rabbitmq/lib/rabbitmq_server-%s/plugins\n" % (rabbit_server_version,))
+        d.close()
+
+        control = open("_build/tmp/debian/control", "w")
+        control.write("Source: %s\n" % (fullname(self.name),))
+        control.write(control_boilerplate)
+        control.write("Package: %s\n" % (fullname(self.name),))
+        control.write("Architecture: all\n")
+        control.write("Depends: %s\n" % (', '.join(rdeps),))
+        control.write("Description: RabbitMQ plugin: %s\n" % (self.description,))
+        control.close()
+
+        chlog = open("_build/tmp/debian/changelog", "w")
+        chlog.write("%s (%s-1) unstable; urgency=low\n\n" % (fullname(self.name), self.version))
+        chlog.write("  * Unofficial release\n\n")
+        chlog.write(" -- Autobuild <autobuild@example.com>  %s\n\n" % (email.utils.formatdate(time.time()),))
+        chlog.close()
+
+    def build(self):
+        if not self.is_buildable():
+            return
+
+        os.system("(cd _build/tmp; dpkg-buildpackage -b -rfakeroot -us -uc)")
+
+ezs = {}
+
+def def_ez(name):
+    if not ezs.has_key(name):
+        ezs[name] = Ez(name)
+    return ezs[name]
+
+def read_descriptions():
+    f = open("ez-descriptions.txt", "r")
+    for line in f:
+        (name, desc) = (w.strip() for w in line.split(':', 1))
+        if not name: continue
+        ez = def_ez(name)
+        ez.description = desc
+    f.close()
+
+def read_index():
+    try:
+        f = open("_repo/ez/ez-index.txt", "r")
+    except:
+        return
+    for line in f:
+        (name, version, rdeps) = (w.strip() for w in line.split(':', 2))
+        if not name: continue
+        ez = def_ez(name)
+        ez.version = version
+        ez.runtime_deps = [w.strip() for w in rdeps.split()]
+    f.close()
+
+read_descriptions()
+read_index()
+for e in ezs.values():
+    print e.name
+    print e.version
+    print e.description
+    print e.runtime_deps
+    print
+    e.prepare()
+    e.build()

@@ -138,6 +138,8 @@ function post_build {
 function startDebianRepository {
     mkdir -p $sourceArchivedir
     mkdir -p $binaryArchivedir
+    mkdir -p $ezArchivedir
+    rm -f $ezArchivedir/ez-index.txt
 }
 
 function finishDebianRepository {
@@ -211,6 +213,7 @@ function build_erlang_client {
 	    mkdir -p $ezArchivedir/${p}
 	    cp dist/amqp_client.ez $ezArchivedir/${p}/amqp_client-${v}.ez
 	    cp dist/rabbit_common.ez $ezArchivedir/${p}/rabbit_common-${v}.ez
+	    echo "amqp_client:${v}:" >> $ezArchivedir/ez-index.txt
 	)
     fi
 }
@@ -270,7 +273,9 @@ function buildGenericSimpleHgDebian {
 		    for ez in *.ez
 		    do
 			mkdir -p $ezArchivedir/${p}
-			cp ${ez} $ezArchivedir/${p}/`basename ${ez} .ez`-${v}.ez
+			ezname=$(basename ${ez} .ez)
+			cp ${ez} $ezArchivedir/${p}/${ezname}-${v}.ez
+			echo "${ezname}:${v}:" >> $ezArchivedir/ez-index.txt
 		    done
 	    ) fi
 	    cd ..
@@ -284,6 +289,7 @@ function buildEz {
     p="$1"; shift
     ezname=$(cd ${p}; make echo-package-name)
     deps=$(grep '^DEPS *=' ${p}/Makefile | sed -e 's:^[^=]*=::')
+    runtime_deps=$(grep '^RUNTIME_DEPS *=' ${p}/Makefile | sed -e 's:^[^=]*=::')
     v="`packageVersion ${p}`"
     if [ ! -f $ezArchivedir/${p}/${ezname}-${v}.ez ]
     then
@@ -311,6 +317,7 @@ function buildEz {
 	    cd dist
 	    mkdir -p $ezArchivedir/${p}
 	    cp ${ezname}.ez $ezArchivedir/${p}/${ezname}-${v}.ez
+	    echo "${ezname}:${v}:${runtime_deps}" >> $ezArchivedir/ez-index.txt
 	)
     fi
 }
@@ -380,6 +387,14 @@ function build_rabbit_mochiweb {
     )
 }
 
+function package_ezs {
+    pre_build
+    ./packageEzs $(hgVersion rabbitmq-server)
+    mv $builddir/*.changes $binaryArchivedir
+    mv $builddir/*.deb $binaryArchivedir
+    rm -f $ezArchivedir/ez-index.txt
+}
+
 function wipe_all {
     rm -rf erlang-rfc4627
     rm -rf rabbitmq-codegen
@@ -442,6 +457,7 @@ function build_all {
     build_rabbit_mochiweb
     buildEz rabbitmq-jsonrpc
     buildEz rabbitmq-jsonrpc-channel
+    package_ezs
     finishDebianRepository
     rm -rf $ezTmpdir
     post_build
