@@ -381,19 +381,26 @@ function build_rabbithub {
 
 function build_rabbit_mochiweb {
     buildEz rabbitmq-mochiweb
-    (
+    if [ -d $builddir/${p}-${v} ]
+    then (
 	# Uses variables p, v etc set by buildEz above. Icky shell scoping.
 	cd $builddir/${p}-${v}
-	svnrev=$(cd deps/mochiweb; make echo-revision)
-	cp dist/mochiweb.ez $ezArchivedir/${p}/mochiweb-svnr${svnrev}.ez
-    )
+	svnrev=svnr$(cd deps/mochiweb; make echo-revision)
+	if [ ! -f $ezArchivedir/${p}/mochiweb-${svnrev}.ez ]
+	then
+	    cp dist/mochiweb.ez $ezArchivedir/${p}/mochiweb-${svnrev}.ez
+	    echo "mochiweb:${svnrev}:" >> $ezArchivedir/ez-index.txt
+	fi
+    ) fi
 }
 
 function package_ezs {
     pre_build
     ./packageEzs $(hgVersion rabbitmq-server)
+    set +e
     mv $builddir/*.changes $binaryArchivedir
     mv $builddir/*.deb $binaryArchivedir
+    set -e
     rm -f $ezArchivedir/ez-index.txt
 }
 
