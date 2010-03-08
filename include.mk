@@ -122,6 +122,9 @@ $(PRIV_DEPS_DIR)/%/ebin:
 list-deps:
 	@echo $(foreach DEP, $(INTERNAL_DEPS), $(DEPS_DIR)/$(DEP))
 
+echo-package-name:
+	@echo $(PACKAGE)
+
 package: $(DIST_DIR)/$(PACKAGE).ez $(EXTRA_PACKAGES)
 
 $(DIST_DIR)/$(PACKAGE).ez: $(TARGETS)
@@ -173,3 +176,5 @@ clean::
 	$(foreach GEN, $(GENERATED_SOURCES), rm -f src/$(GEN).erl;)
 	$(foreach DEP, $(INTERNAL_DEPS), $(MAKE) -C $(DEPS_DIR)/$(DEP) clean)
 	rm -rf $(DIST_DIR)
+
+distclean:: clean
