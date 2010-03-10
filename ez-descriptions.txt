@@ -1,9 +1,0 @@
-rfc4627_jsonrpc: JSON (RFC 4627) codec and generic JSON-RPC server implementation
-amqp_client: Erlang AMQP client library
-rabbit_common: Core AMQP codec and support library
-rabbitmq-jsonrpc: JSON-RPC-over-HTTP
-rabbitmq-jsonrpc-channel: AMQP-over-JSON-RPC, plus examples
-mochiweb: Embedded Mochiweb
-rabbitmq-mochiweb: RabbitMQ Mochiweb adapter
-rabbit_stomp: STOMP protocol support
-rabbit_script_exchange: x-script exchange type
