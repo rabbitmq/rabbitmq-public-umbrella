@@ -28,6 +28,7 @@ all_log_levels = ["LOG_CHDIR",
                   "LOG_SHELL_STDOUT",
                   "LOG_SHELL_STDERR",
                   "LOG_UPDATE",
+                  "LOG_INSTALL",
                   "LOG_BUILD"]
 for loglevel in all_log_levels:
     globals()[loglevel] = loglevel
@@ -39,6 +40,7 @@ COLOR_NORMAL = '\033[0m'
 active_log_levels = set([LOG_CLEAN_CHECK,
                          LOG_CLONE,
                          LOG_UPDATE,
+                         LOG_INSTALL,
                          LOG_BUILD,
                          LOG_SHELL_STDOUT,
                          LOG_SHELL_STDERR])
@@ -334,15 +336,17 @@ class Project(object):
                 registerForPackaging = False
             else:
                 registerForPackaging = True
-            self.store.install_ez("dist/%s.ez" % (ezname,),
+            self.store.install_ez(self,
+                                  "dist/%s.ez" % (ezname,),
                                   ezdesc,
                                   self.version_str(),
                                   ezrundeps,
                                   registerForPackaging = registerForPackaging)
 
 class DebianMixin(object):
-    def __init__(self, package_name):
+    def __init__(self, package_name, extra_packages = []):
         self.package_name = package_name
+        self.extra_packages = extra_packages
 
     def gen_change_log_entry(self):
         with file("debian/changelog", "w") as f:
@@ -351,9 +355,14 @@ class DebianMixin(object):
             f.write(" -- Autobuild <autobuild@example.com>  %s\n\n" % \
                     (email.utils.formatdate(self.timestamp()),))
 
-    def installed_debian_source_path(self):
-        return self.store.binary_path_for("%s_%s-1.tar.gz" % (self.package_name,
-                                                              self.version_str()))
+    def all_package_names(self):
+        return [self.package_name] + self.extra_packages
+
+    def dirty_test_paths(self):
+        if not self.store.want_debian():
+            return []
+        v = self.version_str()
+        return [self.store.binary_path_for("%s_%s-1.tar.gz" % (self.package_name, v))]
 
     def srcdir_for(self, build_dir):
         return os.path.join(build_dir, self.package_name + "-" + self.version_str())
@@ -368,32 +377,33 @@ class DebianMixin(object):
             else:
                 ssc("dpkg-buildpackage -rfakeroot -us -uc")
 
-    def install_debian_artifacts(self):
+    def install_debian_artifacts(self, build_dir):
         if not self.store.want_debian():
             return
-        b = "%s_%s-1" % (self.package_name, self.version_str())
-        for f in glob.glob(b+"_*.deb"): self.store.install_binary(f)
-        for f in glob.glob(b+"_*.changes"): self.store.install_binary(f)
-        for f in glob.glob(b+".dsc"): self.store.install_binary(f)
-        for f in glob.glob(b+".tar.gz"): self.store.install_binary(f)
+        with cwd_set_to(build_dir):
+            for n in self.all_package_names():
+                b = "%s_%s-1" % (n, self.version_str())
+                for f in glob.glob(b+"_*.deb"): self.store.install_binary(f)
+                for f in glob.glob(b+"_*.changes"): self.store.install_binary(f)
+                for f in glob.glob(b+".dsc"): self.store.install_binary(f)
+                for f in glob.glob(b+".tar.gz"): self.store.install_binary(f)
 
 class GenericSimpleDebianProject(Project, DebianMixin):
     def __init__(self, store, directory, source_repo, build_deps, package_name = None,
-                 ezs = []):
+                 ezs = [],
+                 extra_packages = []):
         Project.__init__(self, store, directory, source_repo, build_deps, ezs = ezs)
-        DebianMixin.__init__(self, package_name or self.shortname)
+        DebianMixin.__init__(self, package_name or self.shortname, extra_packages = extra_packages)
 
     def dirty_test_paths(self):
-        result = Project.dirty_test_paths(self)
-        if self.store.want_debian():
-            result.append(self.installed_debian_source_path())
-        return result
+        return Project.dirty_test_paths(self) + \
+            DebianMixin.dirty_test_paths(self)
 
     def build(self, build_dir):
         srcdir = self.srcdir_for(build_dir)
         self.repo().clone(srcdir)
         self.buildpackage_in(srcdir)
-        self.install_debian_artifacts()
+        self.install_debian_artifacts(build_dir)
         with cwd_set_to(srcdir):
             ssc("make")
             self.install_ezs()
@@ -490,16 +500,20 @@ class RabbitMQErlangClientProject(Project):
             self.install_ezs()
 
 class AutoreconfProject(Project, DebianMixin):
-    def __init__(self, store, directory, source_repo, build_deps, package_name, ezs = []):
+    def __init__(self, store, directory, source_repo, build_deps, package_name,
+                 ezs = [],
+                 extra_packages = []):
         Project.__init__(self, store, directory, source_repo, build_deps, ezs = ezs)
-        DebianMixin.__init__(self, package_name)
+        DebianMixin.__init__(self, package_name, extra_packages = extra_packages)
 
     def source_tarball(self):
         return self.store.source_path_for("%s-%s.tar.gz" % (self.package_name,
                                                             self.version_str()))
 
     def dirty_test_paths(self):
-        return [self.source_tarball()] + Project.dirty_test_paths(self)
+        return [self.source_tarball()] + \
+            Project.dirty_test_paths(self) + \
+            DebianMixin.dirty_test_paths(self)
 
     def build(self, build_dir):
         with cwd_set_to(self.directory):
@@ -515,7 +529,7 @@ class AutoreconfProject(Project, DebianMixin):
                 ssc("tar -zxvf "+self.source_tarball())
                 srcdir = self.srcdir_for(".")
                 self.buildpackage_in(srcdir)
-                self.install_debian_artifacts()
+            self.install_debian_artifacts(build_dir)
 
 class EzProject(Project):
     def __init__(self, store, directory, source_repo, ezdesc):
@@ -602,7 +616,7 @@ class RabbitMQMochiwebProject(EzProject):
 ###########################################################################
 # Class for building debian packages of .ez files
 
-class Ez(object):
+class Ez(DebianMixin):
     control_boilerplate = \
 """Section: net
 Priority: extra
@@ -614,15 +628,23 @@ Vcs-Browser: http://hg.rabbitmq.com/rabbitmq-public-umbrella
 
 """
 
-    def __init__(self, store, name, description, version, runtime_deps):
+    def __init__(self, store, name, description, version, runtime_deps, timestamp):
+        DebianMixin.__init__(self, self.fullname(name))
         self.store = store
         self.name = name
         self.description = description
         self.version = version
         self.runtime_deps = runtime_deps
+        self._timestamp = timestamp
+
+    def timestamp(self):
+        return self._timestamp
 
     def fullname(self, ezname):
         return "rabbitmq-plugin-" + (ezname.replace("_", "-"))
+
+    def version_str(self):
+        return self.version
 
     def prepare_package(self, build_dir):
         tmpdir = os.path.join(build_dir, "tmp")
@@ -634,23 +656,24 @@ Vcs-Browser: http://hg.rabbitmq.com/rabbitmq-public-umbrella
         rdeps = ['rabbitmq-server (= %s)' % (rabbit_server_version,)] + \
                 [self.fullname(d) for d in self.runtime_deps]
 
-        with file(os.path.join(tmpdir, "plugindir"), "w") as f:
-            # I hate that it only searches for plugins in a version-specific place
-            f.write("usr/lib/rabbitmq/lib/rabbitmq_server-%s/plugins\n" % (rabbit_server_version,))
+        with cwd_set_to(tmpdir):
+            with file("plugindir", "w") as f:
+                # I hate that it only searches for plugins in a version-specific place
+                f.write("usr/lib/rabbitmq/lib/rabbitmq_server-%s/plugins\n" % (rabbit_server_version,))
 
-        with file(os.path.join(tmpdir, "debian/control"), "w") as f:
-            f.write("Source: %s\n" % (self.fullname(self.name),))
-            f.write(Ez.control_boilerplate)
-            f.write("Package: %s\n" % (self.fullname(self.name),))
-            f.write("Architecture: all\n")
-            f.write("Depends: %s\n" % (', '.join(rdeps),))
-            f.write("Description: RabbitMQ plugin: %s\n" % (self.description,))
+            with file("debian/control", "w") as f:
+                f.write("Source: %s\n" % (self.package_name,))
+                f.write(Ez.control_boilerplate)
+                f.write("Package: %s\n" % (self.package_name,))
+                f.write("Architecture: all\n")
+                f.write("Depends: %s\n" % (', '.join(rdeps),))
+                f.write("Description: RabbitMQ plugin: %s\n" % (self.description,))
 
-        gen_change_log_entry(self.fullname(self.name), self.version, time.time())
+            self.gen_change_log_entry()
 
     def build_package(self, build_dir):
-        with cwd_set_to(os.path.join(build_dir, "tmp")):
-            ssc("dpkg-buildpackage -b -rfakeroot -us -uc")
+        self.buildpackage_in(os.path.join(build_dir, "tmp"), binaryOnly = True)
+        self.install_debian_artifacts(build_dir)
 
 ###########################################################################
 # The umbrella itself, the Store. Knows about all the Projects and
@@ -691,14 +714,19 @@ class Store(object):
     def ez_path_for(self, ezname, v):
         return os.path.join(self.binary_dir, ezname + "-" + v + ".ez")
 
-    def install_source(self, fname): cp_p(fname, self.source_dir)
-    def install_binary(self, fname): cp_p(fname, self.binary_dir)
+    def install_source(self, fname):
+        log(LOG_INSTALL, "Installing", fname, "to", self.source_dir)
+        cp_p(fname, self.source_dir)
+    def install_binary(self, fname):
+        log(LOG_INSTALL, "Installing", fname, "to", self.binary_dir)
+        cp_p(fname, self.binary_dir)
 
-    def install_ez(self, ez_fname, desc, v, runtime_deps, registerForPackaging = True):
+    def install_ez(self, project, ez_fname, desc, v, runtime_deps, registerForPackaging = True):
         ezname = os.path.splitext(os.path.basename(ez_fname))[0]
+        log(LOG_INSTALL, "Installing", ez_fname, "at version", v)
         cp_p(ez_fname, self.ez_path_for(ezname, v))
         if registerForPackaging:
-            self.built_ezs.append(Ez(self, ezname, desc, v, runtime_deps))
+            self.built_ezs.append(Ez(self, ezname, desc, v, runtime_deps, project.timestamp()))
 
     def register_project(self, p):
         self.projects[p.shortname] = p
@@ -730,6 +758,7 @@ class Store(object):
         if self.want_debian():
             ensure_clean_dir(self.debian_dir)
             self.package_ezs()
+            log(LOG_BUILD, "Constructing apt repository")
             with cwd_set_to(self.debian_dir):
                 mkdir_p("conf")
                 with file("conf/distributions", "w") as f: f.write(self.distributions_string())
@@ -739,6 +768,7 @@ class Store(object):
         rm_rf(self.build_dir)
 
     def package_ezs(self):
+        log(LOG_BUILD, "Packaging ezs")
         for ez in self.built_ezs:
             ensure_clean_dir(self.build_dir)
             ez.prepare_package(self.build_dir)
@@ -769,6 +799,10 @@ class Store(object):
 
         dirty_projects = [p for p in self.build_order() if p.dirty()]
         log(LOG_CLEAN_CHECK, "Projects needing build:", [p.shortname for p in dirty_projects])
+        for p in dirty_projects:
+            for path in p.dirty_test_paths():
+                if not os.path.exists(path):
+                    log(LOG_CLEAN_CHECK, " -", p.shortname, "needs", path)
 
         for p in dirty_projects:
             ensure_clean_dir(self.build_dir)
@@ -819,7 +853,8 @@ def _main():
     rabbit_common = erlang_client # yuuuuuck! it builds many ez files
 
     c_client = AutoreconfProject(store, "rabbitmq-c", rabbitHg("rabbitmq-c"), [codegen],
-                                 "librabbitmq")
+                                 "librabbitmq",
+                                 extra_packages = ["librabbitmq-dev"])
     stomp = EzProject(store, "rabbitmq-stomp", rabbitHg("rabbitmq-stomp"),
                       "STOMP protocol support")
     java = RabbitMQJavaClientProject(store, "rabbitmq-java-client",
