@@ -653,7 +653,7 @@ Vcs-Browser: http://hg.rabbitmq.com/rabbitmq-public-umbrella
         cp_p(self.store.ez_path_for(self.name, self.version), tmpdir)
 
         rabbit_server_version = self.store.project_named('rabbitmq-server').version_str()
-        rdeps = ['rabbitmq-server (= %s)' % (rabbit_server_version,)] + \
+        rdeps = ['rabbitmq-server (= %s-1)' % (rabbit_server_version,)] + \
                 [self.fullname(d) for d in self.runtime_deps]
 
         with cwd_set_to(tmpdir):
