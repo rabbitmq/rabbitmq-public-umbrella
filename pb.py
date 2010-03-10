@@ -27,7 +27,8 @@ all_log_levels = ["LOG_CHDIR",
                   "LOG_SHELL",
                   "LOG_SHELL_STDOUT",
                   "LOG_SHELL_STDERR",
-                  "LOG_UPDATE"]
+                  "LOG_UPDATE",
+                  "LOG_BUILD"]
 for loglevel in all_log_levels:
     globals()[loglevel] = loglevel
 
@@ -38,6 +39,7 @@ COLOR_NORMAL = '\033[0m'
 active_log_levels = set([LOG_CLEAN_CHECK,
                          LOG_CLONE,
                          LOG_UPDATE,
+                         LOG_BUILD,
                          LOG_SHELL_STDOUT,
                          LOG_SHELL_STDERR])
 
@@ -770,6 +772,7 @@ class Store(object):
 
         for p in dirty_projects:
             ensure_clean_dir(self.build_dir)
+            log(LOG_BUILD, "Building", p.directory)
             p.build(self.build_dir)
             cp_p(self.manifest_path_for(p),
                  os.path.join(self.manifest_dir,
