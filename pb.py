@@ -749,7 +749,7 @@ class Store(object):
         # compute dependencies (where they're not already hardcoded)
         for p in self.projects_iter():
             p.repo()
-            # p.update()
+            p.update()
             p.clean()
             p.compute_deps()
 
