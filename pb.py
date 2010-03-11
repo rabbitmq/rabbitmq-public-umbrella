@@ -872,6 +872,9 @@ def _main():
     jsonrpc_ch = EzProject(store, "rabbitmq-jsonrpc-channel", rabbitHg("rabbitmq-jsonrpc-channel"),
                            "AMQP-over-JSON-RPC, plus examples")
 
+    bql = EzProject(store, "rabbitmq-bql", rabbitHg("rabbitmq-bql"),
+                    "RabbitMQ Broker Query Language")
+
     store.run_build()
     return store
 
