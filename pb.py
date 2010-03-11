@@ -872,6 +872,8 @@ def _main():
     jsonrpc_ch = EzProject(store, "rabbitmq-jsonrpc-channel", rabbitHg("rabbitmq-jsonrpc-channel"),
                            "AMQP-over-JSON-RPC, plus examples")
 
+    # Not quite enough. This just produces the .ez, and doesn't
+    # install the scripts yet.
     bql = EzProject(store, "rabbitmq-bql", rabbitHg("rabbitmq-bql"),
                     "RabbitMQ Broker Query Language")
 
