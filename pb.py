@@ -860,8 +860,8 @@ def _main():
     java = RabbitMQJavaClientProject(store, "rabbitmq-java-client",
                                      rabbitHg("rabbitmq-java-client"), [codegen])
 
-    # Weird. This should depend on the server.
-    rabbithub = GenericSimpleDebianProject(store, "rabbithub", tonygGithub("rabbithub"), [])
+    rabbithub = EzProject(store, "rabbithub", tonygGithub("rabbithub"),
+                          "RabbitHub PubSubHubBub plugin")
 
     x_script = EzProject(store, "script-exchange", tonygGithub("script-exchange"),
                          "x-script exchange type")
