@@ -552,6 +552,13 @@ class EzProject(Project):
 
     def compute_deps(self):
         self.parse_makefile()
+        # Because .ez are packaged for debian against specific
+        # rabbitmq-server versions, we make the rabbitmq-server
+        # project a build dependency of the .ez project, even if it
+        # doesn't explicitly depend on it itself.
+        s = self.store.project_named('rabbitmq-server')
+        if s not in self.build_deps:
+            self.build_deps.append(s)
 
     def copy_dependencies(self, build_dir):
         for p in self.build_deps:
