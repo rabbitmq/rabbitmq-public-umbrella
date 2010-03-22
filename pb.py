@@ -202,7 +202,9 @@ class HgRepo(Repo):
 
     def update(self):
         log(LOG_UPDATE, "Updating", self.source)
-        with cwd_set_to(self.source): ssc("hg pull -u")
+        with cwd_set_to(self.source):
+            ssc("hg pull")
+            ssc("hg up")
 
     def clone(self, target):
         log(LOG_CLONE, "Cloning", self.source, "to", target)
