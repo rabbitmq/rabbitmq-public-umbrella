@@ -24,6 +24,7 @@
 #                          test cases. For example, my_module_tests:test()
 #  TEST_ARGS            -- Appended to the erl command line when running or running tests.
 #                          Beware of quote escaping issues!
+#  ROOT_DIR             -- The path to the public_umbrella. Default is ..
 
 EBIN_DIR=ebin
 TEST_EBIN_DIR=test_ebin
@@ -33,7 +34,7 @@ INCLUDE_DIR=include
 DIST_DIR=dist
 DEPS_DIR=deps
 PRIV_DEPS_DIR=build/deps
-ROOT_DIR=..
+ROOT_DIR ?=..
 
 SHELL ?= /bin/bash
 ERLC ?= erlc
