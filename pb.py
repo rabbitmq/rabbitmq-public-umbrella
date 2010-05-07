@@ -791,8 +791,9 @@ class Store(object):
         for p in self.projects_iter():
             p.repo()
             p.update()
-            p.clean()
             p.compute_deps()
+        for p in self.projects_iter():
+            p.clean()
 
         # Compute the contents of each project's manifest file.
         for p in self.projects_iter():
