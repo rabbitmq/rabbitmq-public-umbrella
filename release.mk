@@ -32,7 +32,7 @@ ifeq ($(HGREPOBASE),)
 HGREPOBASE=ssh://hg@hg.lshift.net
 endif
 
-.PHONY: packages
+.PHONY: packages website_manpages
 
 all:
 	@echo Please choose a target from the Makefile.
@@ -60,7 +60,7 @@ prepare:
 		echo "Alternatively, set the makefile variable REQUIRED_EMULATOR_VERSION=$(ACTUAL_EMULATOR_VERSION) ."; \
 		[ -n "$(UNOFFICIAL_RELEASE)" ] )
 	@echo Checking the presence of the tools necessary to build a release on a Debian based OS.
-	dpkg -L cdbs elinks findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip python-pexpect s3cmd openssl > /dev/null
+	dpkg -L cdbs elinks fakeroot findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip python-pexpect s3cmd openssl xmlto xsltproc > /dev/null
 	@echo All required tools are installed, great!
 	mkdir -p $(PACKAGES_DIR)
 	mkdir -p $(SERVER_PACKAGES_DIR)
@@ -73,9 +73,9 @@ packages: prepare
 	$(MAKE) $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).zip
 	$(MAKE) $(SERVER_PACKAGES_DIR)/rabbitmq-server-generic-unix-$(VERSION).tar.gz
 	$(MAKE) $(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip
+	$(MAKE) website_manpages
 	$(MAKE) debian_packages
 	$(MAKE) rpm_packages
-	$(MAKE) macports
 	$(MAKE) java_packages
 	$(MAKE) dotnet_packages
 
@@ -103,23 +103,27 @@ endif
 bundles: packages
 	$(MAKE) windows_bundle
 
-$(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz: prepare rabbitmq-server
+$(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz: rabbitmq-server
 	$(MAKE) -C rabbitmq-server clean srcdist VERSION=$(VERSION)
 	cp rabbitmq-server/dist/rabbitmq-server-*.tar.gz $(SERVER_PACKAGES_DIR)
 
-$(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).zip: prepare rabbitmq-server
+$(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).zip: rabbitmq-server
 	$(MAKE) -C rabbitmq-server clean srcdist VERSION=$(VERSION)
 	cp rabbitmq-server/dist/rabbitmq-server-*.zip $(SERVER_PACKAGES_DIR)
 
-$(SERVER_PACKAGES_DIR)/rabbitmq-server-generic-unix-$(VERSION).tar.gz: prepare rabbitmq-server
+$(SERVER_PACKAGES_DIR)/rabbitmq-server-generic-unix-$(VERSION).tar.gz: rabbitmq-server
 	$(MAKE) -C rabbitmq-server/packaging/generic-unix clean dist VERSION=$(VERSION)
 	cp rabbitmq-server/packaging/generic-unix/rabbitmq-server-generic-unix-*.tar.gz $(SERVER_PACKAGES_DIR)
 
-$(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip: prepare rabbitmq-server
+$(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip: rabbitmq-server
 	$(MAKE) -C rabbitmq-server/packaging/windows clean dist VERSION=$(VERSION)
 	cp rabbitmq-server/packaging/windows/rabbitmq-server-windows-*.zip $(SERVER_PACKAGES_DIR)
 
-debian_packages: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
+website_manpages: rabbitmq-server
+	$(MAKE) -C rabbitmq-server docs_all VERSION=$(VERSION)
+	cp rabbitmq-server/docs/*.man.xml $(SERVER_PACKAGES_DIR)
+
+debian_packages: $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
 	$(MAKE) -C rabbitmq-server/packaging/debs/Debian clean package \
 		UNOFFICIAL_RELEASE=$(UNOFFICIAL_RELEASE) \
 		GNUPG_PATH=$(GNUPG_PATH) \
@@ -135,24 +139,19 @@ debian_packages: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.g
 		SIGNING_USER_EMAIL=$(SIGNING_USER_EMAIL)
 	cp -r rabbitmq-server/packaging/debs/apt-repository/debian $(PACKAGES_DIR)
 
-rpm_packages: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
-	$(MAKE) -C rabbitmq-server/packaging/RPMS/Fedora rpms VERSION=$(VERSION) RPM_OS=fedora
-	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/i386/rabbitmq-server*.rpm $(SERVER_PACKAGES_DIR)
-	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/x86_64/rabbitmq-server*.rpm $(SERVER_PACKAGES_DIR)
-	$(MAKE) -C rabbitmq-server/packaging/RPMS/Fedora rpms VERSION=$(VERSION) RPM_OS=suse
-	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/i386/rabbitmq-server*suse*.rpm $(SERVER_PACKAGES_DIR)
-	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/x86_64/rabbitmq-server*suse*.rpm $(SERVER_PACKAGES_DIR)
-
-macports: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
-	$(MAKE) -C rabbitmq-server/packaging/macports macports VERSION=$(VERSION)
-	cp -r rabbitmq-server/packaging/macports/macports $(PACKAGES_DIR)
+rpm_packages: $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
+	for distro in fedora suse ; do \
+	  $(MAKE) -C rabbitmq-server/packaging/RPMS/Fedora rpms VERSION=$(VERSION) RPM_OS=$$distro && \
+	  find rabbitmq-server/packaging/RPMS/Fedora -name "*.rpm" -exec cp '{}' $(SERVER_PACKAGES_DIR) ';' ; \
+	done
 
 # This target ssh's into the OSX host in order to finalize the
-# macports repo
-macports_index:
-	$(MAKE) -C rabbitmq-server/packaging/macports macports_index VERSION=$(VERSION) MACPORTS_DIR=$(realpath $(PACKAGES_DIR))/macports
+# macports repo, so it is not invoked by packages
+macports: $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
+	$(MAKE) -C rabbitmq-server/packaging/macports clean macports VERSION=$(VERSION)
+	cp -r rabbitmq-server/packaging/macports/macports $(PACKAGES_DIR)
 
-java_packages: prepare rabbitmq-java-client
+java_packages: rabbitmq-java-client
 	$(MAKE) -C rabbitmq-java-client clean dist VERSION=$(VERSION)
 	cp rabbitmq-java-client/build/*.tar.gz $(JAVA_CLIENT_PACKAGES_DIR)
 	cp rabbitmq-java-client/build/*.zip $(JAVA_CLIENT_PACKAGES_DIR)
@@ -227,16 +226,20 @@ DEPLOY_RSYNC_CMDS=\
 	done; \
 	unpacked_javadoc_dir=`(cd packages/rabbitmq-java-client; ls -td */rabbitmq-java-client-javadoc-*/ | head -1)`; \
 	ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/releases/rabbitmq-java-client; rm -f current-javadoc; ln -s $$unpacked_javadoc_dir current-javadoc)"; \
+	ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/releases/rabbitmq-server; ln -sf $(VDIR) current)"; \
 
 deploy-stage: fixup-permissions-for-deploy
 	deploy_host=$(STAGE_DEPLOY_HOST); \
 	     deploy_path=$(STAGE_DEPLOY_PATH); \
 	     $(DEPLOY_RSYNC_CMDS)
+	$(MAKE) -C rabbitmq-java-client stage-maven-bundle SIGNING_KEY=$(SIGNING_KEY) VERSION=$(VERSION) GNUPG_PATH=$(GNUPG_PATH)
 
 deploy-live: fixup-permissions-for-deploy deploy-cloudfront cloudfront-verify
 	deploy_host=$(LIVE_DEPLOY_HOST); \
 	     deploy_path=$(LIVE_DEPLOY_PATH); \
 	     $(DEPLOY_RSYNC_CMDS)
+	$(MAKE) -C rabbitmq-java-client promote-maven-bundle GNUPG_PATH=$(GNUPG_PATH)
+
 
 fixup-permissions-for-deploy:
 	chmod -R g+w $(PACKAGES_DIR)

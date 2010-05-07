@@ -57,8 +57,8 @@ enhancements
 building & packaging
 --------------------
 bug fixes
-- under macports, prevent env var settings in the various startup and
-  control scripts from polluting the environment
+- under macports, ensure env var settings are passed to the various
+  startup and control scripts
 
 
 Upgrading
