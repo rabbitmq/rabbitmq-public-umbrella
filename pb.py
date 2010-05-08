@@ -843,18 +843,22 @@ def tonygGithub(p): return GitRepo("git://github.com/tonyg/" + p)
 def _main():
     store = Store()
 
-    rfc4627 = GenericSimpleDebianProject(
-        store, "erlang-rfc4627", lshiftHg("erlang-rfc4627"), [],
-        "rfc4627-erlang",
-        ezs = [("rfc4627_jsonrpc",
-                "JSON (RFC 4627) codec and generic JSON-RPC server implementation",
-                [])])
-
     # Weird. This should depend on the server.
     xmpp = RabbitMQXmppProject(store, "rabbitmq-xmpp", rabbitHg("rabbitmq-xmpp"), [])
 
     codegen = BuildTimeProject(store, "rabbitmq-codegen", rabbitHg("rabbitmq-codegen"), [])
     server = RabbitMQServerProject(store, "rabbitmq-server", rabbitHg("rabbitmq-server"), [codegen])
+
+    # Gross: shouldn't depend on server. Only does to get the ez deb
+    # rebuilt when the server version changes. Need to split the
+    # ez-building part, which should depend on the server, from the
+    # non-ez part, which should be generic.
+    rfc4627 = GenericSimpleDebianProject(
+        store, "erlang-rfc4627", lshiftHg("erlang-rfc4627"), [server],
+        "rfc4627-erlang",
+        ezs = [("rfc4627_jsonrpc",
+                "JSON (RFC 4627) codec and generic JSON-RPC server implementation",
+                [])])
 
     # yuuck! shouldn't depend on server
     erlang_client = RabbitMQErlangClientProject(store, "rabbitmq-erlang-client",
