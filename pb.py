@@ -879,6 +879,8 @@ def _main():
 
     x_script = EzProject(store, "script-exchange", tonygGithub("script-exchange"),
                          "x-script exchange type")
+    x_presence = EzProject(store, "presence-exchange", tonygGithub("presence-exchange"),
+                           "x-presence exchange type")
     mochi = RabbitMQMochiwebProject(store, "rabbitmq-mochiweb", rabbitHg("rabbitmq-mochiweb"),
                                     "RabbitMQ Mochiweb adapter")
     jsonrpc = EzProject(store, "rabbitmq-jsonrpc", rabbitHg("rabbitmq-jsonrpc"),
