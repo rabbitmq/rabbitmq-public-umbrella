@@ -446,13 +446,17 @@ class RabbitMQServerProject(Project):
     def dirty_test_paths(self):
         return Project.dirty_test_paths(self) + \
                [self.source_tarball_path(),
-                self.store.binary_path_for(self.generic_unix_tarball_filename())]
+                self.store.binary_path_for(self.generic_unix_tarball_filename()),
+                self.store.binary_path_for(self.windows_zipball_filename())]
 
     def source_tarball_path(self):
         return self.store.source_path_for("rabbitmq-server-%s.tar.gz" % (self.version_str(),))
 
     def generic_unix_tarball_filename(self):
         return "rabbitmq-server-generic-unix-%s.tar.gz" % (self.version_str(),)
+
+    def windows_zipball_filename(self):
+        return "rabbitmq-server-windows-%s.zip" % (self.version_str(),)
 
     def clean(self):
         with cwd_set_to(self.directory):
@@ -470,6 +474,9 @@ class RabbitMQServerProject(Project):
                 self.store.install_binary(self.generic_unix_tarball_filename())
             for f in glob.glob("dist/rabbitmq-server-%s.*" % (self.version_str(),)):
                 self.store.install_source(f)
+            with cwd_set_to("packaging/windows"):
+                ssc("make VERSION=%s clean dist" % (self.version_str(),))
+                self.store.install_binary(self.windows_zipball_filename())
             if self.store.want_debian():
                 with cwd_set_to("packaging/debs/Debian"):
                     tarball="rabbitmq-server-%s.tar.gz" % (self.version_str(),)
