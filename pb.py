@@ -846,6 +846,7 @@ def _main():
     store = Store()
 
     log(LOG_PREREQ_CHECK, "Checking for missing build-dependencies...")
+    ## This list taken from the main umbrella makefile
     build_dependency_packages = [
         "cdbs",
         "elinks",
