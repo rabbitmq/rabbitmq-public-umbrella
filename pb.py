@@ -880,8 +880,8 @@ def _main():
     prereq_check_output = ssc2("dpkg -L %s > /dev/null" % (' '.join(build_dependency_packages),),
                                ignoreResult = True)[1]
     if prereq_check_output:
-        log(LOG_PREREQ_CHECK, "WARNING: missing build-time dependency packages:")
-        log(LOG_PREREQ_CHECK, prereq_check_output)
+        log_color(LOG_PREREQ_CHECK, COLOR_RED, "WARNING: missing build-time dependency packages:")
+        log_color(LOG_PREREQ_CHECK, COLOR_RED, prereq_check_output)
 
     # Weird. This should depend on the server.
     xmpp = RabbitMQXmppProject(store, "rabbitmq-xmpp", rabbitHg("rabbitmq-xmpp"), [])
