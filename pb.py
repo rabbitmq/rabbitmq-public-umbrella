@@ -18,7 +18,8 @@ class CycleError(Exception): pass
 ###########################################################################
 # Progress messages, with noddy filtering
 
-all_log_levels = ["LOG_CHDIR",
+all_log_levels = ["LOG_PREREQ_CHECK",
+                  "LOG_CHDIR",
                   "LOG_CLEAN_CHECK",
                   "LOG_DIRTY_TEST_PATHS",
                   "LOG_CLONE",
@@ -37,7 +38,8 @@ COLOR_RED = '\033[91m'
 COLOR_GREEN = '\033[92m'
 COLOR_NORMAL = '\033[0m'
 
-active_log_levels = set([LOG_CLEAN_CHECK,
+active_log_levels = set([LOG_PREREQ_CHECK,
+                         LOG_CLEAN_CHECK,
                          LOG_CLONE,
                          LOG_UPDATE,
                          LOG_INSTALL,
@@ -849,6 +851,37 @@ def tonygGithub(p): return GitRepo("git://github.com/tonyg/" + p)
 
 def _main():
     store = Store()
+
+    log(LOG_PREREQ_CHECK, "Checking for missing build-dependencies...")
+    ## This list taken from the main umbrella makefile
+    build_dependency_packages = [
+        "cdbs",
+        "elinks",
+        "fakeroot",
+        "findutils",
+        "gnupg",
+        "gzip",
+        "perl",
+        "python",
+        "python-simplejson",
+        "rpm",
+        "rsync",
+        "wget",
+        "reprepro",
+        "tar",
+        "tofrodos",
+        "zip",
+        "python-pexpect",
+        "s3cmd",
+        "openssl",
+        "xmlto",
+        "xsltproc",
+        ]
+    prereq_check_output = ssc2("dpkg -L %s > /dev/null" % (' '.join(build_dependency_packages),),
+                               ignoreResult = True)[1]
+    if prereq_check_output:
+        log(LOG_PREREQ_CHECK, "WARNING: missing build-time dependency packages:")
+        log(LOG_PREREQ_CHECK, prereq_check_output)
 
     # Weird. This should depend on the server.
     xmpp = RabbitMQXmppProject(store, "rabbitmq-xmpp", rabbitHg("rabbitmq-xmpp"), [])
