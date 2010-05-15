@@ -449,7 +449,8 @@ class RabbitMQServerProject(Project):
         return Project.dirty_test_paths(self) + \
                [self.source_tarball_path(),
                 self.store.binary_path_for(self.generic_unix_tarball_filename()),
-                self.store.binary_path_for(self.windows_zipball_filename())]
+                self.store.binary_path_for(self.windows_zipball_filename())] + \
+                map(self.store.binary_path_for, self.rpm_filenames())
 
     def source_tarball_path(self):
         return self.store.source_path_for("rabbitmq-server-%s.tar.gz" % (self.version_str(),))
@@ -459,6 +460,11 @@ class RabbitMQServerProject(Project):
 
     def windows_zipball_filename(self):
         return "rabbitmq-server-windows-%s.zip" % (self.version_str(),)
+
+    def rpm_filenames(self):
+        return ["rabbitmq-server-%s-1%s.%s.rpm" % (self.version_str(), osvariant, rpmvariant)
+                for osvariant in ('', '.suse')
+                for rpmvariant in ('src', 'noarch')]
 
     def clean(self):
         with cwd_set_to(self.directory):
@@ -476,6 +482,11 @@ class RabbitMQServerProject(Project):
                 self.store.install_binary(self.generic_unix_tarball_filename())
             for f in glob.glob("dist/rabbitmq-server-%s.*" % (self.version_str(),)):
                 self.store.install_source(f)
+            with cwd_set_to("packaging/RPMS/Fedora"):
+                for osvariant in ('fedora', 'suse'):
+                    ssc("make rpms VERSION=%s RPM_OS=%s" % (self.version_str(), osvariant))
+                    for f in qx("find . -name '*.rpm'").split():
+                        self.store.install_binary(f)
             with cwd_set_to("packaging/windows"):
                 ssc("make VERSION=%s clean dist" % (self.version_str(),))
                 self.store.install_binary(self.windows_zipball_filename())
