@@ -107,9 +107,10 @@ ssh $SSH_OPTS $ROOT_USERHOST '
     DEBIAN_FRONTEND=noninteractive ; export DEBIAN_FRONTEND
     apt-get -y update
     apt-get -y dist-upgrade
-    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm reprepro tofrodos zip unzip ant $java_package htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev python-pexpect openssl'
+    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm reprepro tofrodos zip unzip ant $java_package htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev python-pexpect openssl s3cmd fakeroot'
 
 mkdir -p $TOPDIR
+cp -a $SCRIPTDIR/install-otp.sh $TOPDIR
 cd $TOPDIR
 
 # Copy rabbitmq-umbrella into place
@@ -138,6 +139,9 @@ EOF
 fi
 
 rsync -a $TOPDIR/ $BUILD_USERHOST:$topdir
+
+# Do per-user install of the required erlang/OTP versions
+ssh $SSH_OPTS $BUILD_USERHOST $topdir/install-otp.sh
 
 if [ -z "$WEB_URL" ] ; then
     # Run the website under a local python process
