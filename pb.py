@@ -919,7 +919,7 @@ def _main():
 
     c_client = AutoreconfProject(store, "rabbitmq-c", rabbitHg("rabbitmq-c"), [codegen],
                                  "librabbitmq",
-                                 extra_packages = ["librabbitmq-dev"])
+                                 extra_packages = ["librabbitmq-dev", "amqp-tools"])
     stomp = EzProject(store, "rabbitmq-stomp", rabbitHg("rabbitmq-stomp"),
                       "STOMP protocol support")
     java = RabbitMQJavaClientProject(store, "rabbitmq-java-client",
