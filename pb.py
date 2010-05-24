@@ -887,6 +887,10 @@ def _main():
         "openssl",
         "xmlto",
         "xsltproc",
+
+        ## The following entries are unique to this program, not
+        ## present in the main umbrella makefile.
+        "libpopt-dev",
         ]
     prereq_check_output = ssc2("dpkg -L %s > /dev/null" % (' '.join(build_dependency_packages),),
                                ignoreResult = True)[1]
