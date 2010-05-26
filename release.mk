@@ -159,7 +159,7 @@ java_packages: rabbitmq-java-client
 
 dotnet_packages:
 	$(MAKE) -C rabbitmq-dotnet-client dist RABBIT_VSN=$(VERSION)
-	cp -a rabbitmq-dotnet-client/releases/rabbitmq-dotnet-client/$(VDIR)/* $(DOTNET_CLIENT_PACKAGES_DIR)
+	cp -a rabbitmq-dotnet-client/release/* $(DOTNET_CLIENT_PACKAGES_DIR)
 
 WINDOWS_BUNDLE_TMP_DIR=$(PACKAGES_DIR)/complete-rabbitmq-bundle-$(VERSION)
 windows_bundle:
