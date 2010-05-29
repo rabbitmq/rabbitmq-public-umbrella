@@ -58,6 +58,11 @@ set -e -x
 
 vars="VERSION=$VERSION REAL_WEB_URL=$REAL_WEB_URL MACPORTS_USERHOST=\"$MACPORTS_USERHOST\" SSH_OPTS=\"$SSH_OPTS\" STAGE_DEPLOY_HOST=\"$DEPLOY_USERHOST\" GNUPG_PATH=$KEYSDIR/keyring"
 
+# The maven deployment bits need access to credentials under KEYSDIR
+if [ -n "$KEYSDIR" ] ; then
+    vars="$vars GNUPG_PATH=$KEYSDIR/keyring $SIGNING_PARAMS"
+fi
+
 # Build macports 
 cd $TOPDIR/rabbitmq-umbrella
 eval "make macports $vars"
