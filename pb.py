@@ -883,13 +883,18 @@ def _main():
         "tofrodos",
         "zip",
         "python-pexpect",
-        "s3cmd",
+        ## "s3cmd", ## not strictly required for pb.py to do its job. Yet.
         "openssl",
         "xmlto",
         "xsltproc",
 
         ## The following entries are unique to this program, not
         ## present in the main umbrella makefile.
+        "mercurial",
+        "git-core",
+        "erlang",
+        "sun-java6-jdk",
+        "ant",
         "libpopt-dev",
         ]
     prereq_check_output = ssc2("dpkg -L %s > /dev/null" % (' '.join(build_dependency_packages),),
