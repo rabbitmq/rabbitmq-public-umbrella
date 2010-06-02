@@ -892,7 +892,9 @@ def _main():
         ## present in the main umbrella makefile.
         "mercurial",
         "git-core",
+        "subversion",
         "erlang",
+        "erlang-src",
         "sun-java6-jdk",
         "ant",
         "libpopt-dev",
