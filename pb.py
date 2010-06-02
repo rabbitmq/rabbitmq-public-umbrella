@@ -897,6 +897,12 @@ def _main():
         "erlang-src",
         "sun-java6-jdk",
         "ant",
+        "zip",
+        "unzip",
+        "ejabberd", ## because rabbitmq-xmpp needs a header file from it
+        "autoconf",
+        "automake",
+        "libtool",
         "libpopt-dev",
         ]
     prereq_check_output = ssc2("dpkg -L %s > /dev/null" % (' '.join(build_dependency_packages),),
