@@ -36,6 +36,11 @@ SIGNING_PARAMS=
 # trailing slash.
 WEB_URL=
 
+# The base URL of the rabbitmq website where the results of the build
+# will actually be available.  Optional, defaults to the rabbitmq.com
+# site
+REAL_WEB_URL=
+
 # The directory in which the rabbitmq-website repo lives.  If empty,
 # we will do a fresh clone of the 'next' branch
 WEBSITE_REPO=
@@ -46,6 +51,13 @@ CHANGELOG_EMAIL=
 
 # The comment for changelog entires
 CHANGELOG_COMMENT="Test release"
+
+# The Apple Mac OS host with macports installed used for generating
+# the macports artifacts
+MACPORTS_USERHOST=
+
+# RSync user/host to deploy to.  If empty, we don't deploy.
+DEPLOY_USERHOST=
 
 # The directory on the local host to use for the build.  If not set,
 # we will use a uniquely-named directory in /var/tmp.
@@ -68,24 +80,44 @@ while [[ $# -gt 0 ]] ; do
   shift
 done
 
-mandatory_vars="VERSION BUILD_USERHOST WIN_USERHOST"
-optional_vars="SSH_OPTS KEYSDIR SIGNING_PARAMS WEB_URL WEBSITE_REPO CHANGELOG_EMAIL CHANGELOG_COMMENT TOPDIR topdir REPOS SCRIPTDIR UMBRELLADIR"
+function die () {
+  echo "$@" 2>&1
+  exit 1
+}
 
-. $SCRIPTDIR/utils.sh
-absolutify_scriptdir
+# Check mandatory settings
+for v in BUILD_USERHOST WIN_USERHOST VERSION SCRIPTDIR ; do
+  [[ -n "${!v}" ]] || die "$v not set"
+done
+
+# SCRIPTDIR should be absolute
+case $SCRIPTDIR in
+/*)
+    ;;
+*)
+    SCRIPTDIR="$PWD/$SCRIPTDIR"
+    ;;
+esac
 
 [[ -n "$UMBRELLADIR" ]] || UMBRELLADIR=$SCRIPTDIR/..
 
 [[ -n "$ROOT_USERHOST" ]] || ROOT_USERHOST=$(echo "$BUILD_USERHOST" | sed 's|^[^@]*@||;s|^|root@|')
 
-[[ -z "$KEYSDIR" ]] && UNOFFICAL_RELEASE=1
+if [[ -z "$KEYSDIR" ]] ; then
+  UNOFFICIAL_RELEASE=1
+fi
+
+[[ -n "$REAL_WEB_URL" ]] || REAL_WEB_URL=http://www.rabbitmq.com/
 
 # Lower-case topdir is the directory in /var/tmp where we do the build
 # on the remote hosts.  TOPDIR may be different.
 topdir=/var/tmp/rabbit-build.$$
 [[ -z "$TOPDIR" ]] && TOPDIR="$topdir"
 
-check_vars
+echo "Build settings:"
+for v in VERSION SCRIPTDIR BUILD_USERHOST ROOT_USERHOST WIN_USERHOST SSH_OPTS KEYSDIR SIGNING_PARAMS WEB_URL REAL_WEB_URL CHANGELOG_EMAIL CHANGELOG_COMMENT DEPLY_USERHOST MACPORTS_USERHOST TOPDIR topdir REPOS WEBSITE_REPO UNOFFICIAL_RELEASE ; do
+  echo "${v}=${!v}"
+done
 
 set -e -x
 
@@ -99,15 +131,11 @@ ssh $SSH_OPTS $ROOT_USERHOST '
     set -e -x
     if [ "$(cat /etc/debian_version)" = "4.0" ] ; then
         echo "deb http://ftp.uk.debian.org/debian/ etch-proposed-updates main" >/etc/apt/sources.list.d/proposed-updates.list
-        java_package=sun-java5-jdk
-    else
-        java_package=default-jdk
     fi
-         
     DEBIAN_FRONTEND=noninteractive ; export DEBIAN_FRONTEND
     apt-get -y update
     apt-get -y dist-upgrade
-    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm reprepro tofrodos zip unzip ant $java_package htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev python-pexpect openssl s3cmd fakeroot'
+    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm reprepro tofrodos zip unzip ant sun-java5-jdk htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev openssl python-pexpect'
 
 mkdir -p $TOPDIR
 cp -a $SCRIPTDIR/install-otp.sh $TOPDIR
@@ -137,6 +165,10 @@ if [[ -n "$CHANGELOG_EMAIL" ]] ; then
 EOF
     sed -ne '/^%changelog/,$p' <$spec~ | tail -n +2 >>$spec
 fi
+
+# rsync should take account of SSH_OPTS
+RSYNC_RSH="ssh $SSH_OPTS"
+export RSYNC_RSH
 
 rsync -a $TOPDIR/ $BUILD_USERHOST:$topdir
 
@@ -178,6 +210,8 @@ if [ -n "$WIN_USERHOST" ] ; then
     # Do the initial nant-based build
     ssh $SSH_OPTS "$WIN_USERHOST" '
         set -e -x
+        # The PATH when you ssh in to the cygwin sshd is missing things
+        PATH="$PATH:$(cygpath -p "$SYSTEMROOT\microsoft.net\framework\v3.5;$PROGRAMFILES\msival2;$PROGRAMFILES\wix;$PROGRAMFILES\Microsoft SDKs\Windows\v6.1\Bin")"
         cd '$dotnetdir'
         { '"$vars"' ./dist.sh && touch dist.ok ; rm -f rabbit.snk ; } 2>&1 | tee dist.log ; test -e dist.ok
     '
@@ -210,7 +244,7 @@ if [ -n "$WIN_USERHOST" ] ; then
     ssh $SSH_OPTS "$WIN_USERHOST" "rm -rf $topdir"
 fi
 
-vars="VERSION=$VERSION WEB_URL=\"$WEB_URL\" UNOFFICIAL_RELEASE=$UNOFFICIAL_RELEASE"
+vars="VERSION=$VERSION WEB_URL=\"$WEB_URL\" REAL_WEB_URL=\"$REAL_WEB_URL\" UNOFFICIAL_RELEASE=$UNOFFICIAL_RELEASE"
 
 if [ -n "$KEYSDIR" ] ; then
     # Set things up for signing
@@ -220,7 +254,9 @@ fi
 
 ssh $SSH_OPTS $BUILD_USERHOST '
     set -e -x
-    PATH=$HOME/otp-R12B-3/bin:$PATH
+    PATH=$HOME/otp-R11B-5/bin:$PATH
+    JAVA_HOME=/usr/lib/jvm/java-1.5.0-sun
+    export JAVA_HOME
     cd '$topdir'
     [ -d keyring ] && chmod -R a+rX,u+w keyring
     cd rabbitmq-umbrella
@@ -231,4 +267,11 @@ ssh $SSH_OPTS $BUILD_USERHOST '
 rsync -av $BUILD_USERHOST:$topdir/ $TOPDIR 
 ssh $SSH_OPTS $BUILD_USERHOST "rm -rf $topdir"
 
-echo "Build completed successfully (don't worry about the following kill)"
+# Do macports indexing
+cd $TOPDIR/rabbitmq-umbrella
+make macports_index MACPORTS_USERHOST="$MACPORTS_USERHOST" SSH_OPTS="$SSH_OPTS"
+
+# Finally, deploy
+if [[ -n "$DEPLOY_USERHOST" ]] ; then
+    make deploy-stage STAGE_DEPLOY_HOST="$DEPLOY_USERHOST" SSH_OPTS="$SSH_OPTS"
+fi
