@@ -4,10 +4,10 @@
 CORE_REPOS=rabbitmq-server rabbitmq-codegen rabbitmq-erlang-client \
            rabbitmq-jsonrpc rabbitmq-mochiweb \
            rabbitmq-jsonrpc-channel rabbitmq-bql \
-           rabbitmq-stomp rabbitmq-smtp
+           rabbitmq-stomp rabbitmq-smtp	\
+           erlang-rfc4627
 
-OS_REPOS=erlang-rfc4627
-REPOS=$(CORE_REPOS) $(OS_REPOS)
+REPOS=$(CORE_REPOS)
 BRANCH=default
 PLUGINS=rabbitmq-erlang-client rabbitmq-jsonrpc rabbitmq-mochiweb rabbitmq-jsonrpc-channel \
         rabbitmq-bql erlang-rfc4627 rabbitmq-smtp rabbitmq-stomp
@@ -16,12 +16,6 @@ HG_CORE_REPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
 ifeq ($(HG_CORE_REPOBASE),)
 HG_CORE_REPOBASE=http://hg.rabbitmq.com/
-endif
-
-ifeq ($(shell echo $(HG_CORE_REPOBASE) | cut -c1-3),ssh)
-HG_OS_REPOBASE=ssh://hg@hg.opensource.lshift.net
-else
-HG_OS_REPOBASE=http://hg.opensource.lshift.net
 endif
 
 #----------------------------------
@@ -48,9 +42,6 @@ clean:
 
 $(CORE_REPOS):
 	hg clone $(HG_CORE_REPOBASE)/$@
-
-$(OS_REPOS):
-	hg clone $(HG_OS_REPOBASE)/$@
 
 checkout: $(REPOS)
 
