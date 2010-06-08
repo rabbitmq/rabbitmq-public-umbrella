@@ -4,7 +4,7 @@
 CORE_REPOS=rabbitmq-server rabbitmq-codegen rabbitmq-erlang-client \
            rabbitmq-jsonrpc rabbitmq-mochiweb \
            rabbitmq-jsonrpc-channel rabbitmq-bql \
-           rabbitmq-stomp rabbitmq-smtp	\
+           rabbitmq-stomp rabbitmq-smtp rabbitmq-status \
            erlang-rfc4627
 
 REPOS=$(CORE_REPOS)
