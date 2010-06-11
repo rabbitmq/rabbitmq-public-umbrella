@@ -63,7 +63,7 @@ enhancements
 java client
 -----------
 bug fixes
-- MulticastMain could calculate negative rates, due to interger
+- MulticastMain could calculate negative rates, due to integer
   wrapping.
 - fix a race condition when closing channels.
 - be consistent about naming conventions.
@@ -117,7 +117,7 @@ Upgrading
 =========
 The database schema and the format in which persistent messages are
 stored have both changed since the last release (1.7.2). When
-starting, the RabbitMQ server will detect the existance of an old
+starting, the RabbitMQ server will detect the existence of an old
 database and will move it to a backup location, before creating a
 fresh, empty database, and will log a warning. If your RabbitMQ
 installation contains important data then we recommend you contact
