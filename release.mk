@@ -29,7 +29,7 @@ REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-clie
 HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
 ifeq ($(HGREPOBASE),)
-HGREPOBASE=ssh://hg@hg.lshift.net
+HGREPOBASE=ssh://hg@hg.rabbitmq.com
 endif
 
 .PHONY: packages website_manpages
