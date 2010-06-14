@@ -149,7 +149,7 @@ if [ -z "$WEB_URL" ] ; then
         cd $WEBSITE_REPO
     else
         cd $TOPDIR
-        hg clone -e "ssh $SSH_OPTS" -r next ssh://hg@hg.lshift.net/rabbitmq-website
+        hg clone -e "ssh $SSH_OPTS" -r next ssh://hg@rabbit-hg/rabbitmq-website
         cd rabbitmq-website
     fi
 
