@@ -27,27 +27,29 @@ enhancements
   clients.
 - introduce a backing queue API permitting plugins to the broker to
   define new ways in which messages can be stored.
-- honour many of the queue exclusivity requirements for AMQP 0-9-1,
-  such as queue redeclaration, basic.get, queue.bind and queue.unbind.
-- honour exchange and queue equivalence requirements for AMQP 0-9-1,
-  especially for queue and exchange redeclaration.
-- ensure that exclusive queues are synchronously deleted before the
-  connection fully closes.
-- permit durable queues to be bound to transient exchanges.
-- enforce detection and raising exceptions due to invalid and reused
-  delivery-tags in basic.ack rigorously
-- queue.purge now does not remove unacknowledged messages.
+- several semantic changes to bring the behaviour inline with the AMQP
+  0-9-1 spec:
+  + honour many of the queue exclusivity requirements for AMQP 0-9-1,
+    such as queue redeclaration, basic.get, queue.bind and
+    queue.unbind.
+  + honour exchange and queue equivalence requirements for AMQP 0-9-1,
+    especially for queue and exchange redeclaration.
+  + ensure that exclusive queues are synchronously deleted before the
+    connection fully closes.
+  + permit durable queues to be bound to transient exchanges.
+  + enforce detection and raising exceptions due to invalid and reused
+    delivery-tags in basic.ack rigorously
+  + queue.purge now does not remove unacknowledged messages.
 - require clients to respond to channel.flow messages within 10
-  seconds of the channel raising the exception, otherwise a channel
-  exception will be raised. Detect and raise exceptions on invalid
-  responses to channel.flow, and upon a client publishing a message
-  after the client has replied with a channel.flow_ok{active=false}.
+  seconds to avoid an exception being raised and more rigorously deal
+  with clients that disobey channel.flow messages. See
+  http://www.rabbitmq.com/extensions.html#memsup
 - the server now supports the client sending channel.flow messages to
   temporarily halt the flow of deliveries to the client.
 - optimise cross-node routing of messages in a cluster scenario whilst
   maintaining visibility guarantees.
-- ensure that clients who prevent incorrect authentication tokens
-  cannot flood the broker with requests.
+- ensure that clients who present invalid credentials cannot flood the
+  broker with requests.
 - ensure that the minimum number of frames are used to deliver
   messages, regardless of incoming and outgoing frame sizes.
 - drop support for versions of Erlang older than R12B-3.
@@ -63,13 +65,14 @@ enhancements
 java client
 -----------
 bug fixes
+- fix a race condition when closing channels which could lead to the
+  same channel being closed twice.
 - MulticastMain could calculate negative rates, due to integer
   wrapping.
-- fix a race condition when closing channels.
 - be consistent about naming conventions.
 
 enhancements
-- Java client is now available via Maven.
+- Java client is now available via Maven Central.
 - redesign the ConnectionFactory to be more idiomatic.
 - expose server properties in connection.start.
 - allow additional client properties to be set in connection.start_ok.
@@ -81,9 +84,10 @@ enhancements
 .net client
 -----------
 bug fixes
-- improvements to catching connections which are timing out.
-- ensure numbers for closed channels can be reopened.
 - prevent memory leak due to DomainUnload event handler.
+- improvements to catching connections which are timing out.
+- ensure explicitly numbered closed channels return their channel
+  number to the pool correctly.
 - removed artificial limitation on maximum incoming message size.
 
 enhancements
