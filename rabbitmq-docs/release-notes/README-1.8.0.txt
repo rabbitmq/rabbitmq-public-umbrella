@@ -109,8 +109,6 @@ building & packaging
 bug fixes
 - stop the INSTALL file from being installed in the wrong place by the
   Debian packages.
-- ensure the broker can be uninstalled and/or upgraded when plugins
-  have been used.
 
 enhancements
 - source rpm (.src.rpm) packages are now available
@@ -126,3 +124,86 @@ database and will move it to a backup location, before creating a
 fresh, empty database, and will log a warning. If your RabbitMQ
 installation contains important data then we recommend you contact
 support@rabbitmq.com for assistance with the upgrade.
+
+
+Important notes on the AMQP 0-9-1 semantic changes
+==================================================
+RabbitMQ currently implements the 0-8 version of AMQP. A future
+version will implement both 0-8 and 0-9-1 versions of the protocol. In
+order to get ready for this, we're starting to implement 0-9-1
+semantics in version 1.8.0 of RabbitMQ.
+
+We don't think any of these changes are going to be a big problem for
+anyone, and will probably be irrelevant for most people. In almost all
+cases they're tightening up or tidying up edge cases where the 0-8
+spec was incomplete or specified something unhelpful. However, it's
+probably worth reading the list below to make absolutely sure you're
+not depending on any of our existing weird behaviour.
+
+
+Reuse of delivery tags
+----------------------
+
+In previous versions of RabbitMQ, you could ack the same message with
+the same delivery tag multiple times. In 1.8.0 this will cause a
+not-found exception. Note that if a message is redelivered for any
+reason it will get a new delivery tag so you can ack it again.
+
+
+Exchange equivalence
+--------------------
+
+In previous versions of RabbitMQ you could actively declare an
+exchange with one set of durable and auto-delete parameters, then
+actively declare it again with different parameters and get the same
+exchange back. This now causes a precondition_failed exception, as it
+would if the type does not match. Note that with the old behaviour the
+exchange did not actually change to match the new parameters; you just
+got back something that was not what you asked for.
+
+In previous versions, when passively declaring an exchange, the type
+parameter was checked (but not the durable and auto-delete
+parameters).  Now only the name is checked. Passive declaration cannot
+create an exchange, and exchanges are only identified by their
+name. Therefore it does not make sense to require the other parameters
+of exchange.declare to match the exchange declaration in the passive
+case.
+
+
+Queue equivalence
+-----------------
+
+Similarly, when actively redeclaring a queue you could vary the
+durable and auto-delete parameters and get back a queue which did not
+match what you asked for. Again, this is now causes a
+precondition_failed exception.  Likewise, passive declaration of
+queues only needs to match on the queue name, not any other
+parameters.
+
+
+Purging unacknowledged messages
+-------------------------------
+
+When queue.purge is called, messages which had been send but not
+acknowledged used to be purged. Now they are not. This makes much more
+sense as consumers from a queue may have no idea whether or not a
+queue has been purged by some other client.
+
+
+Binding durable queues to transient exchanges
+---------------------------------------------
+
+This used not to be permitted. Now it is. The binding is considered
+transient.
+
+
+Queue exclusivity enforcement
+-----------------------------
+
+In previous versions of RabbitMQ, an exclusive queue could still be
+accessed by other connections for (un)binding or basic.get. This is now
+not permitted.
+
+Also, an exclusive queue would continue to exist for a short time after
+the connection was closed. It's now deleted while the connection is
+being closed (assuming that's happening in an orderly manner).
