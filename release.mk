@@ -234,13 +234,12 @@ deploy-stage: fixup-permissions-for-deploy
 	deploy_host=$(STAGE_DEPLOY_HOST); \
 	     deploy_path=$(STAGE_DEPLOY_PATH); \
 	     $(DEPLOY_RSYNC_CMDS)
-	$(MAKE) -C rabbitmq-java-client stage-maven-bundle SIGNING_KEY=$(SIGNING_KEY) VERSION=$(VERSION) GNUPG_PATH=$(GNUPG_PATH)
 
 deploy-live: fixup-permissions-for-deploy deploy-cloudfront cloudfront-verify
 	deploy_host=$(LIVE_DEPLOY_HOST); \
 	     deploy_path=$(LIVE_DEPLOY_PATH); \
 	     $(DEPLOY_RSYNC_CMDS)
-	$(MAKE) -C rabbitmq-java-client promote-maven-bundle GNUPG_PATH=$(GNUPG_PATH)
+	$(MAKE) -C rabbitmq-java-client stage-maven-bundle promote-maven-bundle SIGNING_KEY=$(SIGNING_KEY) VERSION=$(VERSION) GNUPG_PATH=$(GNUPG_PATH)
 
 
 fixup-permissions-for-deploy:
