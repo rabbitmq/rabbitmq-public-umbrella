@@ -175,6 +175,8 @@ windows_bundle:
 		$(WINDOWS_BUNDLE_TMP_DIR)
 	cp ./README-windows-bundle $(WINDOWS_BUNDLE_TMP_DIR)/README
 	sed -i 's/%%VERSION%%/$(VERSION)/' $(WINDOWS_BUNDLE_TMP_DIR)/README
+	mv $(WINDOWS_BUNDLE_TMP_DIR)/README $(WINDOWS_BUNDLE_TMP_DIR)/README.txt
+	todos $(WINDOWS_BUNDLE_TMP_DIR)/README.txt
 	(cd $(WINDOWS_BUNDLE_TMP_DIR)/..; \
 		zip -r complete-rabbitmq-bundle-$(VERSION).zip complete-rabbitmq-bundle-$(VERSION);)
 	mv $(WINDOWS_BUNDLE_TMP_DIR)/../complete-rabbitmq-bundle-$(VERSION).zip \
