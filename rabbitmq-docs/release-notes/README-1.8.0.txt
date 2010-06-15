@@ -50,9 +50,9 @@ enhancements
   maintaining visibility guarantees.
 - ensure that clients who present invalid credentials cannot flood the
   broker with requests.
+- drop support for versions of Erlang older than R12B-3.
 - ensure that the minimum number of frames are used to deliver
   messages, regardless of incoming and outgoing frame sizes.
-- drop support for versions of Erlang older than R12B-3.
 - display the current version of Erlang when booting Rabbit, and
   ensure the version is sufficiently youthful.
 - work around some name resolver issues, especially under Windows.
@@ -128,17 +128,16 @@ support@rabbitmq.com for assistance with the upgrade.
 
 Important notes on the AMQP 0-9-1 semantic changes
 ==================================================
-RabbitMQ currently implements the 0-8 version of AMQP. A future
-version will implement both 0-8 and 0-9-1 versions of the protocol. In
-order to get ready for this, we're starting to implement 0-9-1
-semantics in version 1.8.0 of RabbitMQ.
 
-We don't think any of these changes are going to be a big problem for
-anyone, and will probably be irrelevant for most people. In almost all
-cases they're tightening up or tidying up edge cases where the 0-8
-spec was incomplete or specified something unhelpful. However, it's
-probably worth reading the list below to make absolutely sure you're
-not depending on any of our existing weird behaviour.
+This release incorporates a number of semantic changes to the broker
+behaviour which bring the broker more in-line with the AMQP 0-9-1
+specification. We don't think any of these changes are going to be a
+big problem for anyone, and will probably be irrelevant for most
+people. In almost all cases they're tightening up or tidying up edge
+cases where the 0-8 spec was incomplete or specified something
+unhelpful. However, it's probably worth reading the list below to make
+absolutely sure you're not depending on any of our existing weird
+behaviour.
 
 
 Reuse of delivery tags
