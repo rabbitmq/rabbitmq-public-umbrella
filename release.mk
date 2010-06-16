@@ -207,7 +207,7 @@ clean:
 
 ###########################################################################
 
-LIVE_DEPLOY_HOST=rabbit-www
+LIVE_DEPLOY_HOST=rabbit-web
 LIVE_DEPLOY_PATH=/home/rabbitmq/extras
 
 STAGE_DEPLOY_HOST=rabbit-www-stage
