@@ -21,7 +21,7 @@ JAVA_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-java-client/$(VDIR)
 DOTNET_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-dotnet-client/$(VDIR)
 BUNDLES_PACKAGES_DIR=$(PACKAGES_DIR)/bundles/$(VDIR)
 
-REQUIRED_EMULATOR_VERSION=5.5.5
+REQUIRED_EMULATOR_VERSION=5.6.3
 ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
 
 REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client
@@ -29,7 +29,7 @@ REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-clie
 HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
 ifeq ($(HGREPOBASE),)
-HGREPOBASE=ssh://hg@hg.lshift.net
+HGREPOBASE=ssh://hg@hg.rabbitmq.com
 endif
 
 .PHONY: packages website_manpages
@@ -159,7 +159,7 @@ java_packages: rabbitmq-java-client
 
 dotnet_packages:
 	$(MAKE) -C rabbitmq-dotnet-client dist RABBIT_VSN=$(VERSION)
-	cp -a rabbitmq-dotnet-client/releases/rabbitmq-dotnet-client/$(VDIR)/* $(DOTNET_CLIENT_PACKAGES_DIR)
+	cp -a rabbitmq-dotnet-client/release/* $(DOTNET_CLIENT_PACKAGES_DIR)
 
 WINDOWS_BUNDLE_TMP_DIR=$(PACKAGES_DIR)/complete-rabbitmq-bundle-$(VERSION)
 windows_bundle:
@@ -175,6 +175,8 @@ windows_bundle:
 		$(WINDOWS_BUNDLE_TMP_DIR)
 	cp ./README-windows-bundle $(WINDOWS_BUNDLE_TMP_DIR)/README
 	sed -i 's/%%VERSION%%/$(VERSION)/' $(WINDOWS_BUNDLE_TMP_DIR)/README
+	mv $(WINDOWS_BUNDLE_TMP_DIR)/README $(WINDOWS_BUNDLE_TMP_DIR)/README.txt
+	todos $(WINDOWS_BUNDLE_TMP_DIR)/README.txt
 	(cd $(WINDOWS_BUNDLE_TMP_DIR)/..; \
 		zip -r complete-rabbitmq-bundle-$(VERSION).zip complete-rabbitmq-bundle-$(VERSION);)
 	mv $(WINDOWS_BUNDLE_TMP_DIR)/../complete-rabbitmq-bundle-$(VERSION).zip \
@@ -205,10 +207,10 @@ clean:
 
 ###########################################################################
 
-LIVE_DEPLOY_HOST=www
+LIVE_DEPLOY_HOST=rabbit-web
 LIVE_DEPLOY_PATH=/home/rabbitmq/extras
 
-STAGE_DEPLOY_HOST=www-stage
+STAGE_DEPLOY_HOST=rabbit-web-stage
 STAGE_DEPLOY_PATH=/home/rabbitmq/extras
 
 RSYNC_CMD=rsync -irvpl --delete-after
@@ -232,13 +234,12 @@ deploy-stage: fixup-permissions-for-deploy
 	deploy_host=$(STAGE_DEPLOY_HOST); \
 	     deploy_path=$(STAGE_DEPLOY_PATH); \
 	     $(DEPLOY_RSYNC_CMDS)
-	$(MAKE) -C rabbitmq-java-client stage-maven-bundle SIGNING_KEY=$(SIGNING_KEY) VERSION=$(VERSION) GNUPG_PATH=$(GNUPG_PATH)
 
 deploy-live: fixup-permissions-for-deploy deploy-cloudfront cloudfront-verify
 	deploy_host=$(LIVE_DEPLOY_HOST); \
 	     deploy_path=$(LIVE_DEPLOY_PATH); \
 	     $(DEPLOY_RSYNC_CMDS)
-	$(MAKE) -C rabbitmq-java-client promote-maven-bundle GNUPG_PATH=$(GNUPG_PATH)
+	$(MAKE) -C rabbitmq-java-client stage-maven-bundle promote-maven-bundle SIGNING_KEY=$(SIGNING_KEY) VERSION=$(VERSION) GNUPG_PATH=$(GNUPG_PATH)
 
 
 fixup-permissions-for-deploy:
