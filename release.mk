@@ -230,21 +230,25 @@ DEPLOY_RSYNC_CMDS=\
 	ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/releases/rabbitmq-java-client; rm -f current-javadoc; ln -s $$unpacked_javadoc_dir current-javadoc)"; \
 	ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/releases/rabbitmq-server; ln -sf $(VDIR) current)"; \
 
-deploy-stage: fixup-permissions-for-deploy
+deploy-stage: verify-signatures fixup-permissions-for-deploy
 	deploy_host=$(STAGE_DEPLOY_HOST); \
 	     deploy_path=$(STAGE_DEPLOY_PATH); \
 	     $(DEPLOY_RSYNC_CMDS)
 
-deploy-live: fixup-permissions-for-deploy deploy-cloudfront cloudfront-verify
+deploy-live: verify-signatures fixup-permissions-for-deploy deploy-cloudfront cloudfront-verify
 	deploy_host=$(LIVE_DEPLOY_HOST); \
 	     deploy_path=$(LIVE_DEPLOY_PATH); \
 	     $(DEPLOY_RSYNC_CMDS)
 	$(MAKE) -C rabbitmq-java-client stage-maven-bundle promote-maven-bundle SIGNING_KEY=$(SIGNING_KEY) VERSION=$(VERSION) GNUPG_PATH=$(GNUPG_PATH)
 
-
 fixup-permissions-for-deploy:
 	chmod -R g+w $(PACKAGES_DIR)
 	chmod g+s `find $(PACKAGES_DIR) -type d`
+
+verify-signatures:
+	for file in `find $(PACKAGES_DIR) -type f -name "*.asc"`; do \
+	    HOME=$(GNUPG_PATH) gpg --verify $$file `echo $$file | sed -e 's/\.asc$$//'`; \
+	done
 
 # The major problem with CloudFront is that they _don't see updates_!
 # So you can upload stuff to CF only once, never reuse the same filenames.
