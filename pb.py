@@ -491,27 +491,27 @@ class RabbitMQServerProject(Project):
 
     def build(self, build_dir):
         with cwd_set_to("rabbitmq-server"):
-            # building generic unix packages produces srcdist as a side-effect
-            with cwd_set_to("packaging/generic-unix"):
-                with http_resources_needed_for_installation() as baseurl:
+            with http_resources_needed_for_installation() as baseurl:
+                # building generic unix packages produces srcdist as a side-effect
+                with cwd_set_to("packaging/generic-unix"):
                     ssc("make VERSION=%s WEB_URL=%s clean dist" % (self.version_str(), baseurl))
                     self.store.install_binary(self.generic_unix_tarball_filename())
-            for f in glob.glob("dist/rabbitmq-server-%s.*" % (self.version_str(),)):
-                self.store.install_source(f)
-            with cwd_set_to("packaging/RPMS/Fedora"):
-                for osvariant in ('fedora', 'suse'):
-                    ssc("make rpms VERSION=%s RPM_OS=%s" % (self.version_str(), osvariant))
-                    for f in qx("find . -name '*.rpm'").split():
-                        self.store.install_binary(f)
-            with cwd_set_to("packaging/windows"):
-                ssc("make VERSION=%s clean dist" % (self.version_str(),))
-                self.store.install_binary(self.windows_zipball_filename())
-            if self.store.want_debian():
-                with cwd_set_to("packaging/debs/Debian"):
-                    tarball="rabbitmq-server-%s.tar.gz" % (self.version_str(),)
-                    ssc("make UNOFFICIAL_RELEASE=1 TARBALL=%s clean package" % (tarball,))
-                    for f in glob.glob("rabbitmq-server_%s*" % (self.version_str(),)):
-                        self.store.install_binary(f)
+                for f in glob.glob("dist/rabbitmq-server-%s.*" % (self.version_str(),)):
+                    self.store.install_source(f)
+                with cwd_set_to("packaging/RPMS/Fedora"):
+                    for osvariant in ('fedora', 'suse'):
+                        ssc("make rpms VERSION=%s RPM_OS=%s" % (self.version_str(), osvariant))
+                        for f in qx("find . -name '*.rpm'").split():
+                            self.store.install_binary(f)
+                with cwd_set_to("packaging/windows"):
+                    ssc("make VERSION=%s WEB_URL=%s clean dist" % (self.version_str(), baseurl))
+                    self.store.install_binary(self.windows_zipball_filename())
+                if self.store.want_debian():
+                    with cwd_set_to("packaging/debs/Debian"):
+                        tarball="rabbitmq-server-%s.tar.gz" % (self.version_str(),)
+                        ssc("make UNOFFICIAL_RELEASE=1 TARBALL=%s clean package" % (tarball,))
+                        for f in glob.glob("rabbitmq-server_%s*" % (self.version_str(),)):
+                            self.store.install_binary(f)
 
 class RabbitMQErlangClientProject(Project):
     def __init__(self, store, directory, source_repo, build_deps):
