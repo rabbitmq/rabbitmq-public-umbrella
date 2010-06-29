@@ -165,7 +165,7 @@ class http_resources_needed_for_installation:
     def __exit__(self, type, value, traceback):
         rm_rf(self.dirpath)
     def install_resources(self):
-        for filename in ['install.html', 'build-server.html']:
+        for filename in ['install.html', 'build-server.html', 'build-java-client.html']:
             with file(os.path.join(self.dirpath, filename), 'w') as f:
                 f.write("This is an unofficial build - please see the URL above.")
 
@@ -624,8 +624,9 @@ class RabbitMQJavaClientProject(Project):
     def build(self, build_dir):
         tarball = "rabbitmq-java-client-%s.tar.gz" % (self.version_str(),)
         with cwd_set_to("rabbitmq-java-client"):
-            ssc("make VERSION=%s srcdist" % (self.version_str(),))
-            self.store.install_source(os.path.join("build", tarball))
+            with http_resources_needed_for_installation() as baseurl:
+                ssc("make VERSION=%s WEB_URL=%s srcdist" % (self.version_str(), baseurl))
+                self.store.install_source(os.path.join("build", tarball))
         with cwd_set_to(build_dir):
             ssc("tar -zxf "+self.store.source_path_for(tarball))
             with cwd_set_to("rabbitmq-java-client-%s" % (self.version_str(),)):
