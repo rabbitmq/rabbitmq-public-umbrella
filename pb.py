@@ -154,6 +154,21 @@ class cwd_set_to:
         log(LOG_CHDIR, "Leaving", self.new_wd, "for", self.old_wd)
         os.chdir(self.old_wd)
 
+class http_resources_needed_for_installation:
+    def __init__(self):
+        self.dirpath = None
+    def __enter__(self):
+        import tempfile
+        self.dirpath = tempfile.mkdtemp()
+        self.install_resources()
+        return "file://" + self.dirpath + '/'
+    def __exit__(self, type, value, traceback):
+        rm_rf(self.dirpath)
+    def install_resources(self):
+        for filename in ['install.html', 'build-server.html']:
+            with file(os.path.join(self.dirpath, filename), 'w') as f:
+                f.write("This is an unofficial build - please see the URL above.")
+
 def mkdir_p(path):
     try:
         log(LOG_MKDIR, "Creating", path)
@@ -478,8 +493,9 @@ class RabbitMQServerProject(Project):
         with cwd_set_to("rabbitmq-server"):
             # building generic unix packages produces srcdist as a side-effect
             with cwd_set_to("packaging/generic-unix"):
-                ssc("make VERSION=%s clean dist" % (self.version_str(),))
-                self.store.install_binary(self.generic_unix_tarball_filename())
+                with http_resources_needed_for_installation() as baseurl:
+                    ssc("make VERSION=%s WEB_URL=%s clean dist" % (self.version_str(), baseurl))
+                    self.store.install_binary(self.generic_unix_tarball_filename())
             for f in glob.glob("dist/rabbitmq-server-%s.*" % (self.version_str(),)):
                 self.store.install_source(f)
             with cwd_set_to("packaging/RPMS/Fedora"):
