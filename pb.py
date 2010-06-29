@@ -580,13 +580,13 @@ class EzProject(Project):
     def parse_makefile(self):
         with cwd_set_to(self.directory):
             def g(k):
-                o = qx("grep '^%s *=' Makefile" % (k,), ignoreResult = True)
+                o = qx("egrep '^%s *:?=' Makefile" % (k,), ignoreResult = True)
                 if not o: return []
                 return o.split("=", 1)[1].split()
             deps = g("DEPS") # these are project names (checkout directories)
             self.build_deps = [self.store.projects[d] for d in deps]
             rundeps = g("RUNTIME_DEPS") # these are .ez names
-            self.ezs = [(qx("make echo-package-name"), self.ezdesc, rundeps)]
+            self.ezs = [(qx("make echo-package-name").split('\n')[-1], self.ezdesc, rundeps)]
 
     def compute_deps(self):
         self.parse_makefile()
@@ -972,6 +972,9 @@ def _main():
                         "JSON-RPC-over-HTTP")
     jsonrpc_ch = EzProject(store, "rabbitmq-jsonrpc-channel", rabbitHg("rabbitmq-jsonrpc-channel"),
                            "AMQP-over-JSON-RPC, plus examples")
+
+    shovel = EzProject(store, "rabbitmq-shovel", rabbitHg("rabbitmq-shovel"),
+                       "Rabbit Shovel plugin")
 
     # Not quite enough. This just produces the .ez, and doesn't
     # install the scripts yet.
