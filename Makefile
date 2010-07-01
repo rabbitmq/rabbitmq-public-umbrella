@@ -10,7 +10,7 @@ CORE_REPOS=rabbitmq-server rabbitmq-codegen rabbitmq-erlang-client \
 REPOS=$(CORE_REPOS)
 BRANCH=default
 PLUGINS=rabbitmq-erlang-client rabbitmq-jsonrpc rabbitmq-mochiweb rabbitmq-jsonrpc-channel \
-        rabbitmq-bql erlang-rfc4627 rabbitmq-smtp rabbitmq-stomp
+        rabbitmq-bql erlang-rfc4627 rabbitmq-smtp rabbitmq-stomp rabbitmq-status
 
 HG_CORE_REPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
