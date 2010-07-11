@@ -9,11 +9,13 @@ import subprocess
 import re
 import time
 import glob
-import sha
+import hashlib
 import email.utils
 import optparse
 
 class CycleError(Exception): pass
+class IllegalConfigurationName(Exception): pass
+class InvalidCommandLine(Exception): pass
 
 ###########################################################################
 # Progress messages, with noddy filtering
@@ -195,10 +197,18 @@ def ensure_clean_dir(directory):
 # (D)VCS support.
 
 class Repo(object):
-    def __init__(self, source):
+    def __init__(self, source, branch = None, tag = None):
         self.source = source
+        self._branch = branch
+        self._tag = tag
         self._revid = None
         self._timestamp = None
+
+    def branch(self):
+        return self._branch
+
+    def tag(self):
+        return self._tag
 
     def revid(self):
         if self._revid is None: self._read_version()
@@ -207,6 +217,11 @@ class Repo(object):
     def timestamp(self):
         if self._timestamp is None: self._read_version()
         return self._timestamp
+
+    def copy_with_source(self, source):
+        return (self.__class__)(source,
+                                branch = self._branch,
+                                tag = self._tag)
 
     def vcsname(self): raise NotImplementedError("subclass responsibility")
     def update(self): raise NotImplementedError("subclass responsibility")
@@ -221,12 +236,14 @@ class HgRepo(Repo):
         log(LOG_UPDATE, "Updating", self.source)
         with cwd_set_to(self.source):
             ssc("hg pull")
-            ssc("hg up")
+            ssc("hg up %s" % (self.tag() or self.branch() or 'default',))
 
     def clone(self, target):
         log(LOG_CLONE, "Cloning", self.source, "to", target)
         sc(["hg", "clone", self.source, target])
-        return HgRepo(target)
+        with cwd_set_to(target):
+            ssc("hg up %s" % (self.tag() or self.branch() or 'default',))
+        return self.copy_with_source(target)
 
     def _read_version(self):
         with cwd_set_to(self.source):
@@ -241,12 +258,18 @@ class GitRepo(Repo):
 
     def update(self):
         log(LOG_UPDATE, "Updating", self.source)
-        with cwd_set_to(self.source): ssc("git pull")
+        with cwd_set_to(self.source):
+            ssc("git pull")
 
     def clone(self, target):
         log(LOG_CLONE, "Cloning", self.source, "to", target)
         sc(["git", "clone", self.source, target])
-        return GitRepo(target)
+        with cwd_set_to(target):
+            if self.tag():
+                sc(["git", "checkout", self.tag()])
+            elif self.branch():
+                sc(["git", "checkout", "-t", "origin/" + self.branch()])
+        return self.copy_with_source(target)
 
     def _read_version(self):
         with cwd_set_to(self.source):
@@ -277,7 +300,7 @@ class Project(object):
     def repo(self):
         if not self._repo:
             if os.path.exists(self.directory):
-                self._repo = (self.source_repo.__class__)(self.directory)
+                self._repo = self.source_repo.copy_with_source(self.directory)
             else:
                 self._repo = self.source_repo.clone(self.directory)
         return self._repo
@@ -304,6 +327,10 @@ class Project(object):
             iw("Project", p.shortname)
             iw("Description", p.description())
             iw("Repository", p.source_repo.source)
+            if p.source_repo.tag():
+                iw("Tag", p.source_repo.tag())
+            if p.source_repo.branch():
+                iw("Branch", p.source_repo.branch())
             iw("Changed",
                str(p.repo().timestamp()) + " (" + \
                time.strftime("%Y%m%d%H%M%S", time.gmtime(p.repo().timestamp())) + ")")
@@ -330,12 +357,24 @@ class Project(object):
     def manifest_hash(self):
         if not self._manifest_hash:
             with file(self.store.manifest_path_for(self), "r") as f:
-                self._manifest_hash = sha.sha(f.read()).digest().encode('hex')
+                self._manifest_hash = hashlib.sha1(f.read()).hexdigest()
         return self._manifest_hash
 
     def version_str(self):
+        """Return the version string to use in constructing build
+        artifacts etc for this project. We have to be careful here
+        about the string we choose: it has to start with a digit,
+        because some of the Makefiles (e.g. that for RPMs) depends on
+        that to distinguish the source-code tarball from other files
+        in the same directory, and it may not contain an underscore,
+        because debian package versions may not have underscores in
+        them. There may be other arcane restrictions we haven't run
+        across yet."""
+        c = self.store.configuration_name()
+        if '_' in c:
+            raise IllegalConfigurationName(c)
         return time.strftime("%Y%m%d.%H%M%S.", time.gmtime(self.timestamp())) + \
-               self.manifest_hash()[:8]
+               c + "." + self.manifest_hash()[:8]
 
     def dirty(self):
         log(LOG_CLEAN_CHECK, "Checking if", self.shortname, "is dirty")
@@ -534,7 +573,7 @@ class RabbitMQErlangClientProject(Project):
         srcdir = os.path.join(build_dir, self.shortname + "-" + self.version_str())
         self.repo().clone(srcdir)
         with cwd_set_to(srcdir):
-            ssc("make")
+            ssc("make VERSION=%s" % (self.version_str(),))
             self.install_ezs()
 
 class AutoreconfProject(Project, DebianMixin):
@@ -743,6 +782,8 @@ class Store(object):
         mkdir_p(logdir)
         log_fd = file(os.path.join(logdir, logfilename), "w")
 
+    def configuration_name(self): raise NotImplementedError("subclass responsibility")
+
     def want_debian(self):
         if self._want_debian is None:
             self._want_debian = bool(qx("which dpkg-buildpackage", ignoreResult = True))
@@ -820,14 +861,15 @@ class Store(object):
             ez.prepare_package(self.build_dir)
             ez.build_package(self.build_dir)
 
-    def run_build(self):
+    def run_build(self, should_update = True):
         self.setup()
 
         # Ensure repositories present, up-to-date, and clean, and
         # compute dependencies (where they're not already hardcoded)
         for p in self.projects_iter():
             p.repo()
-            p.update()
+            if should_update:
+                p.update()
             p.compute_deps()
         for p in self.projects_iter():
             p.clean()
@@ -873,13 +915,138 @@ Description: Autobuild RabbitMQ Repository for Debian / Ubuntu etc
 
 ###########################################################################
 
-def rabbitHg(p): return HgRepo("http://hg.rabbitmq.com/" + p)
-def lshiftHg(p): return HgRepo("http://hg.opensource.lshift.net/" + p)
-def tonygGithub(p): return GitRepo("git://github.com/tonyg/" + p)
+class DefaultConfiguration(Store):
+    def __init__(self, configuration_name, project_pins):
+        Store.__init__(self)
+        self._configuration_name = configuration_name
+        self._project_pins = project_pins
 
-def _main():
-    store = Store()
+    def configuration_name(self):
+        """Return the name of this configuration, for use in version
+        strings etc. See important warning in
+        Project.version_str()."""
+        return self._configuration_name
 
+    def project_pin(self, projectShortname):
+        return self._project_pins.get(projectShortname, None)
+
+    def register_project(self, p):
+        if self.project_pin(p.shortname) is not False: # False means omit this project
+            Store.register_project(self, p)
+
+    def tagFor(self, projectShortname):
+        p = self.project_pin(projectShortname)
+        if p is None: # not specified at all
+            return self.default_tag()
+        if p[0] == 'tag': # given a tag
+            return p[1]
+        return None # given something else (a branch, presumably)
+
+    def default_tag(self):
+        return None
+
+    def branchFor(self, projectShortname):
+        p = self.project_pin(projectShortname)
+        if p is None: # not specified at all
+            return self.default_branch()
+        if p[0] == 'branch': # given a branch
+            return p[1]
+        return None # given something else (a tag, presumably)
+
+    def default_branch(self):
+        return None
+
+    def rabbitHg(self, p):
+        return HgRepo("http://hg.rabbitmq.com/" + p,
+                      tag = self.tagFor(p),
+                      branch = self.branchFor(p))
+
+    def lshiftHg(self, p):
+        return HgRepo("http://hg.opensource.lshift.net/" + p,
+                      tag = self.tagFor(p),
+                      branch = self.branchFor(p))
+
+    def tonygGithub(self, p):
+        return GitRepo("git://github.com/tonyg/" + p,
+                       tag = self.tagFor(p),
+                       branch = self.branchFor(p))
+
+    def create_projects(self):
+        # Weird. This should depend on the server.
+        xmpp = RabbitMQXmppProject(self, "rabbitmq-xmpp", self.rabbitHg("rabbitmq-xmpp"), [])
+
+        codegen = BuildTimeProject(self, "rabbitmq-codegen", self.rabbitHg("rabbitmq-codegen"), [])
+        server = RabbitMQServerProject(self, "rabbitmq-server", self.rabbitHg("rabbitmq-server"),
+                                       [codegen])
+
+        # Gross: shouldn't depend on server. Only does to get the ez deb
+        # rebuilt when the server version changes. Need to split the
+        # ez-building part, which should depend on the server, from the
+        # non-ez part, which should be generic.
+        rfc4627 = GenericSimpleDebianProject(
+            self, "erlang-rfc4627", self.lshiftHg("erlang-rfc4627"), [server],
+            "rfc4627-erlang",
+            ezs = [("rfc4627_jsonrpc",
+                    "JSON (RFC 4627) codec and generic JSON-RPC server implementation",
+                    [])])
+
+        # yuuck! shouldn't depend on server
+        erlang_client = RabbitMQErlangClientProject(self, "rabbitmq-erlang-client",
+                                                    self.rabbitHg("rabbitmq-erlang-client"),
+                                                    [server])
+        rabbit_common = erlang_client # yuuuuuck! it builds many ez files
+
+        c_client = AutoreconfProject(self, "rabbitmq-c", self.rabbitHg("rabbitmq-c"), [codegen],
+                                     "librabbitmq",
+                                     extra_packages = ["librabbitmq-dev", "amqp-tools"])
+        stomp = EzProject(self, "rabbitmq-stomp", self.rabbitHg("rabbitmq-stomp"),
+                          "STOMP protocol support")
+        java = RabbitMQJavaClientProject(self, "rabbitmq-java-client",
+                                         self.rabbitHg("rabbitmq-java-client"), [codegen])
+
+        rabbithub = EzProject(self, "rabbithub", self.tonygGithub("rabbithub"),
+                              "RabbitHub PubSubHubBub plugin")
+
+        x_script = EzProject(self, "script-exchange", self.tonygGithub("script-exchange"),
+                             "x-script exchange type")
+        x_presence = EzProject(self, "presence-exchange", self.tonygGithub("presence-exchange"),
+                               "x-presence exchange type")
+        mochi = RabbitMQMochiwebProject(self, "rabbitmq-mochiweb",
+                                        self.rabbitHg("rabbitmq-mochiweb"),
+                                        "RabbitMQ Mochiweb adapter")
+        jsonrpc = EzProject(self, "rabbitmq-jsonrpc", self.rabbitHg("rabbitmq-jsonrpc"),
+                            "JSON-RPC-over-HTTP")
+        jsonrpc_ch = EzProject(self, "rabbitmq-jsonrpc-channel",
+                               self.rabbitHg("rabbitmq-jsonrpc-channel"),
+                               "AMQP-over-JSON-RPC, plus examples")
+
+        shovel = EzProject(self, "rabbitmq-shovel", self.rabbitHg("rabbitmq-shovel"),
+                           "Rabbit Shovel plugin")
+
+        # Not quite enough. This just produces the .ez, and doesn't
+        # install the scripts yet.
+        bql = EzProject(self, "rabbitmq-bql", self.rabbitHg("rabbitmq-bql"),
+                        "RabbitMQ Broker Query Language")
+
+configurations = {
+    "trunk": {},
+    "v1dot8": {
+        "rabbitmq-java-client": ("tag", "rabbitmq_v1_8_0"),
+        "rabbitmq-codegen": ("tag", "rabbitmq_v1_8_0"),
+        "rabbitmq-server": ("tag", "rabbitmq_v1_8_0"),
+        },
+    "amqp091": {
+            "rabbitmq-java-client": ("branch", "amqp_0_9_1"),
+            "rabbitmq-c": ("branch", "amqp_0_9_1"),
+            "rabbitmq-codegen": ("branch", "amqp_0_9_1"),
+            "rabbitmq-erlang-client": ("branch", "amqp_0_9_1"),
+            "rabbitmq-server": ("branch", "amqp_0_9_1"),
+            },
+    }
+
+###########################################################################
+
+def check_build_dependencies():
     log(LOG_PREREQ_CHECK, "Checking for missing build-dependencies...")
     ## This list taken from the main umbrella makefile
     build_dependency_packages = [
@@ -928,61 +1095,36 @@ def _main():
         log_color(LOG_PREREQ_CHECK, COLOR_RED, "WARNING: missing build-time dependency packages:")
         log_color(LOG_PREREQ_CHECK, COLOR_RED, prereq_check_output)
 
-    # Weird. This should depend on the server.
-    xmpp = RabbitMQXmppProject(store, "rabbitmq-xmpp", rabbitHg("rabbitmq-xmpp"), [])
-
-    codegen = BuildTimeProject(store, "rabbitmq-codegen", rabbitHg("rabbitmq-codegen"), [])
-    server = RabbitMQServerProject(store, "rabbitmq-server", rabbitHg("rabbitmq-server"), [codegen])
-
-    # Gross: shouldn't depend on server. Only does to get the ez deb
-    # rebuilt when the server version changes. Need to split the
-    # ez-building part, which should depend on the server, from the
-    # non-ez part, which should be generic.
-    rfc4627 = GenericSimpleDebianProject(
-        store, "erlang-rfc4627", lshiftHg("erlang-rfc4627"), [server],
-        "rfc4627-erlang",
-        ezs = [("rfc4627_jsonrpc",
-                "JSON (RFC 4627) codec and generic JSON-RPC server implementation",
-                [])])
-
-    # yuuck! shouldn't depend on server
-    erlang_client = RabbitMQErlangClientProject(store, "rabbitmq-erlang-client",
-                                                rabbitHg("rabbitmq-erlang-client"),
-                                                [server])
-    rabbit_common = erlang_client # yuuuuuck! it builds many ez files
-
-    c_client = AutoreconfProject(store, "rabbitmq-c", rabbitHg("rabbitmq-c"), [codegen],
-                                 "librabbitmq",
-                                 extra_packages = ["librabbitmq-dev", "amqp-tools"])
-    stomp = EzProject(store, "rabbitmq-stomp", rabbitHg("rabbitmq-stomp"),
-                      "STOMP protocol support")
-    java = RabbitMQJavaClientProject(store, "rabbitmq-java-client",
-                                     rabbitHg("rabbitmq-java-client"), [codegen])
-
-    rabbithub = EzProject(store, "rabbithub", tonygGithub("rabbithub"),
-                          "RabbitHub PubSubHubBub plugin")
-
-    x_script = EzProject(store, "script-exchange", tonygGithub("script-exchange"),
-                         "x-script exchange type")
-    x_presence = EzProject(store, "presence-exchange", tonygGithub("presence-exchange"),
-                           "x-presence exchange type")
-    mochi = RabbitMQMochiwebProject(store, "rabbitmq-mochiweb", rabbitHg("rabbitmq-mochiweb"),
-                                    "RabbitMQ Mochiweb adapter")
-    jsonrpc = EzProject(store, "rabbitmq-jsonrpc", rabbitHg("rabbitmq-jsonrpc"),
-                        "JSON-RPC-over-HTTP")
-    jsonrpc_ch = EzProject(store, "rabbitmq-jsonrpc-channel", rabbitHg("rabbitmq-jsonrpc-channel"),
-                           "AMQP-over-JSON-RPC, plus examples")
-
-    shovel = EzProject(store, "rabbitmq-shovel", rabbitHg("rabbitmq-shovel"),
-                       "Rabbit Shovel plugin")
-
-    # Not quite enough. This just produces the .ez, and doesn't
-    # install the scripts yet.
-    bql = EzProject(store, "rabbitmq-bql", rabbitHg("rabbitmq-bql"),
-                    "RabbitMQ Broker Query Language")
-
-    store.run_build()
-    return store
-
 if __name__ == '__main__':
-    _main()
+    import optparse
+    parser = optparse.OptionParser()
+
+    try:
+        with file(".pb.preset", "r") as f:
+            default_preset = f.read()
+    except:
+        default_preset = "trunk"
+
+    parser.add_option("-u", "--update", dest="update", default=True, action="store_true",
+                      help="perform updates on already-checked-out repos (DEFAULT)")
+    parser.add_option("-U", "--no-update", dest="update", action="store_false",
+                      help="do not perform updates on already-checked-out repos")
+    parser.add_option("-p", "--preset", default=default_preset,
+                      help=("select preset and update default (one of %s; "
+                            "the default is currently %s)" % \
+                                (', '.join(repr(k) for k in configurations.keys()),
+                                 repr(default_preset))))
+
+    (options, args) = parser.parse_args()
+    if args:
+        parser.error("Positional arguments are not permitted")
+
+    check_build_dependencies()
+    store = DefaultConfiguration(options.preset, configurations[options.preset])
+    store.create_projects()
+
+    # Update the preset so it doesn't have to be specified later.
+    with file(".pb.preset", "w") as f:
+        f.write(options.preset)
+
+    store.run_build(options.update)
