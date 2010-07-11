@@ -595,7 +595,7 @@ class AutoreconfProject(Project, DebianMixin):
     def build(self, build_dir):
         with cwd_set_to(self.directory):
             if os.path.exists("Makefile"): ssc("make squeakyclean")
-            if not os.path.exists("configure"): ssc("autoreconf -i")
+            ssc("autoreconf -i")
         with cwd_set_to(build_dir):
             ssc("%s/configure --prefix=%s/_install" % (self.directory, build_dir))
             ssc("make VERSION=%s distcheck" % (self.version_str(),))
