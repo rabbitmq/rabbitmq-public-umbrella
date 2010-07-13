@@ -38,6 +38,7 @@ enhancements
 
 .net client
 -----------
+enhancements
  - better handling of unsolicited messages and unknown consumer tags, by adding
    a default consumer
  - documentation enhancements around the use of ConnectionFactory
