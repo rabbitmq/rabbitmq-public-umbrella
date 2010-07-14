@@ -134,7 +134,7 @@ $(DIST_DIR)/$(PACKAGE).ez: $(TARGETS)
 	cp -r $(EBIN_DIR) $(DIST_DIR)/$(PACKAGE)
 	$(foreach EXTRA_DIR, $(EXTRA_PACKAGE_DIRS), cp -r $(EXTRA_DIR) $(DIST_DIR)/$(PACKAGE);)
 	(cd $(DIST_DIR); zip -r $(PACKAGE).ez $(PACKAGE))
-	$(foreach DEP, $(INTERNAL_DEPS), cp $(DEPS_DIR)/$(DEP)/$(DEP).ez $(DIST_DIR))
+	$(foreach DEP, $(INTERNAL_DEPS), cp $(DEPS_DIR)/$(DEP)/$(DEP).ez $(DIST_DIR);)
 	$(foreach DEP, $(DEP_NAMES), cp $(PRIV_DEPS_DIR)/$(DEP).ez $(DIST_DIR) &&) true
 
 
@@ -175,7 +175,7 @@ clean::
 	rm -f erl_crash.dump
 	rm -rf $(PRIV_DEPS_DIR)
 	$(foreach GEN, $(GENERATED_SOURCES), rm -f src/$(GEN).erl;)
-	$(foreach DEP, $(INTERNAL_DEPS), $(MAKE) -C $(DEPS_DIR)/$(DEP) clean)
+	$(foreach DEP, $(INTERNAL_DEPS), $(MAKE) -C $(DEPS_DIR)/$(DEP) clean;)
 	rm -rf $(DIST_DIR)
 
 distclean:: clean
