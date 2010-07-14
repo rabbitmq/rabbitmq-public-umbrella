@@ -45,6 +45,9 @@ enhancements
 
 building & packaging
 --------------------
+bug fixes
+ - fix permission errors for commandline utilities in MacPorts
+
 enhancements
  - compiles under Erlang R14A
  - builds using GNU Make 3.80 - previously version 3.81 was required
