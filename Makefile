@@ -4,10 +4,9 @@
 CORE_REPOS=rabbitmq-server rabbitmq-codegen rabbitmq-erlang-client \
            rabbitmq-jsonrpc rabbitmq-mochiweb \
            rabbitmq-jsonrpc-channel rabbitmq-bql \
-           rabbitmq-stomp rabbitmq-smtp rabbitmq-status	\
-           erlang-rfc4627
+           rabbitmq-stomp rabbitmq-smtp rabbitmq-status
 
-REPOS=$(CORE_REPOS)
+REPOS=$(CORE_REPOS) erlang-rfc4627
 BRANCH=default
 PLUGINS=rabbitmq-erlang-client rabbitmq-jsonrpc rabbitmq-mochiweb rabbitmq-jsonrpc-channel \
         rabbitmq-bql erlang-rfc4627 rabbitmq-smtp rabbitmq-stomp rabbitmq-status
@@ -42,6 +41,9 @@ clean:
 
 $(CORE_REPOS):
 	hg clone $(HG_CORE_REPOBASE)/$@
+
+erlang-rfc4627:
+	git clone http://github.com/tonyg/erlang-rfc4627.git
 
 checkout: $(REPOS)
 
