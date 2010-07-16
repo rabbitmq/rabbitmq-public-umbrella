@@ -984,7 +984,7 @@ class DefaultConfiguration(Store):
         # ez-building part, which should depend on the server, from the
         # non-ez part, which should be generic.
         rfc4627 = GenericSimpleDebianProject(
-            self, "erlang-rfc4627", self.lshiftHg("erlang-rfc4627"), [server],
+            self, "erlang-rfc4627", self.tonygGithub("erlang-rfc4627"), [server],
             "rfc4627-erlang",
             ezs = [("rfc4627_jsonrpc",
                     "JSON (RFC 4627) codec and generic JSON-RPC server implementation",
