@@ -34,6 +34,13 @@ SIGNING_PARAMS=
 # The base URL of the rabbitmq website used to retrieve documentation.
 # If empty, we start a local python web server.  Should include a
 # trailing slash.
+#
+# Make sure your proxy configuration for elinks on BUILD_USERHOST 
+# correctly includes or excludes the hostname of this URL. Using 
+# $(hostname -f) instead of $(hostname) when running a local python 
+# webserver may help. The symptom of a misconfiguration is an 
+# INSTALL file containing a proxy error message instead of 
+# installation instructions.
 WEB_URL=
 
 # The directory in which the rabbitmq-website repo lives.  If empty,
