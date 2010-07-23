@@ -61,7 +61,7 @@ prepare:
 		echo "Alternatively, set the makefile variable REQUIRED_EMULATOR_VERSION=$(ACTUAL_EMULATOR_VERSION) ."; \
 		[ -n "$(UNOFFICIAL_RELEASE)" ] )
 	@echo Checking the presence of the tools necessary to build a release on a Debian based OS.
-	if [ -z "${NOTDEBIAN}" ]; then dpkg -L cdbs elinks fakeroot findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip python-pexpect s3cmd openssl xmlto xsltproc > /dev/null; fi
+	dpkg -L cdbs elinks fakeroot findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip python-pexpect s3cmd openssl xmlto xsltproc > /dev/null
 	@echo All required tools are installed, great!
 	mkdir -p $(PACKAGES_DIR)
 	mkdir -p $(SERVER_PACKAGES_DIR)
