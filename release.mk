@@ -17,6 +17,7 @@ HG_OPTS=
 PACKAGES_DIR=packages
 
 SERVER_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-server/$(VDIR)
+MANPAGES_DIR=$(SERVER_PACKAGES_DIR)/man
 JAVA_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-java-client/$(VDIR)
 DOTNET_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-dotnet-client/$(VDIR)
 BUNDLES_PACKAGES_DIR=$(PACKAGES_DIR)/bundles/$(VDIR)
@@ -60,10 +61,11 @@ prepare:
 		echo "Alternatively, set the makefile variable REQUIRED_EMULATOR_VERSION=$(ACTUAL_EMULATOR_VERSION) ."; \
 		[ -n "$(UNOFFICIAL_RELEASE)" ] )
 	@echo Checking the presence of the tools necessary to build a release on a Debian based OS.
-	dpkg -L cdbs elinks fakeroot findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip python-pexpect s3cmd openssl xmlto xsltproc > /dev/null
+	if [ -z "${NOTDEBIAN}" ]; then dpkg -L cdbs elinks fakeroot findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip python-pexpect s3cmd openssl xmlto xsltproc > /dev/null; fi
 	@echo All required tools are installed, great!
 	mkdir -p $(PACKAGES_DIR)
 	mkdir -p $(SERVER_PACKAGES_DIR)
+	mkdir -p $(MANPAGES_DIR)
 	mkdir -p $(JAVA_CLIENT_PACKAGES_DIR)
 	mkdir -p $(DOTNET_CLIENT_PACKAGES_DIR)
 	mkdir -p $(BUNDLES_PACKAGES_DIR)
@@ -121,7 +123,7 @@ $(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip: rabbitmq-server
 
 website_manpages: rabbitmq-server
 	$(MAKE) -C rabbitmq-server docs_all VERSION=$(VERSION)
-	cp rabbitmq-server/docs/*.man.xml $(SERVER_PACKAGES_DIR)
+	cp rabbitmq-server/docs/*.man.xml $(MANPAGES_DIR)
 
 debian_packages: $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
 	$(MAKE) -C rabbitmq-server/packaging/debs/Debian clean package \
