@@ -58,7 +58,7 @@ update: pull
 	$(foreach DIR,. $(REPOS),(cd $(DIR); hg up) &&) true
 
 named_update: checkout
-	$(foreach DIR,. $(REPOS),(cd $(DIR); hg up -C $(BRANCH));)
+	$(foreach DIR,. $(CORE_REPOS),(cd $(DIR); hg up -C $(BRANCH));)
 
 #----------------------------------
 # Plugin management
