@@ -20,6 +20,7 @@ SERVER_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-server/$(VDIR)
 JAVA_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-java-client/$(VDIR)
 DOTNET_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-dotnet-client/$(VDIR)
 BUNDLES_PACKAGES_DIR=$(PACKAGES_DIR)/bundles/$(VDIR)
+PLUGINS_DIR=$(PACKAGES_DIR)/plugins/$(VDIR)
 
 REQUIRED_EMULATOR_VERSION=5.6.3
 ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
@@ -73,6 +74,7 @@ packages: prepare
 	$(MAKE) $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).zip
 	$(MAKE) $(SERVER_PACKAGES_DIR)/rabbitmq-server-generic-unix-$(VERSION).tar.gz
 	$(MAKE) $(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip
+	$(MAKE) $(PLUGINS_DIR)
 	$(MAKE) website_manpages
 	$(MAKE) debian_packages
 	$(MAKE) rpm_packages
@@ -118,6 +120,9 @@ $(SERVER_PACKAGES_DIR)/rabbitmq-server-generic-unix-$(VERSION).tar.gz: rabbitmq-
 $(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip: rabbitmq-server
 	$(MAKE) -C rabbitmq-server/packaging/windows clean dist VERSION=$(VERSION)
 	cp rabbitmq-server/packaging/windows/rabbitmq-server-windows-*.zip $(SERVER_PACKAGES_DIR)
+
+$(PLUGINS_DIR):
+	VERSION=$(VERSION) PLUGINS_DIST_DIR=$(PLUGINS_DIR) UNOFFICIAL_RELEASE=$(UNOFFICIAL_RELEASE) TAG=$(TAG) ./build-binary-plugins.sh
 
 website_manpages: rabbitmq-server
 	$(MAKE) -C rabbitmq-server docs_all VERSION=$(VERSION)
@@ -217,7 +222,8 @@ RSYNC_CMD=rsync -irvpl --delete-after
 
 DEPLOY_RSYNC_CMDS=\
 	set -x -e; \
-	for subdirectory in rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client bundles; do \
+	for subdirectory in rabbitmq-server rabbitmq-java-client \
+	  rabbitmq-dotnet-client bundles plugins ; do \
 		ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/releases; if [ ! -d $$subdirectory ] ; then mkdir -p $$subdirectory; chmod g+w $$subdirectory; fi)"; \
 		$(RSYNC_CMD) $(PACKAGES_DIR)/$$subdirectory/* \
 		    $$deploy_host:$$deploy_path/releases/$$subdirectory ; \
