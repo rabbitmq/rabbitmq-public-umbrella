@@ -69,8 +69,11 @@ attach_plugins:
 	$(foreach DIR, $(PLUGINS), $(foreach DEP, $(shell make -s -C $(DIR) list-deps), (cd rabbitmq-server/plugins; ln -sf ../../$(DIR)/$(DEP)) &&)) true
 	rabbitmq-server/scripts/rabbitmq-activate-plugins
 
-bundle: package
-	rm -rf $(DIST_DIR)
-	mkdir -p $(DIST_DIR)/plugins
-	find . -name '*.ez' -exec cp {} $(DIST_DIR)/plugins \;
-	(cd $(DIST_DIR); zip -r plugins.zip plugins/)
+plugins-dist: package
+	rm -rf $(PLUGINS_DIST_DIR)
+	mkdir -p $(PLUGINS_DIST_DIR)
+	find . -name '*.ez' -exec cp -f {} $(PLUGINS_DIST_DIR) \;
+	for file in $(PLUGINS_DIST_DIR)/*.ez ; \
+	  do mv $${file} \
+	    $$(dirname $${file})/$$(basename $${file} .ez)-$(VERSION).ez ; \
+	  done
