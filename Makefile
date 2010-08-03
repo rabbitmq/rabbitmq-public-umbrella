@@ -1,10 +1,12 @@
 # The order of these repos is VERY important because some repos depend on
 # other repos, so be careful when palying with this
 
-CORE_REPOS=rabbitmq-server rabbitmq-codegen rabbitmq-erlang-client \
+PLUGIN_REPOS=rabbitmq-erlang-client \
            rabbitmq-jsonrpc rabbitmq-mochiweb \
            rabbitmq-jsonrpc-channel rabbitmq-bql \
            rabbitmq-stomp rabbitmq-smtp rabbitmq-status rabbitmq-shovel
+
+CORE_REPOS=rabbitmq-server rabbitmq-codegen $(PLUGIN_REPOS)
 
 REPOS=$(CORE_REPOS) erlang-rfc4627
 BRANCH=default
@@ -61,10 +63,10 @@ named_update: checkout
 	$(foreach DIR,. $(CORE_REPOS),(cd $(DIR); hg up -C $(BRANCH));)
 
 tag: checkout
-	$(foreach DIR,. $(CORE_REPOS),(cd $(DIR); hg tag $(TAG));)
+	$(foreach DIR,. $(PLUGIN_REPOS),(cd $(DIR); hg tag $(TAG));)
 
 push: checkout
-	$(foreach DIR,. $(CORE_REPOS),(cd $(DIR); hg push -f);)
+	$(foreach DIR,. $(PLUGIN_REPOS),(cd $(DIR); hg push -f);)
 
 #----------------------------------
 # Plugin management
