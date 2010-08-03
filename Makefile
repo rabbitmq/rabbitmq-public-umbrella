@@ -60,6 +60,12 @@ update: pull
 named_update: checkout
 	$(foreach DIR,. $(CORE_REPOS),(cd $(DIR); hg up -C $(BRANCH));)
 
+tag: checkout
+	$(foreach DIR,. $(CORE_REPOS),(cd $(DIR); hg tag $(TAG));)
+
+push: checkout
+	$(foreach DIR,. $(CORE_REPOS),(cd $(DIR); hg push -f);)
+
 #----------------------------------
 # Plugin management
 attach_plugins:
