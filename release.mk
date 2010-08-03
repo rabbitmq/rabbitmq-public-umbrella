@@ -42,6 +42,7 @@ checkout: $(REPOS)
 
 tag: checkout
 	$(foreach DIR,. $(REPOS),(cd $(DIR); hg tag $(TAG));)
+	TAG=$(TAG) ./util/tag-plugins.sh
 
 push: checkout
 	$(foreach DIR,. $(REPOS),(cd $(DIR); hg push $(HG_OPTS) -f);)
@@ -122,7 +123,7 @@ $(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip: rabbitmq-server
 	cp rabbitmq-server/packaging/windows/rabbitmq-server-windows-*.zip $(SERVER_PACKAGES_DIR)
 
 $(PLUGINS_DIR):
-	VERSION=$(VERSION) PLUGINS_DIST_DIR=$(PLUGINS_DIR) UNOFFICIAL_RELEASE=$(UNOFFICIAL_RELEASE) TAG=$(TAG) ./build-binary-plugins.sh
+	VERSION=$(VERSION) PLUGINS_DIST_DIR=$(PLUGINS_DIR) UNOFFICIAL_RELEASE=$(UNOFFICIAL_RELEASE) TAG=$(TAG) ./util/build-binary-plugins.sh
 
 website_manpages: rabbitmq-server
 	$(MAKE) -C rabbitmq-server docs_all VERSION=$(VERSION)
