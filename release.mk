@@ -270,7 +270,7 @@ CF_URL=http://mirror.rabbitmq.com
 # Deploys the contents of $(SERVER_PACKAGES_DIR) to cloudfront.
 # Hopefully all the files contain a rabbitmq version in the name.
 #  We do have to iterate through every file, as for buggy s3cmd.
-SUBDIRECTORIES=rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client bundles
+SUBDIRECTORIES=rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client bundles plugins
 deploy-cloudfront: $(S3CMD_CONF)
 	cd $(PACKAGES_DIR);	\
 	VSUBDIRS=`for subdir in $(SUBDIRECTORIES); do echo $$subdir/$(VDIR); done`;	\
