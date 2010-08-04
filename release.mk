@@ -221,10 +221,11 @@ STAGE_DEPLOY_PATH=/home/rabbitmq/extras
 
 RSYNC_CMD=rsync -irvpl --delete-after
 
+DEPLOYMENT_SUBDIRECTORIES=rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client bundles plugins
+
 DEPLOY_RSYNC_CMDS=\
 	set -x -e; \
-	for subdirectory in rabbitmq-server rabbitmq-java-client \
-	  rabbitmq-dotnet-client bundles plugins ; do \
+	for subdirectory in $(DEPLOYMENT_SUBDIRECTORIES) ; do \
 		ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/releases; if [ ! -d $$subdirectory ] ; then mkdir -p $$subdirectory; chmod g+w $$subdirectory; fi)"; \
 		$(RSYNC_CMD) $(PACKAGES_DIR)/$$subdirectory/* \
 		    $$deploy_host:$$deploy_path/releases/$$subdirectory ; \
@@ -270,10 +271,9 @@ CF_URL=http://mirror.rabbitmq.com
 # Deploys the contents of $(SERVER_PACKAGES_DIR) to cloudfront.
 # Hopefully all the files contain a rabbitmq version in the name.
 #  We do have to iterate through every file, as for buggy s3cmd.
-SUBDIRECTORIES=rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client bundles plugins
 deploy-cloudfront: $(S3CMD_CONF)
 	cd $(PACKAGES_DIR);	\
-	VSUBDIRS=`for subdir in $(SUBDIRECTORIES); do echo $$subdir/$(VDIR); done`;	\
+	VSUBDIRS=`for subdir in $(DEPLOYMENT_SUBDIRECTORIES); do echo $$subdir/$(VDIR); done`;	\
 	for file in `find $$VSUBDIRS -maxdepth 1 -type f|egrep -v '.asc$$'`; do	\
 		DST=$(S3_BUCKET)/releases/$$file; 	\
 		s3cmd put				\
@@ -289,7 +289,7 @@ deploy-cloudfront: $(S3CMD_CONF)
 cloudfront-verify:
 	@echo " [*] Verifying Cloudfront uploads"
 	cd $(PACKAGES_DIR);	\
-	VSUBDIRS=`for subdir in $(SUBDIRECTORIES); do echo $$subdir/$(VDIR); done`;	\
+	VSUBDIRS=`for subdir in $(DEPLOYMENT_SUBDIRECTORIES); do echo $$subdir/$(VDIR); done`;	\
 	for file in `find $$VSUBDIRS -maxdepth 1 -type f|egrep -v '.asc$$'`; do	\
 		URL=$(CF_URL)/releases/$$file; \
 		echo -en "$$file\t"; \
