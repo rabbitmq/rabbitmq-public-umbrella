@@ -1,5 +1,12 @@
 # The order of these repos is VERY important because some repos depend on
-# other repos, so be careful when palying with this
+# other repos, so be careful when playing with this
+
+# PLUGIN_REPOS = our plugins repos; what needs to be tagged at release time.
+# CORE_REPOS = PLUGIN_REPOS + server and codegen, i.e. everything we can hg
+# clone from http://hg.rabbitmq.com/.
+# REPOS = CORE_REPOS + external repos, i.e. everything we need to clone /
+# checkout in any way.
+# PLUGINS = PLUGIN_REPOS + external repos, i.e. every plugin we need to build.
 
 PLUGIN_REPOS=rabbitmq-erlang-client \
            rabbitmq-jsonrpc rabbitmq-mochiweb \
