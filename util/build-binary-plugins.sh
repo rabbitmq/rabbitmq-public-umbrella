@@ -5,8 +5,7 @@ UMBRELLA=${TEMP_DIR}/rabbitmq-public-umbrella/
 HG_CORE_REPOBASE=$(dirname $(hg paths default 2>/dev/null))
 ABSOLUTE_PLUGINS_DIR=$(dirname $(readlink -f $0))/../${PLUGINS_DIST_DIR}
 
-# TODO when this is merged remove the -r bug22980 from here
-hg clone -r bug22980 ${HG_CORE_REPOBASE}/rabbitmq-public-umbrella/ ${UMBRELLA}
+hg clone ${HG_CORE_REPOBASE}/rabbitmq-public-umbrella/ ${UMBRELLA}
 
 make -C ${UMBRELLA} checkout
 if [ -z "${UNOFFICIAL_RELEASE}" ]; then
