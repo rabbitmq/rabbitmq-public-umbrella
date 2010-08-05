@@ -21,6 +21,7 @@ JAVA_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-java-client/$(VDIR)
 DOTNET_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-dotnet-client/$(VDIR)
 BUNDLES_PACKAGES_DIR=$(PACKAGES_DIR)/bundles/$(VDIR)
 PLUGINS_DIR=$(PACKAGES_DIR)/plugins/$(VDIR)
+ABSOLUTE_PLUGINS_DIR=$(CURDIR)/$(PLUGINS_DIR)
 
 REQUIRED_EMULATOR_VERSION=5.6.3
 ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
@@ -124,7 +125,7 @@ $(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip: rabbitmq-server
 	cp rabbitmq-server/packaging/windows/rabbitmq-server-windows-*.zip $(SERVER_PACKAGES_DIR)
 
 $(PLUGINS_DIR):
-	VERSION=$(VERSION) PLUGINS_DIST_DIR=$(PLUGINS_DIR) UNOFFICIAL_RELEASE=$(UNOFFICIAL_RELEASE) ./util/build-binary-plugins.sh
+	make -C rabbitmq-public-umbrella PLUGINS_DIST_DIR=$(ABSOLUTE_PLUGINS_DIR) VERSION=${VERSION} plugins-dist
 
 website_manpages: rabbitmq-server
 	$(MAKE) -C rabbitmq-server docs_all VERSION=$(VERSION)
