@@ -25,7 +25,7 @@ PLUGINS_DIR=$(PACKAGES_DIR)/plugins/$(VDIR)
 REQUIRED_EMULATOR_VERSION=5.6.3
 ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
 
-REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client
+REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-public-umbrella
 
 HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
@@ -42,10 +42,11 @@ checkout: $(REPOS)
 
 tag: checkout
 	$(foreach DIR,. $(REPOS),(cd $(DIR); hg tag $(TAG));)
-	TAG=$(TAG) ./util/tag-plugins.sh
+	$(MAKE) -C rabbitmq-public-umbrella TAG=$(TAG) tag
 
 push: checkout
 	$(foreach DIR,. $(REPOS),(cd $(DIR); hg push $(HG_OPTS) -f);)
+	$(MAKE) -C rabbitmq-public-umbrella push
 
 ifeq "$(UNOFFICIAL_RELEASE)$(GNUPG_PATH)" ""
 dist:
@@ -123,7 +124,7 @@ $(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip: rabbitmq-server
 	cp rabbitmq-server/packaging/windows/rabbitmq-server-windows-*.zip $(SERVER_PACKAGES_DIR)
 
 $(PLUGINS_DIR):
-	VERSION=$(VERSION) PLUGINS_DIST_DIR=$(PLUGINS_DIR) UNOFFICIAL_RELEASE=$(UNOFFICIAL_RELEASE) TAG=$(TAG) ./util/build-binary-plugins.sh
+	VERSION=$(VERSION) PLUGINS_DIST_DIR=$(PLUGINS_DIR) UNOFFICIAL_RELEASE=$(UNOFFICIAL_RELEASE) ./util/build-binary-plugins.sh
 
 website_manpages: rabbitmq-server
 	$(MAKE) -C rabbitmq-server docs_all VERSION=$(VERSION)
@@ -200,6 +201,10 @@ rabbitmq-dotnet-client:
 
 rabbitmq-codegen:
 	[ -d $@ ] || hg clone $(HG_OPTS) $(HGREPOBASE)/$@
+
+rabbitmq-public-umbrella:
+	[ -d $@ ] || hg clone $(HG_OPTS) $(HGREPOBASE)/$@
+	$(MAKE) -C rabbitmq-public-umbrella checkout
 
 clean:
 	rm -rf $(PACKAGES_DIR)
