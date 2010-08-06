@@ -12,7 +12,6 @@ bug fixes
   during the lifetime of the transaction
 
 enhancements
-------------
 - new persister - see #link to yet-to-be-written blog post
   - the volume of messages rabbit can hold on to is bounded by disk
     space (in previous versions it was bounded by memory)
