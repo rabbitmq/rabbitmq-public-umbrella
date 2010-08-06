@@ -30,8 +30,8 @@ enhancements
   http://www.rabbitmq.com/specification.html
 - instrumentation for asynchronous statistics events, emitting more
   stats than currently available and laying the foundation for
-  monitoring a busy broker w/o significantly impacting performance -
-  see #link to yet-to-be-written blog post
+  monitoring a busy broker w/o crippling performance -
+  see http://www.rabbitmq.com/blog/2010/08/06/management-monitoring-and-statistics/
 - more effective flow control mechanism that does not require
   cooperation from clients and reacts quickly to prevent the broker
   from exhausing memory - see
