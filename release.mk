@@ -19,6 +19,7 @@ PACKAGES_DIR=packages
 SERVER_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-server/$(VDIR)
 JAVA_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-java-client/$(VDIR)
 DOTNET_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-dotnet-client/$(VDIR)
+ERLANG_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-erlang-client/$(VDIR)
 BUNDLES_PACKAGES_DIR=$(PACKAGES_DIR)/bundles/$(VDIR)
 PLUGINS_DIR=$(PACKAGES_DIR)/plugins/$(VDIR)
 ABSOLUTE_PLUGINS_DIR=$(CURDIR)/$(PLUGINS_DIR)
@@ -26,7 +27,7 @@ ABSOLUTE_PLUGINS_DIR=$(CURDIR)/$(PLUGINS_DIR)
 REQUIRED_EMULATOR_VERSION=5.6.3
 ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
 
-REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-public-umbrella
+REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-erlang-client rabbitmq-public-umbrella
 
 HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
@@ -70,6 +71,7 @@ prepare:
 	mkdir -p $(SERVER_PACKAGES_DIR)
 	mkdir -p $(JAVA_CLIENT_PACKAGES_DIR)
 	mkdir -p $(DOTNET_CLIENT_PACKAGES_DIR)
+	mkdir -p $(ERLANG_CLIENT_PACKAGES_DIR)
 	mkdir -p $(BUNDLES_PACKAGES_DIR)
 
 packages: prepare
@@ -83,6 +85,7 @@ packages: prepare
 	$(MAKE) rpm_packages
 	$(MAKE) java_packages
 	$(MAKE) dotnet_packages
+	$(MAKE) erlang_client_packages
 
 ifneq "$(UNOFFICIAL_RELEASE)" ""
 sign_everything:
@@ -169,6 +172,12 @@ dotnet_packages:
 	$(MAKE) -C rabbitmq-dotnet-client dist RABBIT_VSN=$(VERSION)
 	cp -a rabbitmq-dotnet-client/release/* $(DOTNET_CLIENT_PACKAGES_DIR)
 
+erlang_client_packages: prepare rabbitmq-erlang-client
+	$(MAKE) -C rabbitmq-erlang-client clean dist VERSION=$(VERSION) OTP_HOME=$(OTP_HOME)
+	cp rabbitmq-erlang-client/dist/*.ez $(ERLANG_CLIENT_PACKAGES_DIR)
+	cp rabbitmq-erlang-client/dist/*.tar.gz $(ERLANG_CLIENT_PACKAGES_DIR)
+	cp -r rabbitmq-erlang-client/doc/ $(ERLANG_CLIENT_PACKAGES_DIR)
+
 WINDOWS_BUNDLE_TMP_DIR=$(PACKAGES_DIR)/complete-rabbitmq-bundle-$(VERSION)
 windows_bundle:
 	rm -rf $(WINDOWS_BUNDLE_TMP_DIR)
@@ -200,6 +209,9 @@ rabbitmq-java-client: rabbitmq-codegen
 rabbitmq-dotnet-client:
 	[ -d $@ ] || hg clone $(HG_OPTS) $(HGREPOBASE)/$@
 
+rabbitmq-erlang-client: rabbitmq-server
+	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
+
 rabbitmq-codegen:
 	[ -d $@ ] || hg clone $(HG_OPTS) $(HGREPOBASE)/$@
 
@@ -216,6 +228,7 @@ clean:
 	$(MAKE) -C rabbitmq-server/packaging/debs/apt-repository clean
 	$(MAKE) -C rabbitmq-server/packaging/RPMS/Fedora clean
 	$(MAKE) -C rabbitmq-java-client clean
+	$(MAKE) -C rabbitmq-erlang-client clean
 
 ###########################################################################
 
