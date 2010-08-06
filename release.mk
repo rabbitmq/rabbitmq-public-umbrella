@@ -240,7 +240,7 @@ STAGE_DEPLOY_PATH=/home/rabbitmq/extras
 
 RSYNC_CMD=rsync -irvpl --delete-after
 
-DEPLOYMENT_SUBDIRECTORIES=rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client bundles plugins
+DEPLOYMENT_SUBDIRECTORIES=rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-erlang-client bundles plugins
 
 DEPLOY_RSYNC_CMDS=\
 	set -x -e; \
