@@ -12,7 +12,7 @@ bug fixes
   during the lifetime of the transaction
 
 enhancements
-- new persister - see #link to yet-to-be-written blog post
+- new persister -
   - the volume of messages rabbit can hold on to is bounded by disk
     space (in previous versions it was bounded by memory)
   - rabbit optimises memory usage by paging messages out to / in from
@@ -30,12 +30,11 @@ enhancements
   http://www.rabbitmq.com/specification.html
 - instrumentation for asynchronous statistics events, emitting more
   stats than currently available and laying the foundation for
-  monitoring a busy broker w/o crippling performance -
+  monitoring a busy broker without crippling performance -
   see http://www.rabbitmq.com/blog/2010/08/06/management-monitoring-and-statistics/
 - more effective flow control mechanism that does not require
   cooperation from clients and reacts quickly to prevent the broker
-  from exhausing memory - see
-  http://localhost:8191/extensions.html#memsup
+  from exhausing memory - see http://www.rabbitmq.com/extensions.html#memsup
 - implement basic.reject - see
 http://www.rabbitmq.com/blog/2010/08/03/well-ill-let-you-go-basicreject-in-rabbitmq/
 - introduce support for queue leases - see http://www.rabbitmq.com/extensions.html#queue-leases
@@ -44,13 +43,11 @@ http://www.rabbitmq.com/blog/2010/08/03/well-ill-let-you-go-basicreject-in-rabbi
 - delete exclusive queues synchronously on server-initiated connection
   close (rather than just client-initiated)
 
-
 java client
 -----------
 enhancements
 - switch to AMQP 0-9-1 - see
   http://www.rabbitmq.com/specification.html
-
 
 .net client
 -----------
@@ -64,7 +61,6 @@ enhancements
   http://www.rabbitmq.com/specification.html
 - simplify the Subscription class and make it more versatile
 - improve documentation
-
 
 building & packaging
 --------------------
