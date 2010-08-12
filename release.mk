@@ -242,7 +242,7 @@ DEPLOY_RSYNC_CMDS=\
 	done; \
 	unpacked_javadoc_dir=`(cd packages/rabbitmq-java-client; ls -td */rabbitmq-java-client-javadoc-*/ | head -1)`; \
 	ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/releases/rabbitmq-java-client; rm -f current-javadoc; ln -s $$unpacked_javadoc_dir current-javadoc)"; \
-	ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/releases/rabbitmq-server; ln -sf $(VDIR) current)"; \
+	ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/releases/rabbitmq-server; rm -f current; ln -s $(VDIR) current)"; \
 
 deploy-stage: verify-signatures fixup-permissions-for-deploy
 	deploy_host=$(STAGE_DEPLOY_HOST); \
