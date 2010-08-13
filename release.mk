@@ -173,7 +173,7 @@ dotnet_packages: rabbitmq-dotnet-client
 	cp -a rabbitmq-dotnet-client/release/* $(DOTNET_CLIENT_PACKAGES_DIR)
 
 erlang_client_packages: rabbitmq-erlang-client
-	$(MAKE) -C rabbitmq-erlang-client clean distribution VERSION=$(VERSION)
+	$(MAKE) -C rabbitmq-erlang-client clean distribution VERSION=$(VERSION) APPEND_VERSION=true
 	cp rabbitmq-erlang-client/dist/*.ez $(ERLANG_CLIENT_PACKAGES_DIR)
 	cp rabbitmq-erlang-client/dist/*.tar.gz $(ERLANG_CLIENT_PACKAGES_DIR)
 	cp -r rabbitmq-erlang-client/doc/ $(ERLANG_CLIENT_PACKAGES_DIR)
