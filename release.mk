@@ -20,12 +20,15 @@ SERVER_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-server/$(VDIR)
 MANPAGES_DIR=$(SERVER_PACKAGES_DIR)/man
 JAVA_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-java-client/$(VDIR)
 DOTNET_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-dotnet-client/$(VDIR)
+ERLANG_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-erlang-client/$(VDIR)
 BUNDLES_PACKAGES_DIR=$(PACKAGES_DIR)/bundles/$(VDIR)
+PLUGINS_DIR=$(PACKAGES_DIR)/plugins/$(VDIR)
+ABSOLUTE_PLUGINS_DIR=$(CURDIR)/$(PLUGINS_DIR)
 
 REQUIRED_EMULATOR_VERSION=5.6.3
 ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
 
-REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client
+REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-erlang-client rabbitmq-public-umbrella
 
 HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
@@ -42,9 +45,11 @@ checkout: $(REPOS)
 
 tag: checkout
 	$(foreach DIR,. $(REPOS),(cd $(DIR); hg tag $(TAG));)
+	$(MAKE) -C rabbitmq-public-umbrella TAG=$(TAG) tag
 
 push: checkout
 	$(foreach DIR,. $(REPOS),(cd $(DIR); hg push $(HG_OPTS) -f);)
+	$(MAKE) -C rabbitmq-public-umbrella push
 
 ifeq "$(UNOFFICIAL_RELEASE)$(GNUPG_PATH)" ""
 dist:
@@ -61,13 +66,14 @@ prepare:
 		echo "Alternatively, set the makefile variable REQUIRED_EMULATOR_VERSION=$(ACTUAL_EMULATOR_VERSION) ."; \
 		[ -n "$(UNOFFICIAL_RELEASE)" ] )
 	@echo Checking the presence of the tools necessary to build a release on a Debian based OS.
-	dpkg -L cdbs elinks fakeroot findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip python-pexpect s3cmd openssl xmlto xsltproc > /dev/null
+	dpkg -L cdbs elinks fakeroot findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip python-pexpect s3cmd openssl xmlto xsltproc git-core > /dev/null
 	@echo All required tools are installed, great!
 	mkdir -p $(PACKAGES_DIR)
 	mkdir -p $(SERVER_PACKAGES_DIR)
 	mkdir -p $(MANPAGES_DIR)
 	mkdir -p $(JAVA_CLIENT_PACKAGES_DIR)
 	mkdir -p $(DOTNET_CLIENT_PACKAGES_DIR)
+	mkdir -p $(ERLANG_CLIENT_PACKAGES_DIR)
 	mkdir -p $(BUNDLES_PACKAGES_DIR)
 
 packages: prepare
@@ -75,11 +81,13 @@ packages: prepare
 	$(MAKE) $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).zip
 	$(MAKE) $(SERVER_PACKAGES_DIR)/rabbitmq-server-generic-unix-$(VERSION).tar.gz
 	$(MAKE) $(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip
+	$(MAKE) $(PLUGINS_DIR)
 	$(MAKE) website_manpages
 	$(MAKE) debian_packages
 	$(MAKE) rpm_packages
 	$(MAKE) java_packages
 	$(MAKE) dotnet_packages
+	$(MAKE) erlang_client_packages
 
 ifneq "$(UNOFFICIAL_RELEASE)" ""
 sign_everything:
@@ -121,6 +129,9 @@ $(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip: rabbitmq-server
 	$(MAKE) -C rabbitmq-server/packaging/windows clean dist VERSION=$(VERSION)
 	cp rabbitmq-server/packaging/windows/rabbitmq-server-windows-*.zip $(SERVER_PACKAGES_DIR)
 
+$(PLUGINS_DIR):
+	make -C rabbitmq-public-umbrella PLUGINS_DIST_DIR=$(ABSOLUTE_PLUGINS_DIR) VERSION=${VERSION} plugins-dist
+
 website_manpages: rabbitmq-server
 	$(MAKE) -C rabbitmq-server docs_all VERSION=$(VERSION)
 	cp rabbitmq-server/docs/*.man.xml $(MANPAGES_DIR)
@@ -159,9 +170,15 @@ java_packages: rabbitmq-java-client
 	cp rabbitmq-java-client/build/*.zip $(JAVA_CLIENT_PACKAGES_DIR)
 	cd $(JAVA_CLIENT_PACKAGES_DIR); unzip rabbitmq-java-client-javadoc-$(VERSION).zip
 
-dotnet_packages:
+dotnet_packages: rabbitmq-dotnet-client
 	$(MAKE) -C rabbitmq-dotnet-client dist RABBIT_VSN=$(VERSION)
 	cp -a rabbitmq-dotnet-client/release/* $(DOTNET_CLIENT_PACKAGES_DIR)
+
+erlang_client_packages: rabbitmq-erlang-client
+	$(MAKE) -C rabbitmq-erlang-client clean distribution VERSION=$(VERSION)
+	cp rabbitmq-erlang-client/dist/*.ez $(ERLANG_CLIENT_PACKAGES_DIR)
+	cp rabbitmq-erlang-client/dist/*.tar.gz $(ERLANG_CLIENT_PACKAGES_DIR)
+	cp -r rabbitmq-erlang-client/doc/ $(ERLANG_CLIENT_PACKAGES_DIR)
 
 WINDOWS_BUNDLE_TMP_DIR=$(PACKAGES_DIR)/complete-rabbitmq-bundle-$(VERSION)
 windows_bundle:
@@ -194,8 +211,15 @@ rabbitmq-java-client: rabbitmq-codegen
 rabbitmq-dotnet-client:
 	[ -d $@ ] || hg clone $(HG_OPTS) $(HGREPOBASE)/$@
 
+rabbitmq-erlang-client: rabbitmq-server
+	[ -d $@ ] || hg clone $(HGREPOBASE)/$@
+
 rabbitmq-codegen:
 	[ -d $@ ] || hg clone $(HG_OPTS) $(HGREPOBASE)/$@
+
+rabbitmq-public-umbrella:
+	[ -d $@ ] || hg clone $(HG_OPTS) $(HGREPOBASE)/$@
+	$(MAKE) -C rabbitmq-public-umbrella checkout
 
 clean:
 	rm -rf $(PACKAGES_DIR)
@@ -206,6 +230,7 @@ clean:
 	$(MAKE) -C rabbitmq-server/packaging/debs/apt-repository clean
 	$(MAKE) -C rabbitmq-server/packaging/RPMS/Fedora clean
 	$(MAKE) -C rabbitmq-java-client clean
+	$(MAKE) -C rabbitmq-erlang-client clean
 
 ###########################################################################
 
@@ -217,9 +242,11 @@ STAGE_DEPLOY_PATH=/home/rabbitmq/extras
 
 RSYNC_CMD=rsync -irvpl --delete-after
 
+DEPLOYMENT_SUBDIRECTORIES=rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-erlang-client bundles plugins
+
 DEPLOY_RSYNC_CMDS=\
 	set -x -e; \
-	for subdirectory in rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client bundles; do \
+	for subdirectory in $(DEPLOYMENT_SUBDIRECTORIES) ; do \
 		ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/releases; if [ ! -d $$subdirectory ] ; then mkdir -p $$subdirectory; chmod g+w $$subdirectory; fi)"; \
 		$(RSYNC_CMD) $(PACKAGES_DIR)/$$subdirectory/* \
 		    $$deploy_host:$$deploy_path/releases/$$subdirectory ; \
@@ -230,7 +257,7 @@ DEPLOY_RSYNC_CMDS=\
 	done; \
 	unpacked_javadoc_dir=`(cd packages/rabbitmq-java-client; ls -td */rabbitmq-java-client-javadoc-*/ | head -1)`; \
 	ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/releases/rabbitmq-java-client; rm -f current-javadoc; ln -s $$unpacked_javadoc_dir current-javadoc)"; \
-	ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/releases/rabbitmq-server; ln -sf $(VDIR) current)"; \
+	ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/releases/rabbitmq-server; rm -f current; ln -s $(VDIR) current)"; \
 
 deploy-stage: verify-signatures fixup-permissions-for-deploy
 	deploy_host=$(STAGE_DEPLOY_HOST); \
@@ -265,10 +292,9 @@ CF_URL=http://mirror.rabbitmq.com
 # Deploys the contents of $(SERVER_PACKAGES_DIR) to cloudfront.
 # Hopefully all the files contain a rabbitmq version in the name.
 #  We do have to iterate through every file, as for buggy s3cmd.
-SUBDIRECTORIES=rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client bundles
 deploy-cloudfront: $(S3CMD_CONF)
 	cd $(PACKAGES_DIR);	\
-	VSUBDIRS=`for subdir in $(SUBDIRECTORIES); do echo $$subdir/$(VDIR); done`;	\
+	VSUBDIRS=`for subdir in $(DEPLOYMENT_SUBDIRECTORIES); do echo $$subdir/$(VDIR); done`;	\
 	for file in `find $$VSUBDIRS -maxdepth 1 -type f|egrep -v '.asc$$'`; do	\
 		DST=$(S3_BUCKET)/releases/$$file; 	\
 		s3cmd put				\
@@ -284,7 +310,7 @@ deploy-cloudfront: $(S3CMD_CONF)
 cloudfront-verify:
 	@echo " [*] Verifying Cloudfront uploads"
 	cd $(PACKAGES_DIR);	\
-	VSUBDIRS=`for subdir in $(SUBDIRECTORIES); do echo $$subdir/$(VDIR); done`;	\
+	VSUBDIRS=`for subdir in $(DEPLOYMENT_SUBDIRECTORIES); do echo $$subdir/$(VDIR); done`;	\
 	for file in `find $$VSUBDIRS -maxdepth 1 -type f|egrep -v '.asc$$'`; do	\
 		URL=$(CF_URL)/releases/$$file; \
 		echo -en "$$file\t"; \
