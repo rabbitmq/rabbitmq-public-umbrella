@@ -6,10 +6,14 @@ Release Highlights
 server
 ------
 bug fixes
+- correct file descriptor limits on Windows, preventing crashes due to
+  exceeding the limit
 - fix bug that resulted in 'rabbitmqctl status' reporting disk nodes
   as ram nodes
 - tx.commit no longer fails when participating queues are deleted
   during the lifetime of the transaction
+- more robust logic to detect changes in the data layout between
+  rabbit versions and thus guard against upgrade failures
 
 enhancements
 - new persister -
@@ -37,6 +41,9 @@ enhancements
   from exhausing memory - see http://www.rabbitmq.com/extensions.html#memsup
 - implement basic.reject - see
 http://www.rabbitmq.com/blog/2010/08/03/well-ill-let-you-go-basicreject-in-rabbitmq/
+- simplify plugin activation by moving it into the server startup
+- permit upgrades of Erlang w/o breaking rabbit servers with activated
+  plugins
 - introduce support for queue leases - see http://www.rabbitmq.com/extensions.html#queue-leases
 - improve the setting of permissions, making it easer to use and
   introducing a way to grant no permissions at all - see http://www.rabbitmq.com/admin-guide.html#management
@@ -45,6 +52,10 @@ http://www.rabbitmq.com/blog/2010/08/03/well-ill-let-you-go-basicreject-in-rabbi
 
 java client
 -----------
+bug fixes
+- prevent spurious timeout exceptions that theoretically could have
+  arisen due to spurios thread wake-ups
+
 enhancements
 - switch to AMQP 0-9-1 - see
   http://www.rabbitmq.com/specification.html
@@ -69,9 +80,10 @@ bug fixes
   lives in /opt/local/etc/rabbitmq/
 
 enhancements
-- portable, binary plug-in releases to simplify plug-in installation -
+- portable, binary plugin releases to simplify plugin installation -
   see http://www.rabbitmq.com/plugins.html
-
+- automatically create plugin directory, to streamline plugin
+  installation
 
 Upgrading
 =========
