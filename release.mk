@@ -17,6 +17,7 @@ HG_OPTS=
 PACKAGES_DIR=packages
 
 SERVER_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-server/$(VDIR)
+MANPAGES_DIR=$(SERVER_PACKAGES_DIR)/man
 JAVA_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-java-client/$(VDIR)
 DOTNET_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-dotnet-client/$(VDIR)
 ERLANG_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-erlang-client/$(VDIR)
@@ -69,6 +70,7 @@ prepare:
 	@echo All required tools are installed, great!
 	mkdir -p $(PACKAGES_DIR)
 	mkdir -p $(SERVER_PACKAGES_DIR)
+	mkdir -p $(MANPAGES_DIR)
 	mkdir -p $(JAVA_CLIENT_PACKAGES_DIR)
 	mkdir -p $(DOTNET_CLIENT_PACKAGES_DIR)
 	mkdir -p $(ERLANG_CLIENT_PACKAGES_DIR)
@@ -132,7 +134,7 @@ $(PLUGINS_DIR):
 
 website_manpages: rabbitmq-server
 	$(MAKE) -C rabbitmq-server docs_all VERSION=$(VERSION)
-	cp rabbitmq-server/docs/*.man.xml $(SERVER_PACKAGES_DIR)
+	cp rabbitmq-server/docs/*.man.xml $(MANPAGES_DIR)
 
 debian_packages: $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
 	$(MAKE) -C rabbitmq-server/packaging/debs/Debian clean package \
