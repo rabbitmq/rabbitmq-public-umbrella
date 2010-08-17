@@ -135,6 +135,9 @@ debian_packages: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.g
 		SIGNING_USER_EMAIL=$(SIGNING_USER_EMAIL)
 	cp -r rabbitmq-server/packaging/debs/apt-repository/debian $(PACKAGES_DIR)
 
+macports_packages: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
+	$(MAKE) -C rabbitmq-server/packaging/macports VERSION=$(VERSION) package
+
 rpm_packages: prepare $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.gz rabbitmq-server
 	$(MAKE) -C rabbitmq-server/packaging/RPMS/Fedora rpms VERSION=$(VERSION) RPM_OS=fedora
 	cp rabbitmq-server/packaging/RPMS/Fedora/RPMS/i386/rabbitmq-server*.rpm $(SERVER_PACKAGES_DIR)
