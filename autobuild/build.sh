@@ -104,17 +104,26 @@ ssh $SSH_OPTS $ROOT_USERHOST 'true'
 # Prepare the build host.  Debian etch needs some work to get it in shape
 ssh $SSH_OPTS $ROOT_USERHOST '
     set -e -x
-    if [ "$(cat /etc/debian_version)" = "4.0" ] ; then
+    case "$(cat /etc/debian_version)" in
+    4.0*)
         echo "deb http://ftp.uk.debian.org/debian/ etch-proposed-updates main" >/etc/apt/sources.list.d/proposed-updates.list
         java_package=sun-java5-jdk
-    else
-        java_package=default-jdk
-    fi
+        ;;
+    5.0*)
+        java_package=openjdk-6-jdk
+        uja_command="update-java-alternatives -s java-6-openjdk"
+        ;;
+    *)
+        echo "Not sure which JDK package to install"
+        exit 1
+    esac
          
     DEBIAN_FRONTEND=noninteractive ; export DEBIAN_FRONTEND
     apt-get -y update
     apt-get -y dist-upgrade
-    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm reprepro tofrodos zip unzip ant $java_package htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev python-pexpect openssl s3cmd fakeroot git-core'
+    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm reprepro tofrodos zip unzip ant $java_package htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev python-pexpect openssl s3cmd fakeroot git-core
+    [ -n "$uja_command" ] && eval $uja_command
+'
 
 mkdir -p $TOPDIR
 cp -a $SCRIPTDIR/install-otp.sh $TOPDIR
