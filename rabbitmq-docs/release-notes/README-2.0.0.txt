@@ -16,7 +16,7 @@ bug fixes
   rabbit versions and thus guard against upgrade failures
 
 enhancements
-- new persister -
+- new persister
   - the volume of messages rabbit can hold on to is bounded by disk
     space (in previous versions it was bounded by memory)
   - rabbit optimises memory usage by paging messages out to / in from
@@ -66,6 +66,7 @@ bug fixes
 - fix bug that caused incorrect responses to server-issued
   channel.flow commands, which in turn resulted in connections getting
   closed with an error.
+- make SSL connections work in Mono
 
 enhancements
 - implement AMQP 0-9-1, in addition to 0-8 and 0-9 - see
@@ -78,6 +79,7 @@ building & packaging
 bug fixes
 - correct location of rabbitmq.config file under macports - it now
   lives in /opt/local/etc/rabbitmq/
+- "make docs_all" now works on more platforms
 
 enhancements
 - portable, binary plugin releases to simplify plugin installation -
