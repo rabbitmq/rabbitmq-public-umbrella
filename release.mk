@@ -261,8 +261,12 @@ fixup-permissions-for-deploy:
 
 verify-signatures:
 	for file in `find $(PACKAGES_DIR) -type f -name "*.asc"`; do \
-	    HOME=$(GNUPG_PATH) gpg --verify $$file `echo $$file | sed -e 's/\.asc$$//'`; \
-	done
+	    echo "Checking $$file" ; \
+	    if ! HOME=$(GNUPG_PATH) gpg --verify $$file `echo $$file | sed -e 's/\.asc$$//'`; then \
+	        bad_signature=1 ; \
+	    fi ; \
+	done ; \
+	[ -z "$bad_signature" ]
 
 # The major problem with CloudFront is that they _don't see updates_!
 # So you can upload stuff to CF only once, never reuse the same filenames.
