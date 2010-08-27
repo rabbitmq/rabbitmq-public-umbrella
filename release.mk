@@ -266,7 +266,7 @@ verify-signatures:
 	        bad_signature=1 ; \
 	    fi ; \
 	done ; \
-	[ -z "$bad_signature" ]
+	[ -z "$$bad_signature" ]
 
 # The major problem with CloudFront is that they _don't see updates_!
 # So you can upload stuff to CF only once, never reuse the same filenames.
