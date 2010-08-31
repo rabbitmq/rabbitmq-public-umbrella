@@ -179,4 +179,4 @@ clean::
 	rm -rf $(DIST_DIR)
 
 distclean:: clean
-	$(foreach DEP, $(INTERNAL_DEPS), $(MAKE) -C $(DEPS_DIR)/$(DEP) squeakyclean;)
+	$(foreach DEP, $(INTERNAL_DEPS), $(MAKE) -C $(DEPS_DIR)/$(DEP) distclean;)
