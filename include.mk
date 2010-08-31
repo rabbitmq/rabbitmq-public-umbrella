@@ -178,7 +178,5 @@ clean::
 	$(foreach DEP, $(INTERNAL_DEPS), $(MAKE) -C $(DEPS_DIR)/$(DEP) clean;)
 	rm -rf $(DIST_DIR)
 
-squeakyclean:: clean
+distclean:: clean
 	$(foreach DEP, $(INTERNAL_DEPS), $(MAKE) -C $(DEPS_DIR)/$(DEP) squeakyclean;)
-
-distclean:: squeakyclean
