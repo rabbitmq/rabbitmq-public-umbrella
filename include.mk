@@ -26,6 +26,7 @@
 #                          Beware of quote escaping issues!
 #  ROOT_DIR             -- The path to the public_umbrella. Default is ..
 
+VERSION=0.0.0
 EBIN_DIR=ebin
 TEST_EBIN_DIR=test_ebin
 SOURCE_DIR=src
@@ -57,6 +58,7 @@ TARGETS=$(foreach DEP, $(INTERNAL_DEPS), $(DEPS_DIR)/$(DEP)/ebin) \
 	$(foreach DEP_NAME, $(DEP_NAMES), $(PRIV_DEPS_DIR)/$(DEP_NAME)/ebin) \
         $(patsubst $(SOURCE_DIR)/%.erl, $(EBIN_DIR)/%.beam, $(SOURCES)) \
         $(foreach GEN, $(GENERATED_SOURCES), ebin/$(GEN).beam) \
+	$(EBIN_DIR)/$(APPNAME).app \
 	$(EXTRA_TARGETS)
 TEST_TARGETS=$(patsubst $(TEST_DIR)/%.erl, $(TEST_EBIN_DIR)/%.beam, $(TEST_SOURCES))
 
@@ -90,6 +92,9 @@ FULL_CLEANUP_CMDS=$(CLEANUP_CMDS) init:stop()
 
 TEST_APP_ARGS=$(foreach APP,$(TEST_APPS),-eval 'ok = application:start($(APP))')
 
+INFILES=$(shell find . -name '*.app.in')
+INTARGETS=$(patsubst %.in, %, $(INFILES))
+
 all: package
 
 diag:
@@ -119,6 +124,9 @@ $(PRIV_DEPS_DIR)/%/ebin:
 	@mkdir -p $(PRIV_DEPS_DIR)
 	$(foreach EZ, $(DEP_EZS), cp $(EZ) $(PRIV_DEPS_DIR) &&) true
 	(cd $(PRIV_DEPS_DIR); unzip $*.ez)
+
+%.app: %.app.in
+	sed -e 's:%%VSN%%:$(VERSION):g' < $< > $@
 
 list-deps:
 	@echo $(foreach DEP, $(INTERNAL_DEPS), $(DEPS_DIR)/$(DEP))
@@ -177,5 +185,6 @@ clean::
 	$(foreach GEN, $(GENERATED_SOURCES), rm -f src/$(GEN).erl;)
 	$(foreach DEP, $(INTERNAL_DEPS), $(MAKE) -C $(DEPS_DIR)/$(DEP) clean;)
 	rm -rf $(DIST_DIR)
+	rm -f $(INTARGETS)
 
 distclean:: clean
