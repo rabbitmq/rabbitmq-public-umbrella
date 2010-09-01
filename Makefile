@@ -46,6 +46,9 @@ up: update
 clean:
 	$(foreach DIR, $(REPOS), $(MAKE) -C $(DIR) clean;)
 
+distclean:
+	$(foreach DIR, $(REPOS), $(MAKE) -C $(DIR) distclean;)
+
 #----------------------------------
 # Subrepository management
 

@@ -188,3 +188,4 @@ clean::
 	rm -f $(INTARGETS)
 
 distclean:: clean
+	$(foreach DEP, $(INTERNAL_DEPS), $(MAKE) -C $(DEPS_DIR)/$(DEP) distclean;)
