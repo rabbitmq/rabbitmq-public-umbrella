@@ -138,6 +138,7 @@ for repo in $REPOS ; do
 done
 
 make checkout HG_OPTS="-e 'ssh $SSH_OPTS'"
+make clean
 
 if [[ -n "$CHANGELOG_EMAIL" ]] ; then
     # Tweak changelogs
