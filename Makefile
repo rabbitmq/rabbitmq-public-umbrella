@@ -91,7 +91,3 @@ plugins-dist: package
 	rm -rf $(PLUGINS_DIST_DIR)
 	mkdir -p $(PLUGINS_DIST_DIR)
 	find . -name '*.ez' -exec cp -f {} $(PLUGINS_DIST_DIR) \;
-	for file in $(PLUGINS_DIST_DIR)/*.ez ; \
-	  do mv $${file} \
-	    $$(dirname $${file})/$$(basename $${file} .ez)-$(VERSION).ez ; \
-	  done

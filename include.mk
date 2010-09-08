@@ -134,16 +134,23 @@ list-deps:
 echo-package-name:
 	@echo $(PACKAGE)
 
-package: $(DIST_DIR)/$(PACKAGE).ez $(EXTRA_PACKAGES)
+PACKAGE_DIR=$(PACKAGE)-$(VERSION)
+PACKAGE_NAME_EZ=$(PACKAGE)-$(VERSION).ez
 
-$(DIST_DIR)/$(PACKAGE).ez: $(TARGETS)
-	rm -rf $(DIST_DIR)
-	mkdir -p $(DIST_DIR)/$(PACKAGE)
-	cp -r $(EBIN_DIR) $(DIST_DIR)/$(PACKAGE)
-	$(foreach EXTRA_DIR, $(EXTRA_PACKAGE_DIRS), cp -r $(EXTRA_DIR) $(DIST_DIR)/$(PACKAGE);)
-	(cd $(DIST_DIR); zip -r $(PACKAGE).ez $(PACKAGE))
+package: $(DIST_DIR)/$(PACKAGE_NAME_EZ) $(EXTRA_PACKAGES)
 	$(foreach DEP, $(INTERNAL_DEPS), cp $(DEPS_DIR)/$(DEP)/$(DEP).ez $(DIST_DIR);)
 	$(foreach DEP, $(DEP_NAMES), cp $(PRIV_DEPS_DIR)/$(DEP).ez $(DIST_DIR) &&) true
+
+$(DIST_DIR)/$(PACKAGE_NAME_EZ): $(DIST_DIR)/$(PACKAGE_DIR)
+	(cd $(DIST_DIR); zip -r $(PACKAGE_NAME_EZ) $(PACKAGE_DIR))
+
+$(DIST_DIR)/$(PACKAGE_DIR): $(TARGETS)
+	rm -rf $(DIST_DIR)
+	mkdir -p $(DIST_DIR)/$(PACKAGE_DIR)
+	cp -r $(EBIN_DIR) $(DIST_DIR)/$(PACKAGE_DIR)
+	rm $(DIST_DIR)/$(PACKAGE_DIR)/$(EBIN_DIR)/*app.in
+	$(foreach EXTRA_DIR, $(EXTRA_PACKAGE_DIRS), \
+		cp -r $(EXTRA_DIR) $(DIST_DIR)/$(PACKAGE_DIR);)
 
 
 COVER_DIR=.
