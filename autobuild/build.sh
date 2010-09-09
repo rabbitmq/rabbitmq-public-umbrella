@@ -75,8 +75,8 @@ while [[ $# -gt 0 ]] ; do
   shift
 done
 
-mandatory_vars="VERSION BUILD_USERHOST WIN_USERHOST"
-optional_vars="SSH_OPTS KEYSDIR SIGNING_PARAMS WEB_URL WEBSITE_REPO CHANGELOG_EMAIL CHANGELOG_COMMENT TOPDIR topdir REPOS SCRIPTDIR UMBRELLADIR"
+mandatory_vars="VERSION BUILD_USERHOST"
+optional_vars="SSH_OPTS KEYSDIR SIGNING_PARAMS WEB_URL WEBSITE_REPO CHANGELOG_EMAIL CHANGELOG_COMMENT TOPDIR topdir REPOS SCRIPTDIR UMBRELLADIR WIN_USERHOST"
 
 . $SCRIPTDIR/utils.sh
 absolutify_scriptdir
@@ -179,7 +179,7 @@ fi
 
 # Do the windows build
 if [ -n "$WIN_USERHOST" ] ; then
-    vars="RABBIT_VSN=$VERSION UNOFFICIAL_RELEASE=$UNOFFICIAL_RELEASE SKIP_MSIVAL2=1 WEB_URL=\"$WEB_URL\""
+    winvars="RABBIT_VSN=$VERSION UNOFFICIAL_RELEASE=$UNOFFICIAL_RELEASE SKIP_MSIVAL2=1 WEB_URL=\"$WEB_URL\""
 
     dotnetdir=$topdir/rabbitmq-umbrella/rabbitmq-dotnet-client
     local_dotnetdir=$TOPDIR/rabbitmq-umbrella/rabbitmq-dotnet-client
@@ -189,14 +189,14 @@ if [ -n "$WIN_USERHOST" ] ; then
 
     if [ -n "$KEYSDIR" ] ; then
         rsync -a $KEYSDIR/dotnet/rabbit.snk "$WIN_USERHOST:$dotnetdir"
-        vars="$vars KEYFILE=rabbit.snk"
+        winvars="$winvars KEYFILE=rabbit.snk"
     fi
 
     # Do the initial nant-based build
     ssh $SSH_OPTS "$WIN_USERHOST" '
         set -e -x
         cd '$dotnetdir'
-        { '"$vars"' ./dist.sh && touch dist.ok ; rm -f rabbit.snk ; } 2>&1 | tee dist.log ; test -e dist.ok
+        { '"$winvars"' ./dist.sh && touch dist.ok ; rm -f rabbit.snk ; } 2>&1 | tee dist.log ; test -e dist.ok
     '
 
     # Copy things across to the linux build host
@@ -216,7 +216,7 @@ if [ -n "$WIN_USERHOST" ] ; then
         # The PATH when you ssh in to the cygwin sshd is missing things
         PATH="$PATH:$(cygpath -p "$SYSTEMROOT\microsoft.net\framework\v3.5;$PROGRAMFILES\msival2;$PROGRAMFILES\wix;$PROGRAMFILES\Microsoft SDKs\Windows\v6.1\Bin")"
         cd '$dotnetdir'
-        { '"$vars"' ./dist-msi.sh && touch dist-msi.ok ; } 2>&1 | tee dist-msi.log ; test -e dist-msi.ok 
+        { '"$winvars"' ./dist-msi.sh && touch dist-msi.ok ; } 2>&1 | tee dist-msi.log ; test -e dist-msi.ok 
     '
 
     # The cygwin rsync sometimes hangs.  This rm works around it.
@@ -225,9 +225,11 @@ if [ -n "$WIN_USERHOST" ] ; then
     rsync -av "$WIN_USERHOST:$dotnetdir/" $local_dotnetdir
     rsync -av $local_dotnetdir/ $BUILD_USERHOST:$dotnetdir
     ssh $SSH_OPTS "$WIN_USERHOST" "rm -rf $topdir"
+else
+    vars="SKIP_DOTNET_CLIENT=1"
 fi
 
-vars="VERSION=$VERSION WEB_URL=\"$WEB_URL\" UNOFFICIAL_RELEASE=$UNOFFICIAL_RELEASE"
+vars="$vars VERSION=$VERSION WEB_URL=\"$WEB_URL\" UNOFFICIAL_RELEASE=$UNOFFICIAL_RELEASE"
 
 if [ -n "$KEYSDIR" ] ; then
     # Set things up for signing

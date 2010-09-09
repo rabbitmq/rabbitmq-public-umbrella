@@ -105,8 +105,10 @@ prepare: checkout
 .PHONY: artifacts
 artifacts: rabbitmq-server-artifacts
 artifacts: rabbitmq-java-artifacts
+ifeq ($(SKIP_DOTNET_CLIENT),)
 artifacts: rabbitmq-dotnet-artifacts
 artifacts: rabbitmq-windows-bundle
+endif
 artifacts: rabbitmq-erlang-client-artifacts
 artifacts: rabbitmq-public-umbrella-artifacts
 
