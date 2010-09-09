@@ -138,8 +138,8 @@ PACKAGE_DIR=$(PACKAGE)-$(VERSION)
 PACKAGE_NAME_EZ=$(PACKAGE)-$(VERSION).ez
 
 package: $(DIST_DIR)/$(PACKAGE_NAME_EZ) $(EXTRA_PACKAGES)
-	$(foreach DEP, $(INTERNAL_DEPS), cp $(DEPS_DIR)/$(DEP)/$(DEP).ez $(DIST_DIR);)
-	$(foreach DEP, $(DEP_NAMES), cp $(PRIV_DEPS_DIR)/$(DEP).ez $(DIST_DIR) &&) true
+	$(foreach DEP, $(INTERNAL_DEPS), cp $(DEPS_DIR)/$(DEP)/*.ez $(DIST_DIR);)
+	$(foreach DEP, $(DEP_NAMES), cp $(PRIV_DEPS_DIR)/*.ez $(DIST_DIR) &&) true
 
 $(DIST_DIR)/$(PACKAGE_NAME_EZ): $(DIST_DIR)/$(PACKAGE_DIR)
 	(cd $(DIST_DIR); zip -r $(PACKAGE_NAME_EZ) $(PACKAGE_DIR))
