@@ -121,7 +121,7 @@ ssh $SSH_OPTS $ROOT_USERHOST '
     DEBIAN_FRONTEND=noninteractive ; export DEBIAN_FRONTEND
     apt-get -y update
     apt-get -y dist-upgrade
-    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm reprepro tofrodos zip unzip ant $java_package htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev python-pexpect openssl s3cmd fakeroot git-core mercurial
+    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm reprepro tofrodos zip unzip ant $java_package htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev python-pexpect openssl s3cmd fakeroot git-core mercurial m4 xmlto
     [ -n "$uja_command" ] && eval $uja_command
 '
 
@@ -174,7 +174,7 @@ if [ -z "$WEB_URL" ] ; then
     trap "kill $!" EXIT
     sleep 1
     cd $TOPDIR
-    WEB_URL="http://$(hostname):8191/"
+    WEB_URL="http://$(hostname -f):8191/"
 fi
 
 # Do the windows build
