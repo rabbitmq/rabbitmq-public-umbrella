@@ -158,7 +158,7 @@ fi
 rsync -a $TOPDIR/ $BUILD_USERHOST:$topdir
 
 # Do per-user install of the required erlang/OTP versions
-ssh $SSH_OPTS $BUILD_USERHOST $topdir/install-otp.sh
+ssh $SSH_OPTS $BUILD_USERHOST "$topdir/install-otp.sh R12B-3"
 
 if [ -z "$WEB_URL" ] ; then
     # Run the website under a local python process
