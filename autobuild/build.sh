@@ -112,6 +112,9 @@ ssh $SSH_OPTS $ROOT_USERHOST '
     5.0*)
         java_package=openjdk-6-jdk
         uja_command="update-java-alternatives -s java-6-openjdk"
+        echo "deb http://backports.debian.org/debian-backports lenny-backports main" > /etc/apt/sources.list.d/backports.list
+        apt-get -y update
+        apt-get -y -t lenny-backports install mercurial
         ;;
     *)
         echo "Not sure which JDK package to install"
@@ -121,10 +124,7 @@ ssh $SSH_OPTS $ROOT_USERHOST '
     DEBIAN_FRONTEND=noninteractive ; export DEBIAN_FRONTEND
     apt-get -y update
     apt-get -y dist-upgrade
-    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm reprepro tofrodos zip unzip ant $java_package htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev python-pexpect openssl s3cmd fakeroot git-core m4 xmlto
-    echo "deb http://backports.debian.org/debian-backports lenny-backports main" > /etc/apt/sources.list.d/backports.list
-    apt-get update
-    apt-get -y -t lenny-backports install mercurial
+    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm reprepro tofrodos zip unzip ant $java_package htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev python-pexpect openssl s3cmd fakeroot git-core m4 xmlto mercurial
     [ -n "$uja_command" ] && eval $uja_command
 '
 
