@@ -294,11 +294,10 @@ deploy-stage: verify-signatures fixup-permissions-for-deploy
 	     deploy_path=$(STAGE_DEPLOY_PATH); \
 	     $(DEPLOY_RSYNC_CMDS)
 
-deploy-live: verify-signatures fixup-permissions-for-deploy deploy-cloudfront cloudfront-verify
+deploy-live: verify-signatures deploy-maven fixup-permissions-for-deploy deploy-cloudfront cloudfront-verify
 	deploy_host=$(LIVE_DEPLOY_HOST); \
 	     deploy_path=$(LIVE_DEPLOY_PATH); \
 	     $(DEPLOY_RSYNC_CMDS)
-	$(MAKE) -C rabbitmq-java-client stage-maven-bundle promote-maven-bundle SIGNING_KEY=$(SIGNING_KEY) VERSION=$(VERSION) GNUPG_PATH=$(GNUPG_PATH)
 
 fixup-permissions-for-deploy:
 	chmod -R g+w $(PACKAGES_DIR)
@@ -312,6 +311,9 @@ verify-signatures:
 	    fi ; \
 	done ; \
 	[ -z "$$bad_signature" ]
+
+deploy-maven:
+	$(MAKE) -C rabbitmq-java-client stage-maven-bundle promote-maven-bundle SIGNING_KEY=$(SIGNING_KEY) VERSION=$(VERSION) GNUPG_PATH=$(GNUPG_PATH)
 
 # The major problem with CloudFront is that they _don't see updates_!
 # So you can upload stuff to CF only once, never reuse the same filenames.
