@@ -90,7 +90,8 @@ endif
 FULL_CLEANUP_CMDS=$(CLEANUP_CMDS) init:stop()
 
 
-TEST_APP_ARGS=$(foreach APP,$(TEST_APPS),-eval 'ok = application:start($(APP))')
+TEST_APPS_LOAD=$(foreach APP,$(TEST_APPS),-eval 'ok = application:load($(APP))')
+TEST_APPS_START=$(foreach APP,$(TEST_APPS),-eval 'ok = application:start($(APP))')
 
 INFILES=$(shell find . -name '*.app.in')
 INTARGETS=$(patsubst %.in, %, $(INFILES))
@@ -158,6 +159,9 @@ test:	$(TARGETS) $(TEST_TARGETS)
 	OK=true && \
 	echo >$(TMPDIR)/rabbit-test-output && \
 	{ $(ERL) $(TEST_LOAD_PATH) -noshell -sname $(NODE_NAME) $(FULL_TEST_ARGS) & sleep 1 && \
+	  $(foreach APP,$(TEST_APPS),\
+	    echo >>$(TMPDIR)/rabbit-test-output && \
+            echo "ok = application:load($(APP))." | tee -a $(TMPDIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $(TMPDIR)/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
 	  $(foreach BOOT_CMD,$(FULL_BOOT_CMDS),\
             echo "$(BOOT_CMD)." | tee -a $(TMPDIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $(TMPDIR)/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
 	  $(foreach APP,$(TEST_APPS),\
@@ -175,7 +179,7 @@ test:	$(TARGETS) $(TEST_TARGETS)
 	$$OK
 
 run:	$(TARGETS) $(TEST_TARGETS)
-	$(ERL) $(TEST_LOAD_PATH) $(FULL_TEST_ARGS) -sname $(NODE_NAME) $(foreach BOOT_CMD,$(FULL_BOOT_CMDS),-eval '$(BOOT_CMD)') $(TEST_APP_ARGS)
+	$(ERL) $(TEST_LOAD_PATH) $(FULL_TEST_ARGS) -sname $(NODE_NAME) $(TEST_APPS_LOAD) $(foreach BOOT_CMD,$(FULL_BOOT_CMDS),-eval '$(BOOT_CMD)') $(TEST_APPS_START)
 
 clean::
 	rm -f $(EBIN_DIR)/*.beam
