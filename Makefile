@@ -12,7 +12,7 @@ PLUGIN_REPOS=rabbitmq-erlang-client \
            rabbitmq-jsonrpc rabbitmq-mochiweb \
            rabbitmq-jsonrpc-channel rabbitmq-bql rabbitmq-management \
            rabbitmq-stomp rabbitmq-smtp rabbitmq-status rabbitmq-shovel \
-           rabbitmq-toke
+           rabbitmq-toke rabbitmq-external-exchange
 
 CORE_REPOS=rabbitmq-server rabbitmq-codegen $(PLUGIN_REPOS)
 
@@ -21,7 +21,7 @@ BRANCH=default
 PLUGINS=rabbitmq-erlang-client rabbitmq-jsonrpc rabbitmq-mochiweb \
 	rabbitmq-jsonrpc-channel rabbitmq-bql erlang-rfc4627 rabbitmq-smtp \
 	rabbitmq-stomp rabbitmq-status rabbitmq-shovel rabbitmq-management \
-        rabbitmq-toke
+        rabbitmq-toke rabbitmq-external-exchange
 
 HG_CORE_REPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
