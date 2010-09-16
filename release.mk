@@ -178,10 +178,13 @@ rabbitmq-server-rpm-packaging: rabbitmq-server-srcdist
 	done
 
 # This target ssh's into the OSX host in order to finalize the
-# macports repo, so it is not invoked by rabbitmq-server-artifacts
+# macports repo, so it is not invoked by rabbitmq-server-artifacts.
+# Note that the "clean" below is significant: Because the REAL_WEB_URL
+# environment variable might change, we need to rebuild the macports
+# artifacts at each deploy.
 .PHONY: rabbitmq-server-macports-packaging
 rabbitmq-server-macports-packaging:
-	$(MAKE) -C rabbitmq-server/packaging/macports macports VERSION=$(VERSION)
+	$(MAKE) -C rabbitmq-server/packaging/macports clean macports VERSION=$(VERSION)
 	cp -r rabbitmq-server/packaging/macports/macports $(PACKAGES_DIR)
 
 
