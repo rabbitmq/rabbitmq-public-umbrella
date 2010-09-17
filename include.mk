@@ -14,15 +14,11 @@
 #                             the packaging process. Files will be created in dist/, but the
 #                             name listed here should exclude the dist/ prefix.
 #  EXTRA_TARGETS        -- Additional prerequisites for building the plugin.
-#  TEST_APPS            -- Applications that should be started as part of the VM that your tests
-#                          run in (TODO deprecate)
 #  TEST_SCRIPTS         -- A space seperated list of shell-executable scripts that should be run to
 #                          execute plugin tests. Allows languages other than Erlang to be used to write
 #                          test cases.
-#  START_RABBIT_IN_TESTS -- If set, a Rabbit broker instance will be started as part of the test VM (TODO deprecate always true)
 #  TEST_COMMANDS        -- A space separated list of commands that should be executed in order to run
 #                          test cases. For example, my_module_tests:test()
-#  TEST_ARGS            -- Appended to the erl command line when running or running tests.
 #                          Beware of quote escaping issues!
 #  ROOT_DIR             -- The path to the public_umbrella. Default is ..
 #  LOG_IN_FILE (deprecate)
