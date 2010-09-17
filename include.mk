@@ -181,8 +181,8 @@ plugins-dir:
 	for file in $(DEPS_DIR)/* ; do ln -s `pwd`/$$file/`basename $$file` $(PLUGINS_TMP) ; done
 	for file in $(PRIV_DEPS_DIR)/* ; do ln -s `pwd`/$$file $(PLUGINS_TMP) ; done
 	ln -s `pwd` $(PLUGINS_TMP)/$(PACKAGE)
-	rm $(PLUGINS_TMP)/rabbit_common
-	rm $(PLUGINS_TMP)/*.ez
+	rm -f $(PLUGINS_TMP)/rabbit_common
+	rm -f $(PLUGINS_TMP)/*.ez
 
 clean::
 	rm -f $(EBIN_DIR)/*.beam
