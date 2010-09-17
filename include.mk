@@ -15,16 +15,17 @@
 #                             name listed here should exclude the dist/ prefix.
 #  EXTRA_TARGETS        -- Additional prerequisites for building the plugin.
 #  TEST_APPS            -- Applications that should be started as part of the VM that your tests
-#                          run in
+#                          run in (TODO deprecate)
 #  TEST_SCRIPTS         -- A space seperated list of shell-executable scripts that should be run to
 #                          execute plugin tests. Allows languages other than Erlang to be used to write
 #                          test cases.
-#  START_RABBIT_IN_TESTS -- If set, a Rabbit broker instance will be started as part of the test VM
+#  START_RABBIT_IN_TESTS -- If set, a Rabbit broker instance will be started as part of the test VM (TODO deprecate always true)
 #  TEST_COMMANDS        -- A space separated list of commands that should be executed in order to run
 #                          test cases. For example, my_module_tests:test()
 #  TEST_ARGS            -- Appended to the erl command line when running or running tests.
 #                          Beware of quote escaping issues!
 #  ROOT_DIR             -- The path to the public_umbrella. Default is ..
+#  LOG_IN_FILE (deprecate)
 
 VERSION=0.0.0
 EBIN_DIR=ebin
@@ -43,6 +44,7 @@ ERL ?= erl
 ERL_CALL ?= erl_call
 
 TMPDIR ?= /tmp
+PLUGINS_TMP ?= $(TMPDIR)/plugins-umbrella
 
 LIBS_PATH_DEPS := $(PRIV_DEPS_DIR):$(DEPS_DIR)
 
@@ -84,28 +86,9 @@ ERLC_OPTS=$(INCLUDE_OPTS) -o $(EBIN_DIR) -Wall +debug_info
 TEST_ERLC_OPTS=$(INCLUDE_OPTS) -o $(TEST_EBIN_DIR) -Wall
 ERL_CALL_OPTS=-sname $(NODE_NAME) -e
 
-TEST_LOAD_PATH=-pa $(EBIN_DIR) -pa $(TEST_EBIN_DIR)
-
 INCLUDE_OPTS=-I $(INCLUDE_DIR)
 
 LOG_BASE=$(TMPDIR)
-LOG_IN_FILE=true
-RABBIT_SERVER=rabbitmq-server
-ADD_BROKER_ARGS=-pa $(ROOT_DIR)/$(RABBIT_SERVER)/ebin -mnesia dir tmp -boot start_sasl \
-        $(shell [ $(LOG_IN_FILE) = "true" ] && echo "-sasl sasl_error_logger '{file, \"'${LOG_BASE}'/rabbit-sasl.log\"}' -kernel error_logger '{file, \"'${LOG_BASE}'/rabbit.log\"}'") \
-	-os_mon start_memsup false
-ifeq ($(START_RABBIT_IN_TESTS),)
-FULL_TEST_ARGS=$(TEST_ARGS)
-FULL_BOOT_CMDS=$(BOOT_CMDS)
-else
-FULL_TEST_ARGS=$(ADD_BROKER_ARGS) $(TEST_ARGS)
-FULL_BOOT_CMDS=$(BOOT_CMDS) rabbit:start()
-endif
-FULL_CLEANUP_CMDS=$(CLEANUP_CMDS) init:stop()
-
-
-TEST_APPS_LOAD=$(foreach APP,$(TEST_APPS),-eval 'ok = application:load($(APP))')
-TEST_APPS_START=$(foreach APP,$(TEST_APPS),-eval 'ok = application:start($(APP))')
 
 INFILES=$(shell find . -name '*.app.in')
 INTARGETS=$(patsubst %.in, %, $(INFILES))
@@ -160,6 +143,7 @@ $(DIST_DIR)/$(PACKAGE).ez: $(TARGETS)
 	$(foreach DEP, $(INTERNAL_DEPS), cp $(DEPS_DIR)/$(DEP)/$(DEP).ez $(DIST_DIR);)
 	$(foreach DEP, $(DEP_NAMES), cp $(PRIV_DEPS_DIR)/$(DEP).ez $(DIST_DIR) &&) true
 
+.PHONY: cover coverage test run plugins-dir
 
 COVER_DIR=.
 cover: coverage
@@ -168,32 +152,37 @@ coverage:
 	@echo -e "\n**** Code coverage ****"
 	@cat cover/summary.txt
 
-.PHONY: test
-test:	$(TARGETS) $(TEST_TARGETS)
-	OK=true && \
+test:	$(TARGETS) $(TEST_TARGETS) plugins-dir
+	RABBITMQ_TEST_EBIN=`pwd`/$(TEST_EBIN_DIR) \
+	  RABBITMQ_PLUGINS_DIR=$(PLUGINS_TMP) \
+	  RABBITMQ_LOG_BASE=$(LOG_BASE) RABBITMQ_MNESIA_DIR=tmp \
+	  ../rabbitmq-server/scripts/rabbitmq-server run & sleep 2
 	echo >$(TMPDIR)/rabbit-test-output && \
-	{ ERL_LIBS=$(LIBS_PATH) $(ERL) $(TEST_LOAD_PATH) -noshell -sname $(NODE_NAME) $(FULL_TEST_ARGS) & sleep 1 && \
-	  $(foreach APP,$(TEST_APPS),\
-	    echo >>$(TMPDIR)/rabbit-test-output && \
-            echo "ok = application:load($(APP))." | tee -a $(TMPDIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $(TMPDIR)/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
-	  $(foreach BOOT_CMD,$(FULL_BOOT_CMDS),\
+	{ $(foreach BOOT_CMD,$(BOOT_CMDS),\
             echo "$(BOOT_CMD)." | tee -a $(TMPDIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $(TMPDIR)/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
-	  $(foreach APP,$(TEST_APPS),\
-	    echo >>$(TMPDIR)/rabbit-test-output && \
-            echo "ok = application:start($(APP))." | tee -a $(TMPDIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $(TMPDIR)/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
 	  $(foreach CMD,$(TEST_COMMANDS), \
 	    echo >>$(TMPDIR)/rabbit-test-output && \
 	    echo "$(CMD)." | tee -a $(TMPDIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $(TMPDIR)/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
 	  $(foreach SCRIPT,$(TEST_SCRIPTS), \
 	    $(SCRIPT) && ) true || OK=false; } && \
 	{ $$OK || cat $(TMPDIR)/rabbit-test-output; echo; } && \
-	$(foreach CLEANUP_CMD,$(FULL_CLEANUP_CMDS),\
+	$(foreach CLEANUP_CMD,$(CLEANUP_CMDS),\
             echo "$(CLEANUP_CMD)." | tee -a $(TMPDIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $(TMPDIR)/rabbit-test-output | egrep "{ok, " >/dev/null; ) true && \
 	sleep 1 && \
+	make -C ../rabbitmq-server stop-node && \
 	$$OK
 
-run:	$(TARGETS) $(TEST_TARGETS)
-	ERL_LIBS=$(LIBS_PATH) $(ERL) $(TEST_LOAD_PATH) $(FULL_TEST_ARGS) -sname $(NODE_NAME) $(TEST_APPS_LOAD) $(foreach BOOT_CMD,$(FULL_BOOT_CMDS),-eval '$(BOOT_CMD)') $(TEST_APPS_START)
+run:	$(TARGETS) $(TEST_TARGETS) plugins-dir
+	RABBITMQ_PLUGINS_DIR=$(PLUGINS_TMP) make -C ../rabbitmq-server run
+
+plugins-dir:
+	rm -rf $(PLUGINS_TMP)
+	mkdir -p $(PLUGINS_TMP)
+	for file in $(DEPS_DIR)/* ; do ln -s `pwd`/$$file/`basename $$file` $(PLUGINS_TMP) ; done
+	for file in $(PRIV_DEPS_DIR)/* ; do ln -s `pwd`/$$file $(PLUGINS_TMP) ; done
+	ln -s `pwd` $(PLUGINS_TMP)/$(PACKAGE)
+	rm $(PLUGINS_TMP)/rabbit_common
+	rm $(PLUGINS_TMP)/*.ez
 
 clean::
 	rm -f $(EBIN_DIR)/*.beam
