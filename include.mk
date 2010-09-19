@@ -1,195 +1,123 @@
-# This is a global include file for all Makefiles. It is expected that modules
-# will include it with a command similar to "include ../include.mk". Before
-# inclusion, the following variables MUST be set:
-#  PACKAGE=    -- The name of the package
+include ../global.mk
+
 #
-# The following optional variables can be set if your build requires it:
-#  DEPS                 -- Other projects that your build depends on (eg rabbitmq-server)
-#  INTERNAL_DEPS        -- Internal dependencies that need to be built and included.
-#  GENERATED_SOURCES	-- The names of modules that are automatically generated.
-#			   Note that the names provided should EXCLUDE the .erl extension
-#  EXTRA_PACKAGE_DIRS   -- The names of extra directories (over ebin) that should be included
-#			   in distribution packages
-#  EXTRA_PACKAGE_ARTIFACTS -- The names of additional artifacts that are produced as part of
-#                             the packaging process. Files will be created in dist/, but the
-#                             name listed here should exclude the dist/ prefix.
-#  EXTRA_TARGETS        -- Additional prerequisites for building the plugin.
-#  TEST_APPS            -- Applications that should be started as part of the VM that your tests
-#                          run in
-#  TEST_SCRIPTS         -- A space seperated list of shell-executable scripts that should be run to
-#                          execute plugin tests. Allows languages other than Erlang to be used to write
-#                          test cases.
-#  START_RABBIT_IN_TESTS -- If set, a Rabbit broker instance will be started as part of the test VM
-#  TEST_COMMANDS        -- A space separated list of commands that should be executed in order to run
-#                          test cases. For example, my_module_tests:test()
-#  TEST_ARGS            -- Appended to the erl command line when running or running tests.
-#                          Beware of quote escaping issues!
-#  ROOT_DIR             -- The path to the public_umbrella. Default is ..
+#      ebin/$(APP_NAME).app -?-> ebin/$(APP_NAME)_app.in
+#       ^
+#       |
+# --> $(DIST_DIR)/$(OUTPUT_EZS) -|-> $(DIST_DIR)
+#       |
+#       +------------------------------------\
+#       |                                     V
+#       |            /--> deps.mk --\   /--> include/*.hrl
+#       V            |               }-{
+#      ebin/*.beam --+--------------/   \--> src/*.erl
+#                    |
+#                    \--> $(DIST_DIR)/$(OUTPUT_EZS).stamp
+#                           |
+#                           V
+#                          $(DEPS)/$(DIST_DIR)/$(OUTPUT_EZS) [RECURSE] -->
+#
+# Notes
+#
+# 1. The contents of deps.mk itself expresses the dependencies between
+# the beams and erls/hrls.
+#
+# 2. If package foo depends on bar, and package bar depends on baz,
+# then when compiling foo, the .ezs from _both_ bar and baz must be
+# present in foo. I.e. the transitive closure of OUTPUT_EZS is
+# required as we move up the dependency chain. This is not represented
+# in the above diagram.
+#
+# 3. The contents of global.mk are included just once.
+#
+# 4. common.mk is included every time we visit a package. This is true
+# even if we've already visited a package and is essential as we may
+# discover a package has more parents than we'd previously thought and
+# the dependencies for OUTPUT_EZS needs correcting (see point 2
+# above). E.g. foo -> bar; foo -> baz; bar -> qux; baz -> qux: when
+# visiting qux, we need to ensure both bar and baz depend on the
+# qux.ez outputs.
+#
+# 5. targets.mk is only included for fully integrated packages and is
+# only included once per package.
+#
+# 6. non-integrated.mk is included only for non-integrated packages
+# (currently erlang-client and server) and is only included once per
+# such package.
+#
+# 7. For general debugging and understanding, try changing $(eval ...)
+# calls to $(info ...) calls and then it'll break, but print out what
+# Makefile fragments have been generated and were to be interpreted.
+#
+# 8. Support for non integrated packages errs on the safe-side: the
+# output EZs of such packages are declared PHONY. As a result,
+# whenever such a package is a prerequisite, all subsequent steps will
+# always be taken. However, make -j still works, and there is no
+# possibility of missing changes.
+#
 
-VERSION=0.0.0
-EBIN_DIR=ebin
-TEST_EBIN_DIR=test_ebin
-SOURCE_DIR=src
-TEST_DIR=test
-INCLUDE_DIR=include
-DIST_DIR=dist
-DEPS_DIR=deps
-PRIV_DEPS_DIR=build/deps
-ROOT_DIR ?=..
+VARS:=SOURCE_DIR SOURCE_ERLS INCLUDE_DIR INCLUDE_HRLS EBIN_DIR EBIN_BEAMS DEPS_FILE APP_NAME OUTPUT_EZS INTERNAL_DEPS
 
-SHELL ?= /bin/bash
-ERLC ?= erlc
-ERL ?= erl
-ERL_CALL ?= erl_call
+ifdef PACKAGE_DIR
 
-TMPDIR ?= /tmp
-
-INCLUDES=$(wildcard $(INCLUDE_DIR)/*.hrl)
-SOURCES=$(wildcard $(SOURCE_DIR)/*.erl)
-TEST_SOURCES=$(wildcard $(TEST_DIR)/*.erl)
-DEP_EZS=$(foreach DEP, $(DEPS), $(wildcard $(ROOT_DIR)/$(DEP)/$(DIST_DIR)/*.ez))
-DEP_NAMES=$(patsubst %.ez, %, $(foreach DEP_EZ, $(DEP_EZS), $(shell basename $(DEP_EZ))))
-
-EXTRA_PACKAGES=$(foreach PACKAGE_NAME, $(EXTRA_PACKAGE_ARTIFACTS), $(DIST_DIR)/$(PACKAGE_NAME))
-
-EXTRA_TARGETS ?=
-
-TARGETS=$(foreach DEP, $(INTERNAL_DEPS), $(DEPS_DIR)/$(DEP)/ebin) \
-	$(foreach DEP_NAME, $(DEP_NAMES), $(PRIV_DEPS_DIR)/$(DEP_NAME)/ebin) \
-        $(patsubst $(SOURCE_DIR)/%.erl, $(EBIN_DIR)/%.beam, $(SOURCES)) \
-        $(foreach GEN, $(GENERATED_SOURCES), ebin/$(GEN).beam) \
-	$(EBIN_DIR)/$(APPNAME).app \
-	$(EXTRA_TARGETS)
-TEST_TARGETS=$(patsubst $(TEST_DIR)/%.erl, $(TEST_EBIN_DIR)/%.beam, $(TEST_SOURCES))
-
-NODE_NAME=rabbit
-
-ERLC_OPTS=$(INCLUDE_OPTS) -o $(EBIN_DIR) -Wall +debug_info
-TEST_ERLC_OPTS=$(INCLUDE_OPTS) -o $(TEST_EBIN_DIR) -Wall
-ERL_CALL_OPTS=-sname $(NODE_NAME) -e
-
-DEPS_LOAD_PATH=$(foreach DEP, $(DEP_NAMES), -pa $(PRIV_DEPS_DIR)/$(DEP)/ebin) \
-	$(foreach DEP, $(INTERNAL_DEPS), -pa $(DEPS_DIR)/$(DEP)/ebin)
-TEST_LOAD_PATH=-pa $(EBIN_DIR) -pa $(TEST_EBIN_DIR) $(DEPS_LOAD_PATH)
-
-INCLUDE_OPTS=-I $(INCLUDE_DIR) $(DEPS_LOAD_PATH)
-
-LOG_BASE=$(TMPDIR)
-LOG_IN_FILE=true
-RABBIT_SERVER=rabbitmq-server
-ADD_BROKER_ARGS=-pa $(ROOT_DIR)/$(RABBIT_SERVER)/ebin -mnesia dir tmp -boot start_sasl \
-        $(shell [ $(LOG_IN_FILE) = "true" ] && echo "-sasl sasl_error_logger '{file, \"'${LOG_BASE}'/rabbit-sasl.log\"}' -kernel error_logger '{file, \"'${LOG_BASE}'/rabbit.log\"}'") \
-	-os_mon start_memsup false
-ifeq ($(START_RABBIT_IN_TESTS),)
-FULL_TEST_ARGS=$(TEST_ARGS)
-FULL_BOOT_CMDS=$(BOOT_CMDS)
+define default_and_lift_var
+ifeq ($(origin $(1)), undefined)
+$(PACKAGE_DIR)_$(1):=$(2)
 else
-FULL_TEST_ARGS=$(ADD_BROKER_ARGS) $(TEST_ARGS)
-FULL_BOOT_CMDS=$(BOOT_CMDS) rabbit:start()
+ifeq ($($(1)), undefined)
+$(PACKAGE_DIR)_$(1):=$(2)
+else
+$(PACKAGE_DIR)_$(1):=$($(1))
 endif
-FULL_CLEANUP_CMDS=$(CLEANUP_CMDS) init:stop()
+endif
+endef
 
+define lift_undef
+ifeq ($(origin $(PACKAGE_DIR)_$(1)), undefined)
+$(PACKAGE_DIR)_$(1):=$($(1))
+endif
+endef
 
-TEST_APPS_LOAD=$(foreach APP,$(TEST_APPS),-eval 'ok = application:load($(APP))')
-TEST_APPS_START=$(foreach APP,$(TEST_APPS),-eval 'ok = application:start($(APP))')
+define package_to_app_name
+  $(subst __,_,$(patsubst rabbitmq%,rabbit_%,$(subst -,_,$(1))))
+endef
 
-INFILES=$(shell find . -name '*.app.in')
-INTARGETS=$(patsubst %.in, %, $(INFILES))
+$(eval $(call default_and_lift_var,SOURCE_DIR,$(PACKAGE_DIR)/src))
+$(eval $(call default_and_lift_var,SOURCE_ERLS,$(wildcard $($(PACKAGE_DIR)_SOURCE_DIR)/*.erl)))
 
-all: package
+$(eval $(call default_and_lift_var,INCLUDE_DIR,$(PACKAGE_DIR)/include))
+$(eval $(call default_and_lift_var,INCLUDE_HRLS,$(wildcard $($(PACKAGE_DIR)_INCLUDE_DIR)/*.hrl)))
 
-diag:
-	@echo DEP_EZS=$(DEP_EZS)
-	@echo DEP_NAMES=$(DEP_NAMES)
-	@echo TARGETS=$(TARGETS)
-	@echo INCLUDE_OPTS=$(INCLUDE_OPTS)
+$(eval $(call default_and_lift_var,EBIN_DIR,$(PACKAGE_DIR)/ebin))
+$(eval $(call default_and_lift_var,EBIN_BEAMS,$(patsubst $($(PACKAGE_DIR)_SOURCE_DIR)/%.erl,$($(PACKAGE_DIR)_EBIN_DIR)/%.beam,$($(PACKAGE_DIR)_SOURCE_ERLS))))
 
-$(EBIN_DIR):
-	mkdir -p $(EBIN_DIR)
+$(eval $(call default_and_lift_var,APP_NAME,$(call package_to_app_name,$(PACKAGE_NAME))))
+$(eval $(call default_and_lift_var,OUTPUT_EZS,$(PACKAGE_NAME).ez))
+$(eval $(call default_and_lift_var,DEPS_FILE,$(PACKAGE_DIR)/deps.mk))
 
-$(EBIN_DIR)/%.beam: $(SOURCE_DIR)/%.erl
-	@mkdir -p $(EBIN_DIR)
-	$(ERLC) $(ERLC_OPTS) -pa $(EBIN_DIR) $<
+$(foreach VAR,$(VARS),$(eval $(call lift_undef,$(VAR))))
 
-$(TEST_EBIN_DIR):
-	mkdir -p $(TEST_EBIN_DIR)
+# $(info I am $(PACKAGE_DIR) and my parents are $($(PACKAGE_DIR)_PARENTS))
 
-$(TEST_EBIN_DIR)/%.beam: $(TEST_DIR)/%.erl
-	@mkdir -p $(TEST_EBIN_DIR)
-	$(ERLC) $(TEST_ERLC_OPTS) -pa $(TEST_EBIN_DIR) $<
+define dump_var
+$(1):=$($(1))
+$(PACKAGE_DIR)_$(1):=$($(PACKAGE_DIR)_$(1))
+endef
 
-$(DEPS_DIR)/%/ebin:
-	$(MAKE) -C $(shell dirname $@)
+# $(foreach VAR,$(VARS),$(info $(call dump_var,$(VAR))))
 
-$(PRIV_DEPS_DIR)/%/ebin:
-	@mkdir -p $(PRIV_DEPS_DIR)
-	$(foreach EZ, $(DEP_EZS), cp $(EZ) $(PRIV_DEPS_DIR) &&) true
-	(cd $(PRIV_DEPS_DIR); unzip $*.ez)
+ifeq "$(SET_DEFAULT_GOAL)" "true"
+SET_DEFAULT_GOAL:=false
+.DEFAULT_GOAL:=$(PACKAGE_DIR)_OUTPUT_EZS
 
-%.app: %.app.in
-	sed -e 's:%%VSN%%:$(VERSION):g' < $< > $@
+.PHONY: $(PACKAGE_DIR)_OUTPUT_EZS
+$(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS),$(eval $(PACKAGE_DIR)_OUTPUT_EZS: $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ)))
+endif
 
-list-deps:
-	@echo $(foreach DEP, $(INTERNAL_DEPS), $(DEPS_DIR)/$(DEP))
+include ../common.mk
 
-echo-package-name:
-	@echo $(PACKAGE)
+else
+SET_DEFAULT_GOAL:=true
+endif
 
-package: $(DIST_DIR)/$(PACKAGE).ez $(EXTRA_PACKAGES)
-
-$(DIST_DIR)/$(PACKAGE).ez: $(TARGETS)
-	rm -rf $(DIST_DIR)
-	mkdir -p $(DIST_DIR)/$(PACKAGE)
-	cp -r $(EBIN_DIR) $(DIST_DIR)/$(PACKAGE)
-	$(foreach EXTRA_DIR, $(EXTRA_PACKAGE_DIRS), cp -r $(EXTRA_DIR) $(DIST_DIR)/$(PACKAGE);)
-	(cd $(DIST_DIR); zip -r $(PACKAGE).ez $(PACKAGE))
-	$(foreach DEP, $(INTERNAL_DEPS), cp $(DEPS_DIR)/$(DEP)/$(DEP).ez $(DIST_DIR);)
-	$(foreach DEP, $(DEP_NAMES), cp $(PRIV_DEPS_DIR)/$(DEP).ez $(DIST_DIR) &&) true
-
-
-COVER_DIR=.
-cover: coverage
-coverage:
-	$(MAKE) test BOOT_CMDS='cover:start() rabbit_misc:enable_cover([\"$(COVER_DIR)\"])' CLEANUP_CMDS='rabbit_misc:report_cover() cover:stop()'
-	@echo -e "\n**** Code coverage ****"
-	@cat cover/summary.txt
-
-.PHONY: test
-test:	$(TARGETS) $(TEST_TARGETS)
-	OK=true && \
-	echo >$(TMPDIR)/rabbit-test-output && \
-	{ $(ERL) $(TEST_LOAD_PATH) -noshell -sname $(NODE_NAME) $(FULL_TEST_ARGS) & sleep 1 && \
-	  $(foreach APP,$(TEST_APPS),\
-	    echo >>$(TMPDIR)/rabbit-test-output && \
-            echo "ok = application:load($(APP))." | tee -a $(TMPDIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $(TMPDIR)/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
-	  $(foreach BOOT_CMD,$(FULL_BOOT_CMDS),\
-            echo "$(BOOT_CMD)." | tee -a $(TMPDIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $(TMPDIR)/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
-	  $(foreach APP,$(TEST_APPS),\
-	    echo >>$(TMPDIR)/rabbit-test-output && \
-            echo "ok = application:start($(APP))." | tee -a $(TMPDIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $(TMPDIR)/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
-	  $(foreach CMD,$(TEST_COMMANDS), \
-	    echo >>$(TMPDIR)/rabbit-test-output && \
-	    echo "$(CMD)." | tee -a $(TMPDIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $(TMPDIR)/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
-	  $(foreach SCRIPT,$(TEST_SCRIPTS), \
-	    $(SCRIPT) && ) true || OK=false; } && \
-	{ $$OK || cat $(TMPDIR)/rabbit-test-output; echo; } && \
-	$(foreach CLEANUP_CMD,$(FULL_CLEANUP_CMDS),\
-            echo "$(CLEANUP_CMD)." | tee -a $(TMPDIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $(TMPDIR)/rabbit-test-output | egrep "{ok, " >/dev/null; ) true && \
-	sleep 1 && \
-	$$OK
-
-run:	$(TARGETS) $(TEST_TARGETS)
-	$(ERL) $(TEST_LOAD_PATH) $(FULL_TEST_ARGS) -sname $(NODE_NAME) $(TEST_APPS_LOAD) $(foreach BOOT_CMD,$(FULL_BOOT_CMDS),-eval '$(BOOT_CMD)') $(TEST_APPS_START)
-
-clean::
-	rm -f $(EBIN_DIR)/*.beam
-	rm -f $(TEST_EBIN_DIR)/*.beam
-	rm -f erl_crash.dump
-	rm -rf $(PRIV_DEPS_DIR)
-	$(foreach GEN, $(GENERATED_SOURCES), rm -f src/$(GEN).erl;)
-	$(foreach DEP, $(INTERNAL_DEPS), $(MAKE) -C $(DEPS_DIR)/$(DEP) clean;)
-	rm -rf $(DIST_DIR)
-	rm -f $(INTARGETS)
-
-distclean:: clean
-	$(foreach DEP, $(INTERNAL_DEPS), $(MAKE) -C $(DEPS_DIR)/$(DEP) distclean;)
+include ../deps.mk
