@@ -44,11 +44,13 @@ $(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME).ez_DIR:=$(PACKAGE_DIR)/$(DIST_DIR)/$(
 $(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME).ez_APP:=$($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME).app
 $(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME).ez_EBIN_BEAMS:=$($(PACKAGE_DIR)_EBIN_BEAMS)
 $(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME).ez_INCLUDE_HRLS:=$($(PACKAGE_DIR)_INCLUDE_HRLS)
+$(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME).ez_EXTRA_PACKAGE_DIRS:=$($(PACKAGE_DIR)_EXTRA_PACKAGE_DIRS)
 $(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME).ez: $($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME).app | $(PACKAGE_DIR)/$(DIST_DIR)
 	rm -rf $@ $($@_DIR)
 	mkdir -p $($@_DIR)/ebin $($@_DIR)/include
 	$(foreach BEAM,$($@_EBIN_BEAMS),cp $(BEAM) $($@_DIR)/ebin;)
 	$(foreach HRL,$($@_INCLUDE_HRLS),cp $(HRL) $($@_DIR)/include;)
+	$(foreach EXTRA_DIR,$($@_EXTRA_PACKAGE_DIRS),cp -r $(EXTRA_DIR) $($@_DIR);)
 	cp $($@_APP) $($@_DIR)/ebin
 	cd $(dir $($@_DIR)) && zip -r $@ $(notdir $(basename $@))
 

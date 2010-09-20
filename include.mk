@@ -56,7 +56,7 @@ include ../global.mk
 # possibility of missing changes.
 #
 
-VARS:=SOURCE_DIR SOURCE_ERLS INCLUDE_DIR INCLUDE_HRLS EBIN_DIR EBIN_BEAMS DEPS_FILE APP_NAME OUTPUT_EZS INTERNAL_DEPS
+VARS:=SOURCE_DIR SOURCE_ERLS INCLUDE_DIR INCLUDE_HRLS EBIN_DIR EBIN_BEAMS DEPS_FILE APP_NAME OUTPUT_EZS INTERNAL_DEPS EXTRA_PACKAGE_DIRS
 
 ifdef PACKAGE_DIR
 
@@ -74,7 +74,9 @@ endef
 
 define lift_undef
 ifeq ($(origin $(PACKAGE_DIR)_$(1)), undefined)
+ifneq ($($(1)), undefined)
 $(PACKAGE_DIR)_$(1):=$($(1))
+endif
 endif
 endef
 
