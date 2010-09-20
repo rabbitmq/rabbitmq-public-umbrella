@@ -20,6 +20,9 @@ if [ ! -f $HOME/otp-$version/.ok ] ; then
     test -e .make-ok
     { make install 2>&1 && touch .make-install-ok ; } | tee -a /var/tmp/otp-$version.log
     test -e .make-install-ok
+# We need this "source" include for an SSL workaround (see bug23291)
+    { mkdir -p $HOME/otp-$version/lib/ssl/src && cp lib/ssl/src/ssl_record.hrl $HOME/otp-$version/lib/ssl/src/ && touch .cp-ssl-include-ok ; } | tee -a /var/tmp/otp-$version.log
+    test -e .cp-ssl-include-ok
     cd /var/tmp
     rm -rf otp_src_$version
     touch $HOME/otp-$version/.ok
