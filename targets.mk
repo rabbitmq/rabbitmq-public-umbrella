@@ -15,7 +15,7 @@ $($(PACKAGE_DIR)_DEPS_FILE): $($(PACKAGE_DIR)_SOURCE_ERLS) $($(PACKAGE_DIR)_INCL
 
 $($(PACKAGE_DIR)_EBIN_DIR)_INCLUDE_DIR:=$($(PACKAGE_DIR)_INCLUDE_DIR)
 $($(PACKAGE_DIR)_EBIN_DIR)_DIST_DIR:=$(PACKAGE_DIR)/$(DIST_DIR)
-$($(PACKAGE_DIR)_EBIN_DIR)/%.beam: $($(PACKAGE_DIR)_SOURCE_DIR)/%.erl | $($(PACKAGE_DIR)_EBIN_DIR) $(PACKAGE_DIR)/$(DIST_DIR)
+$($(PACKAGE_DIR)_EBIN_DIR)/%.beam: $($(PACKAGE_DIR)_SOURCE_DIR)/%.erl | $($(PACKAGE_DIR)_EBIN_DIR) $(PACKAGE_DIR)/$(DIST_DIR) $(PACKAGE_DIR)/$(DEPS_DIR)
 	ERL_LIBS=$($(@D)_DIST_DIR) $(ERLC) $(ERLC_OPTS) -I $($(@D)_INCLUDE_DIR) -pa $(@D) -o $(@D) $<
 
 $($(PACKAGE_DIR)_EBIN_DIR):
@@ -57,20 +57,27 @@ $(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME).ez: $($(PACKAGE_DIR)_EBIN_DIR)/$($(PA
 	cp $($@_APP) $($@_DIR)/ebin
 	cd $(dir $($@_DIR)) && zip -r $@ $(notdir $(basename $@))
 
+$(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME).ez_TARGET:=true
+
 define generic_ez
 # $(EZ) is in $(1)
-ifneq "$(1)" "$(PACKAGE_NAME).ez"
+ifndef $(PACKAGE_DIR)/$(DIST_DIR)/$(1)_TARGET
+$(PACKAGE_DIR)/$(DIST_DIR)/$(1)_TARGET:=true
 .PHONY: $(PACKAGE_DIR)/$(DIST_DIR)/$(1)
 $(PACKAGE_DIR)/$(DIST_DIR)/$(1):
 	$(MAKE) -C $(PACKAGE_DIR)/$(DEPS_DIR)/$(basename $(1)) -j
 	cp $(PACKAGE_DIR)/$(DEPS_DIR)/$(basename $(1))/$(1) $$@
+	rm -rf $(PACKAGE_DIR)/$(DIST_DIR)/$(basename $(1))
+	cd $(PACKAGE_DIR)/$(DIST_DIR) && unzip $$@
 
 $(PACKAGE_DIR)/clean::
 	$(MAKE) -C $(PACKAGE_DIR)/$(DEPS_DIR)/$(basename $(1)) clean
 endif
 endef
 
-$(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS),$(eval $(call generic_ez,$(EZ))))
+$(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS) $($(PACKAGE_DIR)_INTERNAL_DEPS),$(eval $(call generic_ez,$(strip $(EZ)))))
+
+$($(PACKAGE_DIR)_EBIN_BEAMS): $(patsubst %,$(PACKAGE_DIR)/$(DIST_DIR)/%,$($(PACKAGE_DIR)_INTERNAL_DEPS))
 
 ifneq "$(strip $(TESTABLEGOALS))" "$($(PACKAGE_DIR)_DEPS_FILE)"
 ifneq "$(strip $(patsubst clean%,,$(patsubst %clean,,$(TESTABLEGOALS))))" ""
