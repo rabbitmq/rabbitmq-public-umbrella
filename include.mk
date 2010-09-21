@@ -90,7 +90,8 @@ $(eval $(call default_and_lift_var,SOURCE_ERLS,$(wildcard $($(PACKAGE_DIR)_SOURC
 $(eval $(call default_and_lift_var,INCLUDE_DIR,$(PACKAGE_DIR)/include))
 $(eval $(call default_and_lift_var,INCLUDE_HRLS,$(wildcard $($(PACKAGE_DIR)_INCLUDE_DIR)/*.hrl)))
 
-$(PACKAGE_DIR)_SOURCE_ERLS:=$($(PACKAGE_DIR)_SOURCE_ERLS) $(GENERATED_ERLS)
+$(eval $(call default_and_lift_var,GENERATED_ERLS,))
+$(PACKAGE_DIR)_SOURCE_ERLS:=$($(PACKAGE_DIR)_SOURCE_ERLS) $($(PACKAGE_DIR)_GENERATED_ERLS) 
 
 $(eval $(call default_and_lift_var,EBIN_DIR,$(PACKAGE_DIR)/ebin))
 $(eval $(call default_and_lift_var,EBIN_BEAMS,$(patsubst $($(PACKAGE_DIR)_SOURCE_DIR)/%.erl,$($(PACKAGE_DIR)_EBIN_DIR)/%.beam,$($(PACKAGE_DIR)_SOURCE_ERLS))))
