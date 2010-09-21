@@ -44,9 +44,9 @@ ERL_CALL ?= erl_call
 
 TMPDIR ?= /tmp
 
-LIBS_PATH_DEPS := $(patsubst %:,%,$(foreach DIR,$(wildcard $(PRIV_DEPS_DIR) $(DEPS_DIR)),$(DIR):))
+LIBS_PATH_DEPS := $(PRIV_DEPS_DIR):$(DEPS_DIR)
 
-ifeq "$(ERL_LIBS)" ""
+ifeq ("$(ERL_LIBS)", "")
     LIBS_PATH_UNIX := $(LIBS_PATH_DEPS)
 else
     LIBS_PATH_UNIX := $(LIBS_PATH_DEPS):$(ERL_LIBS)
@@ -54,16 +54,11 @@ endif
 
 IS_CYGWIN := $(shell if [ $(shell expr "$(shell uname -s)" : 'CYGWIN_NT') -gt 0 ]; then echo "true"; else echo "false"; fi)
 
-ifeq "$(strip $(LIBS_PATH_UNIX))" ""
-    ERL_LIBS_PATH :=
+ifeq ($(IS_CYGWIN),true)
+    LIBS_PATH := "$(shell cygpath -wp $(LIBS_PATH_UNIX))"
 else
-    ifeq "$(IS_CYGWIN)" "true"
-        ERL_LIBS_PATH := ERL_LIBS=$(shell cygpath -wp $(LIBS_PATH_UNIX))
-    else
-        ERL_LIBS_PATH := ERL_LIBS=$(LIBS_PATH_UNIX)
-    endif
+    LIBS_PATH := $(LIBS_PATH_UNIX)
 endif
-
 
 INCLUDES=$(wildcard $(INCLUDE_DIR)/*.hrl)
 SOURCES=$(wildcard $(SOURCE_DIR)/*.erl)
@@ -123,19 +118,24 @@ diag:
 	@echo TARGETS=$(TARGETS)
 	@echo INCLUDE_OPTS=$(INCLUDE_OPTS)
 
-$(EBIN_DIR):
-	mkdir -p $(EBIN_DIR)
+$(EBIN_DIR)/%.beam: $(SOURCE_DIR)/%.erl | $(PRIV_DEPS_DIR) $(DEPS_DIR) $(EBIN_DIR)
+	ERL_LIBS=$(LIBS_PATH) $(ERLC) $(ERLC_OPTS) -pa $(EBIN_DIR) $<
 
-$(EBIN_DIR)/%.beam: $(SOURCE_DIR)/%.erl
-	@mkdir -p $(EBIN_DIR)
-	$(ERL_LIBS_PATH) $(ERLC) $(ERLC_OPTS) -pa $(EBIN_DIR) $<
+$(EBIN_DIR):
+	mkdir -p $@
+
+$(PRIV_DEPS_DIR):
+	mkdir -p $@
+
+$(DEPS_DIR):
+	mkdir -p $@
 
 $(TEST_EBIN_DIR):
 	mkdir -p $(TEST_EBIN_DIR)
 
 $(TEST_EBIN_DIR)/%.beam: $(TEST_DIR)/%.erl
 	@mkdir -p $(TEST_EBIN_DIR)
-	$(ERL_LIBS_PATH) $(ERLC) $(TEST_ERLC_OPTS) -pa $(TEST_EBIN_DIR) $<
+	ERL_LIBS=$(LIBS_PATH) $(ERLC) $(TEST_ERLC_OPTS) -pa $(TEST_EBIN_DIR) $<
 
 $(DEPS_DIR)/%/ebin:
 	$(MAKE) -C $(shell dirname $@)
@@ -177,7 +177,7 @@ coverage:
 test:	$(TARGETS) $(TEST_TARGETS)
 	OK=true && \
 	echo >$(TMPDIR)/rabbit-test-output && \
-	{ $(ERL_LIBS_PATH) $(ERL) $(TEST_LOAD_PATH) -noshell -sname $(NODE_NAME) $(FULL_TEST_ARGS) & sleep 1 && \
+	{ ERL_LIBS=$(LIBS_PATH) $(ERL) $(TEST_LOAD_PATH) -noshell -sname $(NODE_NAME) $(FULL_TEST_ARGS) & sleep 1 && \
 	  $(foreach APP,$(TEST_APPS),\
 	    echo >>$(TMPDIR)/rabbit-test-output && \
             echo "ok = application:load($(APP))." | tee -a $(TMPDIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $(TMPDIR)/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
@@ -198,7 +198,7 @@ test:	$(TARGETS) $(TEST_TARGETS)
 	$$OK
 
 run:	$(TARGETS) $(TEST_TARGETS)
-	$(ERL_LIBS_PATH) $(ERL) $(TEST_LOAD_PATH) $(FULL_TEST_ARGS) -sname $(NODE_NAME) $(TEST_APPS_LOAD) $(foreach BOOT_CMD,$(FULL_BOOT_CMDS),-eval '$(BOOT_CMD)') $(TEST_APPS_START)
+	ERL_LIBS=$(LIBS_PATH) $(ERL) $(TEST_LOAD_PATH) $(FULL_TEST_ARGS) -sname $(NODE_NAME) $(TEST_APPS_LOAD) $(foreach BOOT_CMD,$(FULL_BOOT_CMDS),-eval '$(BOOT_CMD)') $(TEST_APPS_START)
 
 clean::
 	rm -f $(EBIN_DIR)/*.beam
