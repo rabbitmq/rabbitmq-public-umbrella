@@ -55,7 +55,11 @@ endif
 IS_CYGWIN := $(shell if [ $(shell expr "$(shell uname -s)" : 'CYGWIN_NT') -gt 0 ]; then echo "true"; else echo "false"; fi)
 
 ifeq ($(IS_CYGWIN),true)
+  ifeq ($(LIBS_PATH_UNIX),"")
+    LIBS_PATH :=
+  else
     LIBS_PATH := "$(shell cygpath -wp $(LIBS_PATH_UNIX))"
+  endif
 else
     LIBS_PATH := $(LIBS_PATH_UNIX)
 endif
