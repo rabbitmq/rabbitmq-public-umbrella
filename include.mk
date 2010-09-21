@@ -44,7 +44,7 @@ ERL_CALL ?= erl_call
 
 TMPDIR ?= /tmp
 
-LIBS_PATH_DEPS := $(PRIV_DEPS_DIR):$(DEPS_DIR)
+LIBS_PATH_DEPS := $(patsubst %:,%,$(foreach DIR,$(wildcard $(PRIV_DEPS_DIR) $(DEPS_DIR)),$(DIR):))
 
 ifeq ("$(ERL_LIBS)", "")
     LIBS_PATH_UNIX := $(LIBS_PATH_DEPS)
