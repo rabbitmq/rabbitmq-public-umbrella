@@ -5,9 +5,13 @@ $(PACKAGE_DIR)_TARGETS:=true
 # get the ezs to depend on the beams, hrls and $(DIST_DIR)
 $(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS),$(eval $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ): $($(PACKAGE_DIR)_EBIN_BEAMS) $($(PACKAGE_DIR)_INCLUDE_HRLS)))
 
+# get extra targets to depend on the beams, hrls and $(DIST_DIR)
+$(foreach TARGET,$($(PACKAGE_DIR)_EXTRA_TARGETS),$(eval $(TARGET): $($(PACKAGE_DIR)_EBIN_BEAMS) $($(PACKAGE_DIR)_INCLUDE_HRLS)))
+
+# note don't use $^ in the escript line because it'll include prereqs that we add elsewhere
 $($(PACKAGE_DIR)_DEPS_FILE)_EBIN_DIR:=$($(PACKAGE_DIR)_EBIN_DIR)
 $($(PACKAGE_DIR)_DEPS_FILE): $($(PACKAGE_DIR)_SOURCE_ERLS) $($(PACKAGE_DIR)_INCLUDE_HRLS)
-	escript $(@D)/../generate_deps $@ $($(@D)_EBIN_DIR) $^
+	escript $(@D)/../generate_deps $@ $($(@D)_EBIN_DIR) $($(@D)_SOURCE_ERLS) $($(@D)_INCLUDE_HRLS)
 
 $($(PACKAGE_DIR)_EBIN_DIR)_INCLUDE_DIR:=$($(PACKAGE_DIR)_INCLUDE_DIR)
 $($(PACKAGE_DIR)_EBIN_DIR)/%.beam: $($(PACKAGE_DIR)_SOURCE_DIR)/%.erl | $($(PACKAGE_DIR)_EBIN_DIR)
@@ -32,9 +36,7 @@ clean:: $(PACKAGE_DIR)/clean
 $(PACKAGE_DIR)/clean::
 	rm -f $($(@D)_DEPS_FILE)
 	rm -rf $(@D)/$(DIST_DIR)
-	rm -f $($(@D)_EBIN_BEAMS)
-
-$($(PACKAGE_DIR)_EBIN_BEAMS): $($(PACKAGE_DIR)_DEPS_FILE)
+	rm -f $($(@D)_EBIN_BEAMS) $($(@D)_GENERATED_ERLS)
 
 # only set up a target for the plain package ez. Other ezs must be
 # handled manually. .beam dependencies et al are created by the

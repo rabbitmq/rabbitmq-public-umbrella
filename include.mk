@@ -56,7 +56,7 @@ include ../global.mk
 # possibility of missing changes.
 #
 
-VARS:=SOURCE_DIR SOURCE_ERLS INCLUDE_DIR INCLUDE_HRLS EBIN_DIR EBIN_BEAMS DEPS_FILE APP_NAME OUTPUT_EZS INTERNAL_DEPS EXTRA_PACKAGE_DIRS EXTRA_TARGETS
+VARS:=SOURCE_DIR SOURCE_ERLS INCLUDE_DIR INCLUDE_HRLS EBIN_DIR EBIN_BEAMS DEPS_FILE APP_NAME OUTPUT_EZS INTERNAL_DEPS EXTRA_PACKAGE_DIRS EXTRA_TARGETS GENERATED_ERLS
 
 ifdef PACKAGE_DIR
 
@@ -89,6 +89,8 @@ $(eval $(call default_and_lift_var,SOURCE_ERLS,$(wildcard $($(PACKAGE_DIR)_SOURC
 
 $(eval $(call default_and_lift_var,INCLUDE_DIR,$(PACKAGE_DIR)/include))
 $(eval $(call default_and_lift_var,INCLUDE_HRLS,$(wildcard $($(PACKAGE_DIR)_INCLUDE_DIR)/*.hrl)))
+
+$(PACKAGE_DIR)_SOURCE_ERLS:=$($(PACKAGE_DIR)_SOURCE_ERLS) $(GENERATED_ERLS)
 
 $(eval $(call default_and_lift_var,EBIN_DIR,$(PACKAGE_DIR)/ebin))
 $(eval $(call default_and_lift_var,EBIN_BEAMS,$(patsubst $($(PACKAGE_DIR)_SOURCE_DIR)/%.erl,$($(PACKAGE_DIR)_EBIN_DIR)/%.beam,$($(PACKAGE_DIR)_SOURCE_ERLS))))
