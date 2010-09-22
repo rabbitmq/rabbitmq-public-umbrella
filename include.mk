@@ -133,11 +133,14 @@
 #   Notes: If you are dynamically generating sources, set this to the
 #   absolute paths of the sources you are generating. You will likely
 #   have to add explicit rules to your Makefile to ensure these
-#   sources can be built. Note that the $(DEPS_FILE) depends on these
-#   sources (the sources must exist before dependency analysis can
-#   occur) and there is the potential for infinite recursion with this
-#   feature in combination with $(SOURCE_ERLS). See Note on Dynamic
-#   Dependencies below.
+#   sources can be built. The $(DEPS_FILE) depends on these sources
+#   (the sources must exist before dependency analysis can occur) and
+#   there is the potential for infinite recursion with this feature in
+#   combination with $(SOURCE_ERLS). See Note on Dynamic Dependencies
+#   below. Note that this is simply achieved by adding the
+#   GENERATED_ERLS to SOURCE_ERLS, thus GENERATED_ERLS can actually be
+#   any arbitrary target that must be invoked prior to dependency
+#   generation.
 #
 # APP_NAME :: string
 #   Default: $(PACKAGE_NAME) with _ for - and with rabbit for rabbitmq
