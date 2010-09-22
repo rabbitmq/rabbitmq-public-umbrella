@@ -238,6 +238,8 @@
 # %/src/foo.erl: %/src/foo.input %/ebin/library.beam
 #         $(ERL) -pa ebin -noshell -eval 'library:do_work("$@", "$<")'
 #
+# include ../include.mk
+#
 # Thus to build deps.mk, we need to generate foo.erl. This requires
 # compiling library.erl into library.beam. Once this has happened, we
 # can create deps.mk and then make will re-invoke itself. However, we
@@ -259,7 +261,8 @@
 # subsequently ends up in EBIN_BEAMS, hence depends on DEPS. If we
 # avoid that, then whilst foo.beam may need to be rebuilt owing to
 # updated DEPS artifacts, we do not need to rebuild foo.erl, and thus
-# the DEPS_FILE doesn't become invalidated. Thus the solution is:
+# the DEPS_FILE doesn't become invalidated. Thus the solution is to
+# add:
 #
 # SOURCE_DIR:=$(PACKAGE_DIR)/src
 # SOURCE_ERLS:=$(filter-out %/library.erl,$(wildcard $(SOURCE_DIR)/*.erl))
