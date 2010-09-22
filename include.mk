@@ -21,9 +21,9 @@
 # to A, which will produce A.ez, leaving all three .ez files in the
 # dist directory of C.
 #
-# Recursive invocations of make are avoided where ever and are
-# undesirable. This is because they must be declared as .PHONY targets
-# (because they themselves are encapsulating the dependency
+# Recursive invocations of make are avoided where ever possible and
+# are undesirable. This is because they must be declared as .PHONY
+# targets (because they themselves are encapsulating the dependency
 # information required to determine whether or not anything needs
 # rebuilding) and thus are always re-invoked. The properties of .PHONY
 # targets are that anything that depends on a .PHONY target is itself
