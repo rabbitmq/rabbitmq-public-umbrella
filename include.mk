@@ -75,7 +75,8 @@
 # The following can be changed, but only globally, not per package
 # (i.e. set them as environment variables or arguments to the top
 # level make invocation). Note they may be lost for non-integrated
-# packages.
+# packages. These variables are exported and so can be used in
+# non-integrated packages and recursive make invocations.
 #
 # ERLC :: string - defaults to erlc
 # ERLC_OPTS :: string defaults to "-Wall +debug_info"
@@ -83,6 +84,7 @@
 # TMPDIR :: path - defaults to /tmp
 # DIST_DIR :: path - defaults to dist
 # DEPS_DIR :: path - defaults to deps
+# VERSION :: string - defaults to 0.0.0
 #
 # The following are the variables that may be set in the package
 # Makefile. In general, unless you know better, please use := to
@@ -143,26 +145,25 @@
 #   part of building $(PACKAGE_NAME).ez, it is expected to find
 #   $(EBIN_DIR)/$(APP_NAME).app. Iff $(EBIN_DIR)/$(APP_NAME)_app.in is
 #   found, $(EBIN_DIR)/$(APP_NAME).app will be automatically generated
-#   from this, replacing %%VSN%% with $(VERSION) in the file content.
+#   from this, replacing %%VSN%% with $(VERSION) in the file's content.
 #
-# OUTPUT_EZS :: [string ending with .ez]
-#   Default: $(PACKAGE_NAME).ez
+# OUTPUT_EZS :: [string not ending with .ez]
+#   Default: $(PACKAGE_NAME)
 #   Notes: This forms the top level goals for each package. Every
 #   string in this variable (EZ) will result in an attempt to build
-#   $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ). Every EZ depends on all the
-#   $(EBIN_BEAMS) being built. By default, $(PACKAGE_NAME).ez will
-#   construct, as previously described, a .ez containing the
-#   $(EBIN_BEAMS) and $(EBIN_HRLS) configured. Other EZs within
-#   $(OUTPUT_EZS) which are not $(PACKAGE_NAME).ez will default to a
-#   recursive make invocation in
-#   $(PACKAGE_DIR)/$(DEPS_DIR)/$(basename $(EZ)) with the assumption
-#   that this will cause
-#   $(PACKAGE_DIR)/$(DEPS_DIR)/$(basename $(EZ))/$(EZ) to be
-#   constructed, which will then be copied to
-#   $(PACKAGE_DIR)/$(DIST_DIR). However, in general, recursive make is
-#   evil and as explained above must always be .PHONY.
+#   $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ)-$(VERSION).ez.  Every EZ depends
+#   on all the $(EBIN_BEAMS) being built. By default,
+#   $(PACKAGE_NAME)-$(VERSION).ez will construct, as previously
+#   described, a .ez containing the $(EBIN_BEAMS) and $(EBIN_HRLS)
+#   configured. Other EZs within $(OUTPUT_EZS) which are not
+#   $(PACKAGE_NAME) will default to a recursive make invocation in
+#   $(PACKAGE_DIR)/$(DEPS_DIR)/$(EZ) with the assumption that this
+#   will cause $(PACKAGE_DIR)/$(DEPS_DIR)/$(EZ)/$(EZ)-$(VERSION).ez to
+#   be constructed, which will then be copied to
+#   $(PACKAGE_DIR)/$(DIST_DIR)/.  However, in general, recursive make
+#   is evil and as explained above must always be .PHONY.
 #
-# INTERNAL_DEPS :: [string ending with .ez]
+# INTERNAL_DEPS :: [string not ending with .ez]
 #   Default:
 #   See also: EXTRA_TARGETS
 #   Notes: This operates identically to OUTPUT_EZS with the exception
@@ -170,18 +171,21 @@
 #   libraries to be compiled before your own $(SOURCE_ERLS) can be
 #   compiled then you need to have those libraries compiled and placed
 #   into a .ez by the same mechanism as described in OUTPUT_EZS above.
+#   Note that these targets depend on the DEPS of the package:
+#   i.e. they won't be built until the DEPS have been built.
 #
 # Important note for OUTPUT_EZS and INTERNAL_DEPS
-#   You may want the default recipe of the recursive make invocation
-#   in $(PACKAGE_DIR)/$(DEPS_DIR)/$(basename $(EZ)) - you may wish to
+#   You may not want the default recipe of the recursive make
+#   invocation in $(PACKAGE_DIR)/$(DEPS_DIR)/$(EZ) - you may wish to
 #   provide your own recipe. In that case, set
 #   $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ)_TARGET and then provide a rule to
-#   build $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ). E.g. if you want to
-#   manually control the building of foo.ez, in the package Makefile:
+#   build $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ)-$(VERSION).ez. E.g. if you
+#   want to manually control the building of foo.ez, in the package
+#   Makefile:
 #
-#   $(PACKAGE_DIR)/$(DIST_DIR)/foo.ez:=true
-#   $(PACKAGE_DIR)/$(DIST_DIR)/foo.ez: ... foo's prerequisites ...
-#            ... instructions to build foo.ez ...
+#   $(PACKAGE_DIR)/$(DIST_DIR)/foo_TARGET:=true
+#   $(PACKAGE_DIR)/$(DIST_DIR)/foo-%.ez: ... foo's prerequisites ...
+#            ... instructions to build foo-$(VERSION).ez ...
 #            cd $(@D) && unzip $@
 #
 #   Note the last instruction is required due to limitations of erlc:
@@ -194,11 +198,12 @@
 # EXTRA_PACKAGE_DIRS :: [abspath]
 #   Default:
 #   Notes: These are paths to directories that you want to be included
-#   in $(PACKAGE_NAME).ez. The $(PACKAGE_NAME).ez target has an
-#   order-only prerequisite on $(EXTRA_PACKAGE_DIRS) (i.e. they must
-#   exist, but timestamps are ignored). No targets are provided to
-#   build these directories so if they don't already exist, you should
-#   arrange for them to be created. Something like:
+#   in $(PACKAGE_NAME)-$(VERSION).ez. The
+#   $(PACKAGE_NAME)-$(VERSION).ez target has an order-only
+#   prerequisite on $(EXTRA_PACKAGE_DIRS) (i.e. they must exist, but
+#   timestamps are ignored). No targets are provided to build these
+#   directories so if they don't already exist, you should arrange for
+#   them to be created. Something like:
 #
 #   $(EXTRA_PACKAGE_DIRS): %:
 #           mkdir -p $@
@@ -207,12 +212,12 @@
 #
 # EXTRA_TARGETS :: [string]
 #   Default:
-#
 #   Notes: The targets listed here depend on the $(EBIN_BEAMS) being
-#   built and are prerequisites of $(PACKAGE_NAME).ez. Thus like
-#   OUTPUT_EZS, these will be invoked only after the $(EBIN_BEAMS)
-#   have been built, but there are no default recipes. One example use
-#   of this is to ensure other package artifacts are built.
+#   built and are prerequisites of $(PACKAGE_NAME)-$(VERSION).ez. Thus
+#   like OUTPUT_EZS, these will be invoked only after the
+#   $(EBIN_BEAMS) have been built, but there are no default
+#   recipes. One example use of this is to ensure other package
+#   artifacts are built.
 #
 # The following variables you should never have to touch.
 #
@@ -369,7 +374,7 @@ $(eval $(call default_and_lift_var,EBIN_DIR,$(PACKAGE_DIR)/ebin))
 $(eval $(call default_and_lift_var,EBIN_BEAMS,$(patsubst $($(PACKAGE_DIR)_SOURCE_DIR)/%.erl,$($(PACKAGE_DIR)_EBIN_DIR)/%.beam,$($(PACKAGE_DIR)_SOURCE_ERLS))))
 
 $(eval $(call default_and_lift_var,APP_NAME,$(call package_to_app_name,$(PACKAGE_NAME))))
-$(eval $(call default_and_lift_var,OUTPUT_EZS,$(PACKAGE_NAME).ez))
+$(eval $(call default_and_lift_var,OUTPUT_EZS,$(PACKAGE_NAME)))
 $(eval $(call default_and_lift_var,DEPS_FILE,$(PACKAGE_DIR)/deps.mk))
 
 $(foreach VAR,$(VARS),$(eval $(call lift_undef,$(VAR))))
@@ -388,7 +393,7 @@ SET_DEFAULT_GOAL:=false
 .DEFAULT_GOAL:=$(PACKAGE_DIR)_OUTPUT_EZS
 
 .PHONY: $(PACKAGE_DIR)_OUTPUT_EZS
-$(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS),$(eval $(PACKAGE_DIR)_OUTPUT_EZS: $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ)))
+$(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS),$(eval $(PACKAGE_DIR)_OUTPUT_EZS: $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ)-$(VERSION).ez))
 endif
 
 include ../common.mk

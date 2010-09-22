@@ -3,7 +3,7 @@ ifndef $(PACKAGE_DIR)_TARGETS
 $(PACKAGE_DIR)_TARGETS:=true
 
 # get the ezs to depend on the beams, hrls and $(DIST_DIR)
-$(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS),$(eval $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ): $($(PACKAGE_DIR)_EBIN_BEAMS) $($(PACKAGE_DIR)_INCLUDE_HRLS)))
+$(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS),$(eval $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ)-$(VERSION).ez: $($(PACKAGE_DIR)_EBIN_BEAMS) $($(PACKAGE_DIR)_INCLUDE_HRLS)))
 
 # get extra targets to depend on the beams, hrls and $(DIST_DIR)
 $(foreach TARGET,$($(PACKAGE_DIR)_EXTRA_TARGETS),$(eval $(TARGET): $($(PACKAGE_DIR)_EBIN_BEAMS) $($(PACKAGE_DIR)_INCLUDE_HRLS)))
@@ -43,12 +43,12 @@ $(PACKAGE_DIR)/clean::
 # handled manually. .beam dependencies et al are created by the
 # generic output_ezs dependencies. For ease of comprehension, we save
 # out variables that we need.
-$(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME).ez_DIR:=$(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME)
-$(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME).ez_APP:=$($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME).app
-$(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME).ez_EBIN_BEAMS:=$($(PACKAGE_DIR)_EBIN_BEAMS)
-$(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME).ez_INCLUDE_HRLS:=$($(PACKAGE_DIR)_INCLUDE_HRLS)
-$(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME).ez_EXTRA_PACKAGE_DIRS:=$($(PACKAGE_DIR)_EXTRA_PACKAGE_DIRS)
-$(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME).ez: $($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME).app $($(PACKAGE_DIR)_EXTRA_TARGETS) | $(PACKAGE_DIR)/$(DIST_DIR) $($(PACKAGE_DIR)_EXTRA_PACKAGE_DIRS)
+$(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION).ez_DIR:=$(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION)
+$(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION).ez_APP:=$($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME).app
+$(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION).ez_EBIN_BEAMS:=$($(PACKAGE_DIR)_EBIN_BEAMS)
+$(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION).ez_INCLUDE_HRLS:=$($(PACKAGE_DIR)_INCLUDE_HRLS)
+$(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION).ez_EXTRA_PACKAGE_DIRS:=$($(PACKAGE_DIR)_EXTRA_PACKAGE_DIRS)
+$(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION).ez: $($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME).app $($(PACKAGE_DIR)_EXTRA_TARGETS) | $(PACKAGE_DIR)/$(DIST_DIR) $($(PACKAGE_DIR)_EXTRA_PACKAGE_DIRS)
 	rm -rf $@ $($@_DIR)
 	mkdir -p $($@_DIR)/ebin $($@_DIR)/include
 	$(foreach BEAM,$($@_EBIN_BEAMS),cp $(BEAM) $($@_DIR)/ebin;)
@@ -57,27 +57,27 @@ $(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME).ez: $($(PACKAGE_DIR)_EBIN_DIR)/$($(PA
 	cp $($@_APP) $($@_DIR)/ebin
 	cd $(dir $($@_DIR)) && zip -r $@ $(notdir $(basename $@))
 
-$(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME).ez_TARGET:=true
+$(PACKAGE_DIR)/$(DIST_DIR)/$(PACKAGE_NAME)_TARGET:=true
 
 define generic_ez
 # $(EZ) is in $(1)
 ifndef $(PACKAGE_DIR)/$(DIST_DIR)/$(1)_TARGET
 $(PACKAGE_DIR)/$(DIST_DIR)/$(1)_TARGET:=true
-.PHONY: $(PACKAGE_DIR)/$(DIST_DIR)/$(1)
-$(PACKAGE_DIR)/$(DIST_DIR)/$(1):
-	$(MAKE) -C $(PACKAGE_DIR)/$(DEPS_DIR)/$(basename $(1)) -j
-	cp $(PACKAGE_DIR)/$(DEPS_DIR)/$(basename $(1))/$(1) $$@
-	rm -rf $(PACKAGE_DIR)/$(DIST_DIR)/$(basename $(1))
-	cd $(PACKAGE_DIR)/$(DIST_DIR) && unzip $$@
+.PHONY: $(PACKAGE_DIR)/$(DIST_DIR)/$(1)-$(VERSION).ez
+$(PACKAGE_DIR)/$(DIST_DIR)/$(1)-$(VERSION).ez:
+	$(MAKE) -C $(PACKAGE_DIR)/$(DEPS_DIR)/$(1) -j
+	cp $(PACKAGE_DIR)/$(DEPS_DIR)/$(1)/$$(@F) $$@
+	rm -rf $$(basename $$@)
+	cd $$(@D) && unzip $$(@F)
 
 $(PACKAGE_DIR)/clean::
-	$(MAKE) -C $(PACKAGE_DIR)/$(DEPS_DIR)/$(basename $(1)) clean
+	$(MAKE) -C $(PACKAGE_DIR)/$(DEPS_DIR)/$(1) clean
 endif
 endef
 
 $(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS) $($(PACKAGE_DIR)_INTERNAL_DEPS),$(eval $(call generic_ez,$(strip $(EZ)))))
 
-$($(PACKAGE_DIR)_EBIN_BEAMS): $(patsubst %,$(PACKAGE_DIR)/$(DIST_DIR)/%,$($(PACKAGE_DIR)_INTERNAL_DEPS))
+$($(PACKAGE_DIR)_EBIN_BEAMS): $(patsubst %,$(PACKAGE_DIR)/$(DIST_DIR)/%-$(VERSION).ez,$($(PACKAGE_DIR)_INTERNAL_DEPS))
 
 ifneq "$(strip $(TESTABLEGOALS))" "$($(PACKAGE_DIR)_DEPS_FILE)"
 ifneq "$(strip $(patsubst clean%,,$(patsubst %clean,,$(TESTABLEGOALS))))" ""
