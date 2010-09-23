@@ -43,6 +43,12 @@ $(PACKAGE_DIR)/clean::
 	rm -rf $(@D)/$(DIST_DIR)
 	rm -f $($(@D)_EBIN_BEAMS) $($(@D)_GENERATED_ERLS)
 
+ifndef CLEAN_LOCAL
+CLEAN_LOCAL:=true
+.PHONY: clean_local
+clean_local: $(PACKAGE_DIR)/clean
+endif
+
 # only set up a target for the plain package ez. Other ezs must be
 # handled manually. .beam dependencies et al are created by the
 # generic output_ezs dependencies. For ease of comprehension, we save
