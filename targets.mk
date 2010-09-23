@@ -31,7 +31,7 @@ $($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME).app: $($(PACKAGE_DIR)_EBIN
 	sed -e 's:%%VSN%%:$(VERSION):g' < $< > $@
 
 .PHONY: $(PACKAGE_DIR)/clean_app
-clean:: $(PACKAGE_DIR)/clean_app
+$(PACKAGE_DIR)/clean:: $(PACKAGE_DIR)/clean_app
 $(PACKAGE_DIR)/clean_app:
 	rm -f $($(@D)_EBIN_DIR)/$($(@D)_APP_NAME).app
 endif
