@@ -84,7 +84,7 @@
 # TMPDIR :: path - defaults to /tmp
 # DIST_DIR :: path - defaults to dist
 # DEPS_DIR :: path - defaults to deps
-# VERSION :: string - defaults to 0.0.0
+# GLOBAL_VERSION :: string - defaults to 0.0.0
 #
 # The following are the variables that may be set in the package
 # Makefile. In general, unless you know better, please use := to
@@ -111,12 +111,15 @@
 # EBIN_BEAMS :: [abspath]
 #   Default: $(patsubst $(SOURCE_DIR)/%.erl,$(EBIN_DIR)/%.beam,$(SOURCE_ERLS))
 #
-# These first six variables set up the basic means for constructing
-# the contents of the $(PACKAGE_NAME).ez default output target. The
-# source erls must be compiled to beams and then with the hrls, placed
-# in the $(PACKAGE_NAME).ez. Note that our "generate_deps" script is
-# used to dynamically find the dependencies between the hrls, erls and
-# beams.
+# VERSION :: string
+#   Default: $(GLOBAL_VERSION)
+#
+# These first seven variables set up the basic means for constructing
+# the contents of the $(PACKAGE_NAME)-$(VERSION).ez default output
+# target. The source erls must be compiled to beams and then with the
+# hrls, placed in $(PACKAGE_NAME)-$(VERSION).ez. Note that our
+# "generate_deps" script is used to dynamically find the dependencies
+# between the hrls, erls and beams.
 #
 # DEPS :: [string]
 #   Default:
@@ -336,7 +339,7 @@
 
 include ../global.mk
 
-VARS:=SOURCE_DIR SOURCE_ERLS INCLUDE_DIR INCLUDE_HRLS EBIN_DIR EBIN_BEAMS DEPS_FILE APP_NAME OUTPUT_EZS INTERNAL_DEPS EXTRA_PACKAGE_DIRS EXTRA_TARGETS GENERATED_ERLS
+VARS:=SOURCE_DIR SOURCE_ERLS INCLUDE_DIR INCLUDE_HRLS EBIN_DIR EBIN_BEAMS DEPS_FILE APP_NAME OUTPUT_EZS INTERNAL_DEPS EXTRA_PACKAGE_DIRS EXTRA_TARGETS GENERATED_ERLS VERSION
 
 ifdef PACKAGE_DIR
 
@@ -380,6 +383,8 @@ $(eval $(call default_and_lift_var,APP_NAME,$(call package_to_app_name,$(PACKAGE
 $(eval $(call default_and_lift_var,OUTPUT_EZS,$(PACKAGE_NAME)))
 $(eval $(call default_and_lift_var,DEPS_FILE,$(PACKAGE_DIR)/deps.mk))
 
+$(eval $(call default_and_lift_var,VERSION,$(GLOBAL_VERSION)))
+
 $(foreach VAR,$(VARS),$(eval $(call lift_undef,$(VAR))))
 
 # $(info I am $(PACKAGE_DIR) and my parents are $($(PACKAGE_DIR)_PARENTS))
@@ -389,14 +394,14 @@ $(1):=$($(1))
 $(PACKAGE_DIR)_$(1):=$($(PACKAGE_DIR)_$(1))
 endef
 
-# $(foreach VAR,$(VARS),$(info $(call dump_var,$(VAR))))
+$(foreach VAR,$(VARS),$(info $(call dump_var,$(VAR))))
 
 ifeq "$(SET_DEFAULT_GOAL)" "true"
 SET_DEFAULT_GOAL:=false
 .DEFAULT_GOAL:=$(PACKAGE_DIR)_OUTPUT_EZS
 
 .PHONY: $(PACKAGE_DIR)_OUTPUT_EZS
-$(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS),$(eval $(PACKAGE_DIR)_OUTPUT_EZS: $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ)-$(VERSION).ez))
+$(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS),$(eval $(PACKAGE_DIR)_OUTPUT_EZS: $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ)-$($(PACKAGE_DIR)_VERSION).ez))
 endif
 
 include ../common.mk
