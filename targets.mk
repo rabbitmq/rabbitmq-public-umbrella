@@ -11,7 +11,11 @@ $(foreach TARGET,$($(PACKAGE_DIR)_EXTRA_TARGETS),$(eval $(TARGET): $($(PACKAGE_D
 # note don't use $^ in the escript line because it'll include prereqs that we add elsewhere
 $($(PACKAGE_DIR)_DEPS_FILE)_EBIN_DIR:=$($(PACKAGE_DIR)_EBIN_DIR)
 $($(PACKAGE_DIR)_DEPS_FILE): $($(PACKAGE_DIR)_SOURCE_ERLS) $($(PACKAGE_DIR)_INCLUDE_HRLS)
+	rm -f $@
 	escript $(@D)/../generate_deps $@ $($(@D)_EBIN_DIR) $($(@D)_SOURCE_ERLS) $($(@D)_INCLUDE_HRLS)
+
+# make our beams depend on the existence of the deps file only
+$($(PACKAGE_DIR)_EBIN_BEAMS): | $($(PACKAGE_DIR)_DEPS_FILE)
 
 $($(PACKAGE_DIR)_EBIN_DIR)_INCLUDE_DIR:=$($(PACKAGE_DIR)_INCLUDE_DIR)
 $($(PACKAGE_DIR)_EBIN_DIR)_DIST_DIR:=$(PACKAGE_DIR)/$(DIST_DIR)
