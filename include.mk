@@ -394,7 +394,7 @@ $(1):=$($(1))
 $(PACKAGE_DIR)_$(1):=$($(PACKAGE_DIR)_$(1))
 endef
 
-$(foreach VAR,$(VARS),$(info $(call dump_var,$(VAR))))
+# $(foreach VAR,$(VARS),$(info $(call dump_var,$(VAR))))
 
 ifeq "$(SET_DEFAULT_GOAL)" "true"
 SET_DEFAULT_GOAL:=false
