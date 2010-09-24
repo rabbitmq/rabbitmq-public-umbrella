@@ -343,49 +343,36 @@ VARS:=SOURCE_DIR SOURCE_ERLS INCLUDE_DIR INCLUDE_HRLS EBIN_DIR EBIN_BEAMS DEPS_F
 
 ifdef PACKAGE_DIR
 
-define default_and_lift_var
-ifeq ($(origin $(1)), undefined)
-$(PACKAGE_DIR)_$(1):=$(2)
-else
-ifeq ($($(1)), undefined)
-$(PACKAGE_DIR)_$(1):=$(2)
-else
-$(PACKAGE_DIR)_$(1):=$($(1))
-endif
-endif
-endef
-
-define lift_undef
-ifeq ($(origin $(PACKAGE_DIR)_$(1)), undefined)
-ifneq ($($(1)), undefined)
-$(PACKAGE_DIR)_$(1):=$($(1))
-endif
-endif
-endef
-
 define package_to_app_name
-  $(subst __,_,$(patsubst rabbitmq%,rabbit_%,$(subst -,_,$(1))))
+$(subst __,_,$(patsubst rabbitmq%,rabbit_%,$(subst -,_,$(1))))
 endef
 
-$(eval $(call default_and_lift_var,SOURCE_DIR,$(PACKAGE_DIR)/src))
-$(eval $(call default_and_lift_var,SOURCE_ERLS,$(wildcard $($(PACKAGE_DIR)_SOURCE_DIR)/*.erl)))
+DEFAULT_SOURCE_DIR:=$$(PACKAGE_DIR)/src
+DEFAULT_SOURCE_ERLS:=$$(wildcard $$($$(PACKAGE_DIR)_SOURCE_DIR)/*.erl)
 
-$(eval $(call default_and_lift_var,INCLUDE_DIR,$(PACKAGE_DIR)/include))
-$(eval $(call default_and_lift_var,INCLUDE_HRLS,$(wildcard $($(PACKAGE_DIR)_INCLUDE_DIR)/*.hrl)))
+DEFAULT_INCLUDE_DIR:=$$(PACKAGE_DIR)/include
+DEFAULT_INCLUDE_HRLS:=$$(wildcard $$($$(PACKAGE_DIR)_INCLUDE_DIR)/*.hrl)
 
-$(eval $(call default_and_lift_var,GENERATED_ERLS,))
-$(PACKAGE_DIR)_SOURCE_ERLS:=$($(PACKAGE_DIR)_SOURCE_ERLS) $($(PACKAGE_DIR)_GENERATED_ERLS)
+DEFAULT_EBIN_DIR:=$$(PACKAGE_DIR)/ebin
+DEFAULT_EBIN_BEAMS:=$$(patsubst $$($$(PACKAGE_DIR)_SOURCE_DIR)/%.erl,$$($$(PACKAGE_DIR)_EBIN_DIR)/%.beam,$$($$(PACKAGE_DIR)_SOURCE_ERLS))
 
-$(eval $(call default_and_lift_var,EBIN_DIR,$(PACKAGE_DIR)/ebin))
-$(eval $(call default_and_lift_var,EBIN_BEAMS,$(patsubst $($(PACKAGE_DIR)_SOURCE_DIR)/%.erl,$($(PACKAGE_DIR)_EBIN_DIR)/%.beam,$($(PACKAGE_DIR)_SOURCE_ERLS))))
+DEFAULT_APP_NAME:=$$(call package_to_app_name,$$(PACKAGE_NAME))
+DEFAULT_OUTPUT_EZS:=$$(PACKAGE_NAME)
+DEFAULT_DEPS_FILE:=$$(PACKAGE_DIR)/deps.mk
+DEFAULT_VERSION:=$$(GLOBAL_VERSION)
 
-$(eval $(call default_and_lift_var,APP_NAME,$(call package_to_app_name,$(PACKAGE_NAME))))
-$(eval $(call default_and_lift_var,OUTPUT_EZS,$(PACKAGE_NAME)))
-$(eval $(call default_and_lift_var,DEPS_FILE,$(PACKAGE_DIR)/deps.mk))
+define lift_var
+# variable name is in $(1), default variable expression is in $(2)
+ifeq "$($(1))" "undefined"
+$$(eval $(PACKAGE_DIR)_$(1):=$(2))
+else
+$$(eval $(PACKAGE_DIR)_$(1):=$($(1)))
+endif
+endef
 
-$(eval $(call default_and_lift_var,VERSION,$(GLOBAL_VERSION)))
+$(foreach VAR,$(VARS),$(eval $(call lift_var,$(VAR),$(DEFAULT_$(VAR)))))
 
-$(foreach VAR,$(VARS),$(eval $(call lift_undef,$(VAR))))
+$(PACKAGE_DIR)_SOURCE_ERLS += $($(PACKAGE_DIR)_GENERATED_ERLS)
 
 # $(info I am $(PACKAGE_DIR) and my parents are $($(PACKAGE_DIR)_PARENTS))
 
@@ -394,7 +381,9 @@ $(1):=$($(1))
 $(PACKAGE_DIR)_$(1):=$($(PACKAGE_DIR)_$(1))
 endef
 
-# $(foreach VAR,$(VARS),$(info $(call dump_var,$(VAR))))
+ifdef DUMP_VARS
+$(foreach VAR,$(VARS),$(info $(call dump_var,$(VAR))))
+endif
 
 ifeq "$(SET_DEFAULT_GOAL)" "true"
 SET_DEFAULT_GOAL:=false
