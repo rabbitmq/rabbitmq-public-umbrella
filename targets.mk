@@ -25,8 +25,11 @@ $($(PACKAGE_DIR)_EBIN_DIR)/%.beam: $($(PACKAGE_DIR)_SOURCE_DIR)/%.erl | $($(PACK
 $($(PACKAGE_DIR)_EBIN_DIR):
 	mkdir -p $@
 
-# only do the _app.in => .app dance if we can actually find a _app.in
+# only do the _app.in => .app dance if we can actually find a
+# _app.in. If we can, make it phony because otherwise it may not be
+# rebuilt if just the version changes.
 ifneq "$(wildcard $($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME)_app.in)" ""
+.PHONY: $($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME).app
 $($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME).app_VERSION:=$($(PACKAGE_DIR)_VERSION)
 $($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME).app: $($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME)_app.in
 	sed -e 's:%%VSN%%:$($@_VERSION):g' < $< > $@
