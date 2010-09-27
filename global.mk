@@ -6,7 +6,7 @@ export ERLC ?= erlc
 export ERL ?= erl
 export TMPDIR ?= /tmp
 
-export ERLC_OPTS ?= -Wall +debug_info
+export GLOBAL_ERLC_OPTS ?= -Wall +debug_info
 
 export DIST_DIR ?= dist
 export DEPS_DIR ?= deps

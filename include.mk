@@ -79,7 +79,7 @@
 # non-integrated packages and recursive make invocations.
 #
 # ERLC :: string - defaults to erlc
-# ERLC_OPTS :: string defaults to "-Wall +debug_info"
+# GLOBAL_ERLC_OPTS :: string defaults to "-Wall +debug_info"
 # ERL :: string - defaults to erl
 # TMPDIR :: path - defaults to /tmp
 # DIST_DIR :: path - defaults to dist
@@ -127,6 +127,10 @@
 #   paths). These should correspond to directory names that are
 #   siblings of the current package. Name the package, not the
 #   artifacts produced by building that package.
+#
+# ERLC_OPTS :: string
+#   Default:
+#   Notes: additional options to $(ERLC)
 #
 # The following variables you should only have to touch if you're
 # doing something a bit special:
@@ -339,7 +343,7 @@
 
 include ../global.mk
 
-VARS:=SOURCE_DIR SOURCE_ERLS INCLUDE_DIR INCLUDE_HRLS EBIN_DIR EBIN_BEAMS DEPS_FILE APP_NAME OUTPUT_EZS INTERNAL_DEPS EXTRA_PACKAGE_DIRS EXTRA_TARGETS GENERATED_ERLS VERSION
+VARS:=SOURCE_DIR SOURCE_ERLS INCLUDE_DIR INCLUDE_HRLS EBIN_DIR EBIN_BEAMS DEPS_FILE APP_NAME OUTPUT_EZS INTERNAL_DEPS EXTRA_PACKAGE_DIRS EXTRA_TARGETS GENERATED_ERLS VERSION ERLC_OPTS
 
 ifdef PACKAGE_DIR
 
