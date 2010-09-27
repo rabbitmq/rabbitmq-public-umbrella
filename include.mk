@@ -115,9 +115,9 @@
 #   Default: $(GLOBAL_VERSION)
 #
 # These first seven variables set up the basic means for constructing
-# the contents of the $(PACKAGE_NAME)-$(VERSION).ez default output
+# the contents of the $(APP_NAME)-$(VERSION).ez default output
 # target. The source erls must be compiled to beams and then with the
-# hrls, placed in $(PACKAGE_NAME)-$(VERSION).ez. Note that our
+# hrls, placed in $(APP_NAME)-$(VERSION).ez. Note that our
 # "generate_deps" script is used to dynamically find the dependencies
 # between the hrls, erls and beams.
 #
@@ -152,21 +152,22 @@
 # APP_NAME :: string
 #   Default: $(PACKAGE_NAME) with _ for - and with rabbit for rabbitmq
 #   Notes: This determines the expected name of the app descriptor. As
-#   part of building $(PACKAGE_NAME).ez, it is expected to find
+#   part of building $(APP_NAME)-$(VERSION).ez, it is expected to find
 #   $(EBIN_DIR)/$(APP_NAME).app. Iff $(EBIN_DIR)/$(APP_NAME)_app.in is
 #   found, $(EBIN_DIR)/$(APP_NAME).app will be automatically generated
-#   from this, replacing %%VSN%% with $(VERSION) in the file's content.
+#   from this, replacing %%VSN%% with $(VERSION) in the file's
+#   content.
 #
 # OUTPUT_EZS :: [string not ending with .ez]
-#   Default: $(PACKAGE_NAME)
+#   Default: $(APP_NAME)
 #   Notes: This forms the top level goals for each package. Every
 #   string in this variable (EZ) will result in an attempt to build
 #   $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ)-$(VERSION).ez.  Every EZ depends
 #   on all the $(EBIN_BEAMS) being built. By default,
-#   $(PACKAGE_NAME)-$(VERSION).ez will construct, as previously
-#   described, a .ez containing the $(EBIN_BEAMS) and $(EBIN_HRLS)
+#   $(APP_NAME)-$(VERSION).ez will construct, as previously described,
+#   a .ez containing the $(EBIN_BEAMS) and $(EBIN_HRLS)
 #   configured. Other EZs within $(OUTPUT_EZS) which are not
-#   $(PACKAGE_NAME) will default to a recursive make invocation in
+#   $(APP_NAME) will default to a recursive make invocation in
 #   $(PACKAGE_DIR)/$(DEPS_DIR)/$(EZ) with the assumption that this
 #   will cause $(PACKAGE_DIR)/$(DEPS_DIR)/$(EZ)/$(EZ)-$(VERSION).ez to
 #   be constructed, which will then be copied to
@@ -208,12 +209,11 @@
 # EXTRA_PACKAGE_DIRS :: [abspath]
 #   Default:
 #   Notes: These are paths to directories that you want to be included
-#   in $(PACKAGE_NAME)-$(VERSION).ez. The
-#   $(PACKAGE_NAME)-$(VERSION).ez target has an order-only
-#   prerequisite on $(EXTRA_PACKAGE_DIRS) (i.e. they must exist, but
-#   timestamps are ignored). No targets are provided to build these
-#   directories so if they don't already exist, you should arrange for
-#   them to be created. Something like:
+#   in $(APP_NAME)-$(VERSION).ez. The $(APP_NAME)-$(VERSION).ez target
+#   has an order-only prerequisite on $(EXTRA_PACKAGE_DIRS) (i.e. they
+#   must exist, but timestamps are ignored). No targets are provided
+#   to build these directories so if they don't already exist, you
+#   should arrange for them to be created. Something like:
 #
 #   $(EXTRA_PACKAGE_DIRS): %:
 #           mkdir -p $@
@@ -223,11 +223,12 @@
 # EXTRA_TARGETS :: [string]
 #   Default:
 #   Notes: The targets listed here depend on the $(EBIN_BEAMS) being
-#   built and are prerequisites of $(PACKAGE_NAME)-$(VERSION).ez. Thus
+#   built and are prerequisites of $(APP_NAME)-$(VERSION).ez. Thus
 #   like OUTPUT_EZS, these will be invoked only after the
 #   $(EBIN_BEAMS) have been built, but there are no default
 #   recipes. One example use of this is to ensure other package
-#   artifacts are built.
+#   artifacts are built, or to ensure that changing any such target
+#   causes the $(APP_NAME)-$(VERSION).ez to be rebuilt.
 #
 # The following variables you should never have to touch.
 #
@@ -357,7 +358,7 @@ DEFAULT_EBIN_DIR:=$$(PACKAGE_DIR)/ebin
 DEFAULT_EBIN_BEAMS:=$$(patsubst $$($$(PACKAGE_DIR)_SOURCE_DIR)/%.erl,$$($$(PACKAGE_DIR)_EBIN_DIR)/%.beam,$$($$(PACKAGE_DIR)_SOURCE_ERLS))
 
 DEFAULT_APP_NAME:=$$(call package_to_app_name,$$(PACKAGE_NAME))
-DEFAULT_OUTPUT_EZS:=$$(PACKAGE_NAME)
+DEFAULT_OUTPUT_EZS:=$$($$(PACKAGE_DIR)_APP_NAME)
 DEFAULT_DEPS_FILE:=$$(PACKAGE_DIR)/deps.mk
 DEFAULT_VERSION:=$$(GLOBAL_VERSION)
 

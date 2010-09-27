@@ -1,6 +1,3 @@
-# The order of these repos is VERY important because some repos depend on
-# other repos, so be careful when playing with this
-
 # PLUGIN_REPOS = our plugins repos; what needs to be tagged at release time.
 # CORE_REPOS = PLUGIN_REPOS + server and codegen, i.e. everything we can hg
 # clone from http://hg.rabbitmq.com/.
@@ -26,7 +23,7 @@ PLUGINS=rabbitmq-erlang-client rabbitmq-jsonrpc rabbitmq-mochiweb \
 HG_CORE_REPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
 ifeq ($(HG_CORE_REPOBASE),)
-HG_CORE_REPOBASE=http://hg.rabbitmq.com/
+HG_CORE_REPOBASE:=http://hg.rabbitmq.com/
 endif
 
 #----------------------------------
