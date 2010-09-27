@@ -19,12 +19,6 @@ $(abspath $(CURDIR)/../rabbitmq-erlang-client)_VERSION:=$(GLOBAL_VERSION)
 $(abspath $(CURDIR)/../rabbitmq-server)_OUTPUT_EZS:=
 $(abspath $(CURDIR)/../rabbitmq-server)_VERSION:=$(GLOBAL_VERSION)
 
-ifeq "$(MAKECMDGOALS)" ""
-TESTABLEGOALS:=$(.DEFAULT_GOAL)
-else
-TESTABLEGOALS:=$(MAKECMDGOALS)
-endif
-
 .PHONY: clean
 clean::
 

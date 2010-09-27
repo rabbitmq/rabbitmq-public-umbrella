@@ -30,6 +30,14 @@ include ../targets.mk
 $(foreach DEP,$(DEPS),$(eval $(call package_deps,$(abspath $(CURDIR)/../$(strip $(DEP))))))
 $(foreach DEP,$(DEPS),$(eval $(call package_recurse,$(abspath $(CURDIR)/../$(strip $(DEP))),$(strip $(DEP)))))
 else
+.DEFAULT_GOAL:=$(CURDIR)_OUTPUT_EZS
+
+ifeq "$(MAKECMDGOALS)" ""
+TESTABLEGOALS:=$(.DEFAULT_GOAL)
+else
+TESTABLEGOALS:=$(MAKECMDGOALS)
+endif
+
 BASE_CASE_DONE:=true
 $(eval $(call package_recurse,$(CURDIR),$(notdir $(CURDIR))))
 endif
