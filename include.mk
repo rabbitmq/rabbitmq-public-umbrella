@@ -255,22 +255,18 @@
 #
 # include ../include.mk
 #
-# Thus to build deps.mk, we need to generate foo.erl. This requires
-# compiling library.erl into library.beam. Once this has happened, we
-# can create deps.mk and then make will re-invoke itself. However, we
-# also have that all the beams have the various DEPS as prerequisites.
-# Thus we can start by going off and building the DEPS. Then we can
-# build library.beam from library.erl, and then foo.erl as per the
-# rule above. Then we can do dependency analysis and spit out our
-# deps.mk DEPS_FILE which we then try and include. Thus make includes
-# the DEPS_FILE and starts again. However, because the DEPS are
-# non-integrated and thus .PHONY, it has no choice but to run them
-# again. Even if the DEP doesn't produce new artifacts, by the very
-# fact it's .PHONY, its artifacts, fresh or not, get copied and
-# unpacked in our DIST_DIR. They are now found to be younger than
-# library.beam. As a result library.beam has to be remade, which then
-# means that foo.erl has to be remade which then means that the
-# DEPS_FILE has to be remade... cue loop.
+# All the beams have the various DEPS as prerequisites. Thus we can
+# start by going off and building the DEPS. Then we can build
+# library.beam from library.erl, and then foo.erl as per the rule
+# above. Then we can do dependency analysis and spit out our deps.mk
+# DEPS_FILE which we then try and include, at which point make starts
+# again. However, because the DEPS are non-integrated and thus .PHONY,
+# it has no choice but to run them again. Even if the DEP doesn't
+# produce new artifacts, by the very fact it's .PHONY, its artifacts,
+# fresh or not, get copied and unpacked in our DIST_DIR. They are now
+# found to be younger than library.beam. As a result library.beam has
+# to be remade, which then means that foo.erl has to be remade which
+# then means that the DEPS_FILE has to be remade... cue loop.
 #
 # The problem here is that library.erl is in SOURCE_ERLS, and
 # subsequently ends up in EBIN_BEAMS, hence depends on DEPS. If we
