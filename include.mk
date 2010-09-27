@@ -340,7 +340,7 @@
 
 include ../global.mk
 
-VARS:=SOURCE_DIR SOURCE_ERLS INCLUDE_DIR INCLUDE_HRLS EBIN_DIR EBIN_BEAMS DEPS_FILE APP_NAME OUTPUT_EZS INTERNAL_DEPS EXTRA_PACKAGE_DIRS EXTRA_TARGETS GENERATED_ERLS VERSION ERLC_OPTS
+VARS:=SOURCE_DIR SOURCE_ERLS INCLUDE_DIR INCLUDE_HRLS EBIN_DIR EBIN_BEAMS DEPS_FILE APP_NAME OUTPUT_EZS INTERNAL_DEPS EXTRA_PACKAGE_DIRS EXTRA_TARGETS GENERATED_ERLS VERSION ERLC_OPTS TEST_DIR TEST_SOURCE_DIR TEST_SOURCE_ERLS TEST_EBIN_DIR TEST_EBIN_BEAMS TEST_COMMANDS TEST_SCRIPTS
 
 ifdef PACKAGE_DIR
 
@@ -361,6 +361,12 @@ DEFAULT_APP_NAME:=$$(call package_to_app_name,$$(PACKAGE_NAME))
 DEFAULT_OUTPUT_EZS:=$$($$(PACKAGE_DIR)_APP_NAME)
 DEFAULT_DEPS_FILE:=$$(PACKAGE_DIR)/deps.mk
 DEFAULT_VERSION:=$$(GLOBAL_VERSION)
+
+DEFAULT_TEST_DIR:=$$(PACKAGE_DIR)/test
+DEFAULT_TEST_SOURCE_DIR:=$$($$(PACKAGE_DIR)_TEST_DIR)
+DEFAULT_TEST_SOURCE_ERLS:=$$(wildcard $$($$(PACKAGE_DIR)_TEST_SOURCE_DIR)/*.erl)
+DEFAULT_TEST_EBIN_DIR:=$$($$(PACKAGE_DIR)_TEST_DIR)/ebin
+DEFAULT_TEST_EBIN_BEAMS:=$$(patsubst $$($$(PACKAGE_DIR)_TEST_SOURCE_DIR)/%.erl,$$($$(PACKAGE_DIR)_TEST_EBIN_DIR)/%.beam,$$($$(PACKAGE_DIR)_TEST_SOURCE_ERLS))
 
 define lift_var
 # variable name is in $(1), default variable expression is in $(2)
@@ -391,6 +397,33 @@ SET_DEFAULT_GOAL:=false
 
 .PHONY: $(PACKAGE_DIR)_OUTPUT_EZS
 $(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS),$(eval $(PACKAGE_DIR)_OUTPUT_EZS: $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ)-$($(PACKAGE_DIR)_VERSION).ez))
+
+.PHONY: test
+test_DIR:=$(PACKAGE_DIR)
+test: $(PACKAGE_DIR)_OUTPUT_EZS $($(PACKAGE_DIR)_TEST_EBIN_BEAMS) | $($(PACKAGE_DIR)_TEST_EBIN_DIR)
+	rm -rf $($@_DIR)/tmp $($@_DIR)/plugins
+	mkdir -p $($@_DIR)/tmp $($@_DIR)/plugins
+	cp -a $($@_DIR)/$(DIST_DIR)/*.ez $($@_DIR)/plugins
+	rm -f $($@_DIR)/plugins/rabbit_common*
+	RABBITMQ_PLUGINS_DIR=$($@_DIR)/plugins RABBITMQ_NODENAME=$(NODENAME) \
+	  RABBITMQ_LOG_BASE=$($@_DIR)/tmp RABBITMQ_MNESIA_DIR=$($@_DIR)/plugins \
+	  RABBITMQ_SERVER_START_ARGS="-pa $($($@_DIR)_TEST_EBIN_DIR)" \
+	  $($@_DIR)/../rabbitmq-server/scripts/rabbitmq-server & sleep 2
+	echo > $($@_DIR)/rabbit-test-output && \
+	{ $(foreach BOOT_CMD,$(BOOT_CMDS),\
+            echo "$(BOOT_CMD)." | tee -a $($@_DIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $($@_DIR)/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
+	  $(foreach CMD,$($($@_DIR)_TEST_COMMANDS), \
+	    echo >> $($@_DIR)/rabbit-test-output && \
+	    echo "$(CMD)." | tee -a $($@_DIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $($@_DIR)/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
+	  $(foreach SCRIPT,$($($@_DIR)_TEST_SCRIPTS),$(SCRIPT) && ) true || OK=false; } && \
+	{ $$OK || { cat $($@_DIR)/rabbit-test-output; echo "\n\nFAILED\n"; }; } && \
+	$(foreach CLEANUP_CMD,$(CLEANUP_CMDS),\
+            echo "$(CLEANUP_CMD)." | tee -a $($@_DIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $($@_DIR)/rabbit-test-output | egrep "{ok, " >/dev/null; ) true && \
+	sleep 1 && \
+	$(ERL_CALL) $(ERL_CALL_OPTS) -q && \
+	rm -rf $($@_DIR)/tmp $($@_DIR)/plugins && \
+	{ $$OK && echo "\nPASSED\n" && $$OK; }
+
 endif
 
 include ../common.mk

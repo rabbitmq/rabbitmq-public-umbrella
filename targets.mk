@@ -26,6 +26,16 @@ $($(PACKAGE_DIR)_EBIN_DIR)/%.beam: $($(PACKAGE_DIR)_SOURCE_DIR)/%.erl | $($(PACK
 $($(PACKAGE_DIR)_EBIN_DIR):
 	mkdir -p $@
 
+$($(PACKAGE_DIR)_TEST_EBIN_DIR)_MAIN_EBIN_DIR:=$($(PACKAGE_DIR)_EBIN_DIR)
+$($(PACKAGE_DIR)_TEST_EBIN_DIR)_INCLUDE_DIR:=$($(PACKAGE_DIR)_INCLUDE_DIR)
+$($(PACKAGE_DIR)_TEST_EBIN_DIR)_DIST_DIR:=$(PACKAGE_DIR)/$(DIST_DIR)
+$($(PACKAGE_DIR)_TEST_EBIN_DIR)_OPTS:=$($(PACKAGE_DIR)_ERLC_OPTS) $(GLOBAL_ERLC_OPTS)
+$($(PACKAGE_DIR)_TEST_EBIN_DIR)/%.beam: $($(PACKAGE_DIR)_TEST_SOURCE_DIR)/%.erl | $($(PACKAGE_DIR)_TEST_EBIN_DIR) $(PACKAGE_DIR)/$(DIST_DIR) $(PACKAGE_DIR)/$(DEPS_DIR)
+	ERL_LIBS=$($(@D)_DIST_DIR) $(ERLC) $($(@D)_OPTS) -I $($(@D)_INCLUDE_DIR) -pa $(@D) -pa $($(@D)_MAIN_EBIN_DIR) -o $(@D) $<
+
+$($(PACKAGE_DIR)_TEST_EBIN_DIR):
+	mkdir -p $@
+
 # only do the _app.in => .app dance if we can actually find a
 # _app.in. If we can, make it phony because otherwise it may not be
 # rebuilt if just the version changes.
@@ -46,7 +56,7 @@ clean:: $(PACKAGE_DIR)/clean
 $(PACKAGE_DIR)/clean::
 	rm -f $($(@D)_DEPS_FILE)
 	rm -rf $(@D)/$(DIST_DIR)
-	rm -f $($(@D)_EBIN_BEAMS) $($(@D)_GENERATED_ERLS)
+	rm -f $($(@D)_EBIN_BEAMS) $($(@D)_GENERATED_ERLS) $($(@D)_TEST_EBIN_BEAMS)
 
 ifndef CLEAN_LOCAL
 CLEAN_LOCAL:=true

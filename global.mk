@@ -11,6 +11,10 @@ export GLOBAL_ERLC_OPTS ?= -Wall +debug_info
 export DIST_DIR ?= dist
 export DEPS_DIR ?= deps
 
+export ERL_CALL ?= erl_call
+export NODENAME:=rabbit-test
+export ERL_CALL_OPTS:=-sname $(NODENAME) -e
+
 NON_INTEGRATED:=rabbitmq-server rabbitmq-erlang-client
 
 $(abspath $(CURDIR)/../rabbitmq-erlang-client)_OUTPUT_EZS:=amqp_client rabbit_common
