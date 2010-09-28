@@ -401,7 +401,6 @@ $(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS),$(eval $(PACKAGE_DIR)_OUTPUT_EZS: $(PA
 .PHONY: test
 test_DIR:=$(PACKAGE_DIR)
 test_TEST_EBIN_DIR:=$($(PACKAGE_DIR)_TEST_EBIN_DIR)
-test_COVERAGE:=$(subst "\"" "\"","\""$(comma)"\"",$(foreach DIR,$(test_TEST_EBIN_DIR) $($(PACKAGE_DIR)_EBIN_DIR),"\""$(DIR)"\""))
 test: $($(PACKAGE_DIR)_TEST_EBIN_BEAMS)
 	rm -rf $($@_DIR)/tmp $($@_DIR)/plugins $($@_DIR)/cover
 	mkdir -p $($@_DIR)/tmp $($@_DIR)/plugins
@@ -426,9 +425,13 @@ test: $($(PACKAGE_DIR)_TEST_EBIN_BEAMS)
 	rm -rf $($@_DIR)/tmp $($@_DIR)/plugins && \
 	{ $$OK && echo "\nPASSED\n"; }
 
-ifneq "$(findstring test,$(TESTABLEGOALS))" ""
+ifneq "$(findstring coverage,$(TESTABLEGOALS))" ""
 DEPS += coverage
+test_COVERAGE:=$(subst "\"" "\"","\""$(comma)"\"",$(foreach DIR,$(test_TEST_EBIN_DIR) $($(PACKAGE_DIR)_EBIN_DIR),"\""$(DIR)"\""))
 endif
+
+.PHONY: coverage
+coverage: test
 
 endif
 
