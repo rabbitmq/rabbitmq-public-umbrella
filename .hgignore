@@ -5,4 +5,7 @@ erl_crash.dump
 
 syntax: regexp
 ^dist/
-
+^coverage/.*\.beam
+deps\.mk$
+\.app$
+/dist/

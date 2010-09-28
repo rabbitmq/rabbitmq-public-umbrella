@@ -1,6 +1,8 @@
 ifndef INCLUDE_GLOBAL
 INCLUDE_GLOBAL:=true
 
+comma:=,
+
 export GLOBAL_VERSION ?= 0.0.0
 export ERLC ?= erlc
 export ERL ?= erl
