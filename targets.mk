@@ -5,6 +5,11 @@ $(PACKAGE_DIR)_TARGETS:=true
 # get the ezs to depend on the beams, hrls and $(DIST_DIR)
 $(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS),$(eval $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ)-$($(PACKAGE_DIR)_VERSION).ez: $($(PACKAGE_DIR)_EBIN_BEAMS) $($(PACKAGE_DIR)_INCLUDE_HRLS)))
 
+# get any test beams to depend on all the ezs
+ifneq "$($(PACKAGE_DIR)_TEST_EBIN_BEAMS)" ""
+$(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS),$(eval $($(PACKAGE_DIR)_TEST_EBIN_BEAMS): $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ)-$($(PACKAGE_DIR)_VERSION).ez))
+endif
+
 # get extra targets to depend on the beams, hrls and $(DIST_DIR)
 $(foreach TARGET,$($(PACKAGE_DIR)_EXTRA_TARGETS),$(eval $(TARGET): $($(PACKAGE_DIR)_EBIN_BEAMS) $($(PACKAGE_DIR)_INCLUDE_HRLS)))
 

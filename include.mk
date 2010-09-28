@@ -400,7 +400,7 @@ $(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS),$(eval $(PACKAGE_DIR)_OUTPUT_EZS: $(PA
 
 .PHONY: test
 test_DIR:=$(PACKAGE_DIR)
-test: $(PACKAGE_DIR)_OUTPUT_EZS $($(PACKAGE_DIR)_TEST_EBIN_BEAMS) | $($(PACKAGE_DIR)_TEST_EBIN_DIR)
+test: $($(PACKAGE_DIR)_TEST_EBIN_BEAMS)
 	rm -rf $($@_DIR)/tmp $($@_DIR)/plugins
 	mkdir -p $($@_DIR)/tmp $($@_DIR)/plugins
 	cp -a $($@_DIR)/$(DIST_DIR)/*.ez $($@_DIR)/plugins
@@ -422,7 +422,7 @@ test: $(PACKAGE_DIR)_OUTPUT_EZS $($(PACKAGE_DIR)_TEST_EBIN_BEAMS) | $($(PACKAGE_
 	sleep 1 && \
 	$(ERL_CALL) $(ERL_CALL_OPTS) -q && \
 	rm -rf $($@_DIR)/tmp $($@_DIR)/plugins && \
-	{ $$OK && echo "\nPASSED\n" && $$OK; }
+	{ $$OK && echo "\nPASSED\n"; }
 
 endif
 
