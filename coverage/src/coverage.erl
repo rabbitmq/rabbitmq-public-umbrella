@@ -33,13 +33,24 @@
 -export([start/2, stop/1]).
 -export([init/1]). 
 
-stop(_State) -> rabbit_misc:report_cover(), cover:stop(), ok.
+stop(_State) ->
+    case application:get_env(coverage, directories) of
+        undefined ->
+            ok;
+        {ok, []} ->
+            ok;
+        _ ->
+            rabbit_misc:report_cover(),
+            cover:stop()
+    end.
 
 start(normal, []) -> supervisor:start_link(?MODULE, []).
 
 start_coverage() ->
     case application:get_env(coverage, directories) of
         undefined ->
+            ok;
+        {ok, []} ->
             ok;
         {ok, Directories} ->
             {ok, _} = cover:start([node() | nodes()]),

@@ -407,9 +407,9 @@ test: $($(PACKAGE_DIR)_TEST_EBIN_BEAMS)
 	cp -a $($@_DIR)/$(DIST_DIR)/*.ez $($@_DIR)/plugins
 	rm -f $($@_DIR)/plugins/rabbit_common*
 	RABBITMQ_PLUGINS_DIR=$($@_DIR)/plugins RABBITMQ_NODENAME=$(NODENAME) \
-	  RABBITMQ_LOG_BASE=$($@_DIR)/tmp RABBITMQ_MNESIA_DIR=$($@_DIR)/plugins \
+	  RABBITMQ_LOG_BASE=$($@_DIR)/tmp RABBITMQ_MNESIA_BASE=$($@_DIR)/tmp \
 	  RABBITMQ_SERVER_START_ARGS="-pa $($($@_DIR)_TEST_EBIN_DIR) -coverage directories [$($@_COVERAGE)]" \
-	  $($@_DIR)/../rabbitmq-server/scripts/rabbitmq-server & sleep 5
+	  $($@_DIR)/../rabbitmq-server/scripts/rabbitmq-server & sleep 8
 	echo > $($@_DIR)/rabbit-test-output && \
 	{ $(foreach BOOT_CMD,$(BOOT_CMDS),\
             echo "$(BOOT_CMD)." | tee -a $($@_DIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $($@_DIR)/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
