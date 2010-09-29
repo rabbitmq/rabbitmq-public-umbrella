@@ -34,4 +34,7 @@ clean::
 %/$(DIST_DIR):
 	mkdir $@
 
+UMBRELLA_BASE_DIR:=$(abspath $(CURDIR)/..)
+include ../repos.mk
+
 endif
