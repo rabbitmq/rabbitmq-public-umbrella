@@ -79,7 +79,7 @@
 # non-integrated packages and recursive make invocations.
 #
 # ERLC :: string - defaults to erlc
-# GLOBAL_ERLC_OPTS :: string defaults to "-Wall +debug_info"
+# GLOBAL_ERLC_OPTS :: string - defaults to "-Wall +debug_info"
 # ERL :: string - defaults to erl
 # TMPDIR :: path - defaults to /tmp
 # DIST_DIR :: path - defaults to dist
@@ -130,7 +130,8 @@
 #
 # ERLC_OPTS :: string
 #   Default:
-#   Notes: additional options to $(ERLC)
+#   Notes: additional options to $(ERLC). Combined with
+#   $(GLOBAL_ERLC_OPTS)
 #
 # The following variables you should only have to touch if you're
 # doing something a bit special:
@@ -156,7 +157,7 @@
 #   $(EBIN_DIR)/$(APP_NAME).app. Iff $(EBIN_DIR)/$(APP_NAME)_app.in is
 #   found, $(EBIN_DIR)/$(APP_NAME).app will be automatically generated
 #   from this, replacing %%VSN%% with $(VERSION) in the file's
-#   content.
+#   content. See also the section below: App files.
 #
 # OUTPUT_EZS :: [string not ending with .ez]
 #   Default: $(APP_NAME)
@@ -280,3 +281,77 @@
 # SOURCE_ERLS:=$(filter-out %/library.erl,$(wildcard $(SOURCE_DIR)/*.erl))
 #
 #
+# App files
+# ---------
+#
+# The $(APP_NAME)-$(VERSION).ez output target has to have an
+# ebin/$(APP_NAME).app file within it. The build system understands
+# how to go from $(APP_NAME)_app.in to $(APP_NAME).in by replacing
+# %%VSN%% within the contents of the file with the $(VERSION). Because
+# the $(VERSION) can change, this poses a problem as we must know
+# whether or not to regenerate the .app file with the new
+# $(VERSION). To avoid having to declare the $(APP_NAME).app target
+# .PHONY, we have an intermediate target of
+# $(EBIN_DIR)/$(APP_NAME).app.$(VERSION). Then, when assembling the
+# .ez, we simply depend on the .app file with the current $(VERSION)
+# and copy that across, renaming it as we go.
+#
+# In some circumstances, e.g. when wrapping external libraries which
+# have their own versions, the package needs to take responsibility
+# for generating the .app file. This is normally because there is no
+# $(APP_NAME)_app.in file, and so the build will break with no target
+# found for the app file. Again, declaring that target as .PHONY
+# should be avoided. Thus you can declare a target which outputs
+# $(EBIN_DIR)/$(APP_NAME).app.$(VERSION) and does any necessary
+# magic. To prevent this being overridden later, simply declare:
+#
+# $(PACKAGE_DIR)_APP:=true
+#
+# prior to the include ../include.mk directive.
+#
+#
+# Testing
+# -------
+#
+# The following variables can be set to incorporate package
+# tests. Testing starts by starting a broker which is configured to
+# run the current plugin.
+#
+# TEST_DIR :: abspath
+#   Default: $(PACKAGE_DIR)/test
+#
+# TEST_SOURCE_DIR :: abspath
+#   Default: $(TEST_DIR)/src
+#
+# TEST_SOURCE_ERLS :: [abspath]
+#   Default: $(wildcard $(TEST_SOURCE_DIR)/*.erl)
+#
+# TEST_EBIN_DIR :: abspath
+#   Default: $(TEST_DIR)/ebin
+#
+# TEST_EBIN_BEAMS :: [abspath]
+#   Default: $(patsubst $(TEST_SOURCE_DIR)/%.erl,$(TEST_EBIN_DIR)/%.beam,$(TEST_SOURCE_ERLS))
+#
+# These first five variables control the locations of any Erlang tests
+# for the package.
+#
+# TEST_COMMANDS :: string
+#   Default:
+#   Notes: This should be a space-separated list of erlang expressions
+#   which will be invoked within the broker during testing.
+#
+# TEST_SCRIPTS :: [abspath]
+#   Default:
+#   Notes: The elements of this list are assumed to be executable
+#   scripts which are invoked to test the package. This permits tests
+#   to be written in different languages.
+#
+#
+# Releases
+# --------
+#
+# If your package is releasable, declare RELEASABLE:=true in your
+# Makefile, prior to the include ../include.mk directive. Then, when
+# the public umbrella is asked to build all releasable plugins, yours
+# will be built. There is no need to declare RELEASABLE in any
+# dependencies.
