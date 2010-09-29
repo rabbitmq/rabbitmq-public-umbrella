@@ -39,6 +39,7 @@ $($(PACKAGE_DIR)_TEST_EBIN_DIR)/%.beam: $($(PACKAGE_DIR)_TEST_SOURCE_DIR)/%.erl 
 $($(PACKAGE_DIR)_TEST_EBIN_DIR):
 	mkdir -p $@
 
+ifndef $(PACKAGE_DIR)_APP
 # only do the _app.in => .app dance if we can actually find a
 # _app.in.
 ifneq "$(wildcard $($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME)_app.in)" ""
@@ -48,6 +49,7 @@ $($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME).app.$($(PACKAGE_DIR)_VERSI
 else
 $($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME).app.$($(PACKAGE_DIR)_VERSION): $($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME).app
 	cp $< $@
+endif
 endif
 
 .PHONY: $(PACKAGE_DIR)/clean
