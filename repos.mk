@@ -33,4 +33,5 @@ endif
 BRANCH:=bug23274
 
 $(patsubst %,$(UMBRELLA_BASE_DIR)/%/Makefile,$(REPOS)):
-	cd $(UMBRELLA_BASE_DIR) && hg clone $(HG_CORE_REPOBASE)/$(notdir $(@D)) -r $(BRANCH)
+	cd $(UMBRELLA_BASE_DIR) && hg clone $(HG_CORE_REPOBASE)/$(notdir $(@D))
+	-cd $(@D) && hg up -C $(BRANCH)
