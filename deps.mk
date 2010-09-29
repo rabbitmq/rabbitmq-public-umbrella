@@ -1,3 +1,17 @@
+# The purpose of this file is to drive the main recursive inclusion of
+# Makefiles based on the current package's dependencies. It sets up
+# the PACKAGE_DIR and PACKAGE_NAME variables before recursive
+# inclusion, as well as setting up reverse pointers from the child
+# back to the parent. These are important and used by common.mk.
+#
+# It also checks to see if the dependency points to a non-integrated
+# target and if so then treats the dependency specially.
+#
+# The last thing that occurs prior to recursion into a child is the
+# inclusion of targets.mk. The same package may be visited several
+# times owing to the diamond problem. Because parent pointers thus
+# expand (see common.mk), descent through children may happen more
+# than once.
 
 define package_deps
 # child abspath is in $(1). $(PACKAGE_DIR) is the parent package at

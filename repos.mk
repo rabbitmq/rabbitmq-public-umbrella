@@ -1,3 +1,11 @@
+# This file is included both by the public-umbrella Makefile, and by
+# the global.mk file, thus used by all plugins. It is the only place
+# which should contain an listing of available plugins, and knows how
+# to check out any such plugin.
+#
+# If this file is not within the CURDIR, UMBRELLA_BASE_DIR should be
+# set to the abspath to the rabbitmq-public-umbrella directory.
+
 PLUGIN_REPOS:=erlang-rfc4627-wrapper \
               erlang-smtp-wrapper \
               mochiweb-wrapper \

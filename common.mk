@@ -1,3 +1,25 @@
+# This file is included every time we visit a package. It sets up
+# reverse pointers to our parents (thus relies on the
+# $(PACKAGE_DIR)_PARENTS variables that deps.mk creates) for our
+# OUTPUT_EZS.
+#
+# Thus if foo depends on bar, we start in foo, but we don't know what
+# the OUTPUT_EZS of bar are going to be. So deps.mk sets
+# bar_PARENTS:=foo, and then when we visit foo and come in here, we
+# now make sure that foo's EBIN_BEAMS depend on our (bar's)
+# OUTPUT_EZS.
+#
+# We have to afford the possibility of visiting this multiple times. E.g.
+# foo -> bar; foo -> baz; bar -> qux; baz -> qux
+# The first time we visit qux, we will only have one parent (either
+# bar or baz). The second time we visit it, we will know of both
+# parents and can thus ensure we get all the correct dependencies.
+#
+# We start at the bottom of the file, and say that for each parent we
+# know about, we're going to make the parent depend on all of our
+# OUTPUT_EZS. That amounts to making the parent's BEAMS and
+# INTERNAL_DEPS depend on the parent's local copy of our (the child's)
+# OUTPUT_EZS.
 
 define parent_requires_ezs
 # parent is in $(1)

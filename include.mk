@@ -95,8 +95,15 @@ DEFAULT_TEST_SOURCE_ERLS:=$$(wildcard $$($$(PACKAGE_DIR)_TEST_SOURCE_DIR)/*.erl)
 DEFAULT_TEST_EBIN_DIR:=$$($$(PACKAGE_DIR)_TEST_DIR)/ebin
 DEFAULT_TEST_EBIN_BEAMS:=$$(patsubst $$($$(PACKAGE_DIR)_TEST_SOURCE_DIR)/%.erl,$$($$(PACKAGE_DIR)_TEST_EBIN_DIR)/%.beam,$$($$(PACKAGE_DIR)_TEST_SOURCE_ERLS))
 
-define lift_var
+# This function is used to lift variables into the $(PACKAGE_DIR)
+# namespace. If the variable contains the text "undefined", then the
+# default value is used. The use of eval, and the $-escaping within
+# the DEFAULT_* variables introduces laziness: the values can refer to
+# other variables which are not defined. E.g. in the package Makefile,
+# you can refer to $$(SOURCE_DIR) without declaring SOURCE_DIR and
+# thus rely on the default value.
 # variable name is in $(1), default variable expression is in $(2)
+define lift_var
 ifeq "$($(1))" "undefined"
 $$(eval $(PACKAGE_DIR)_$(1):=$(2))
 else

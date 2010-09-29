@@ -1,3 +1,6 @@
+# This file is included once, right at the start. Its variables should
+# not be dynamically altered.
+
 ifndef INCLUDE_GLOBAL
 INCLUDE_GLOBAL:=true
 

@@ -1,6 +1,23 @@
+# This file, like global.mk, is included only once. However, unlike
+# global, this file is included only after the second pass through the
+# $(PACKAGE_DIR)/Makefile and include.mk, and thus all the package's
+# variables are now configured and lifted.
+#
+# The purpose of this file is to create all the .PHONY targets that
+# need to take into account the settings and configuration of the
+# package.
+
 .PHONY: $(PACKAGE_DIR)_OUTPUT_EZS
 $(PACKAGE_DIR)_OUTPUT_EZS: $($(PACKAGE_DIR)_OUTPUT_EZS_PATHS)
 
+# We actually set .DEFAULT_GOAL first in deps.mk prior to revisiting
+# the top package Makefile again. This is so that during the second
+# pass over that file, we have a value for the .DEFAULT_GOAL (and
+# TESTABLEGOALS). However, at that point, we don't know what the
+# OUTPUT_EZS are going to be, so we just set the .DEFAULT_GOAL to
+# $(PACKAGE_DIR)_OUTPUT_EZS_PATHS, which will, by _this_ point, now be
+# a defined variable. Thus we now expand this, to get our real
+# targets.
 ifeq "$(.DEFAULT_GOAL)" "$(PACKAGE_DIR)_OUTPUT_EZS_PATHS"
 .DEFAULT_GOAL:=$($(.DEFAULT_GOAL))
 endif
@@ -34,6 +51,8 @@ run_in_broker_DIR:=$(PACKAGE_DIR)
 run_in_broker: $($(PACKAGE_DIR)_TEST_EBIN_BEAMS) $(PACKAGE_DIR)_OUTPUT_EZS
 	$(call prepare_and_boot_broker,$($@_DIR),,RABBITMQ_ALLOW_INPUT=true)
 
+# Only create the test and coverage targets if we have some test
+# commands or scripts to run.
 ifneq "$($(PACKAGE_DIR)_TEST_SCRIPTS)$($(PACKAGE_DIR)_TEST_COMMANDS)" ""
 .PHONY: test
 test_DIR:=$(PACKAGE_DIR)
@@ -56,6 +75,9 @@ test: $($(PACKAGE_DIR)_TEST_EBIN_BEAMS)
 	rm -rf $($@_DIR)/tmp $($@_DIR)/plugins && \
 	{ $$OK && echo "\nPASSED\n"; }
 
+# If we're meant to be doing coverage, ensure that the coverage plugin
+# is added to our dependencies. At this point, we won't have started
+# traversing the tree of dependencies so this is very safe to do.
 ifneq "$(findstring coverage,$(TESTABLEGOALS))" ""
 DEPS += coverage
 test_COVERAGE:=$(subst "\"" "\"","\""$(COMMA)"\"",$(foreach DIR,$(test_TEST_EBIN_DIR) $($(PACKAGE_DIR)_EBIN_DIR),"\""$(DIR)"\""))

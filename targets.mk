@@ -1,3 +1,7 @@
+# This file is included exactly once per package. It sets the
+# dependencies within a package, and contains targets for building the
+# package's beams.
+
 ifdef PACKAGE_DIR
 ifndef $(PACKAGE_DIR)_TARGETS
 $(PACKAGE_DIR)_TARGETS:=true
@@ -9,7 +13,7 @@ $($(PACKAGE_DIR)_OUTPUT_EZS_PATHS): $($(PACKAGE_DIR)_EBIN_BEAMS) $($(PACKAGE_DIR
 $($(PACKAGE_DIR)_EBIN_BEAMS): $($(PACKAGE_DIR)_INTERNAL_DEPS_PATHS)
 
 # get extra targets to depend on the beams, hrls and $(DIST_DIR)
-$(foreach TARGET,$($(PACKAGE_DIR)_EXTRA_TARGETS),$(eval $(TARGET): $($(PACKAGE_DIR)_EBIN_BEAMS) $($(PACKAGE_DIR)_INCLUDE_HRLS)))
+$($(PACKAGE_DIR)_EXTRA_TARGETS): $($(PACKAGE_DIR)_EBIN_BEAMS) $($(PACKAGE_DIR)_INCLUDE_HRLS)
 
 # note don't use $^ in the escript line because it'll include prereqs that we add elsewhere
 $($(PACKAGE_DIR)_DEPS_FILE)_EBIN_DIR:=$($(PACKAGE_DIR)_EBIN_DIR)
@@ -20,6 +24,7 @@ $($(PACKAGE_DIR)_DEPS_FILE): $($(PACKAGE_DIR)_SOURCE_ERLS) $($(PACKAGE_DIR)_INCL
 # make our beams depend on the existence of the deps file only
 $($(PACKAGE_DIR)_EBIN_BEAMS): | $($(PACKAGE_DIR)_DEPS_FILE)
 
+# how to build our main beams
 $($(PACKAGE_DIR)_EBIN_DIR)_INCLUDE_DIR:=$($(PACKAGE_DIR)_INCLUDE_DIR)
 $($(PACKAGE_DIR)_EBIN_DIR)_DIST_DIR:=$(PACKAGE_DIR)/$(DIST_DIR)
 $($(PACKAGE_DIR)_EBIN_DIR)_OPTS:=$($(PACKAGE_DIR)_ERLC_OPTS) $(GLOBAL_ERLC_OPTS)
@@ -29,6 +34,7 @@ $($(PACKAGE_DIR)_EBIN_DIR)/%.beam: $($(PACKAGE_DIR)_SOURCE_DIR)/%.erl | $($(PACK
 $($(PACKAGE_DIR)_EBIN_DIR):
 	mkdir -p $@
 
+# how to build our testing beams
 $($(PACKAGE_DIR)_TEST_EBIN_DIR)_MAIN_EBIN_DIR:=$($(PACKAGE_DIR)_EBIN_DIR)
 $($(PACKAGE_DIR)_TEST_EBIN_DIR)_INCLUDE_DIR:=$($(PACKAGE_DIR)_INCLUDE_DIR)
 $($(PACKAGE_DIR)_TEST_EBIN_DIR)_DIST_DIR:=$(PACKAGE_DIR)/$(DIST_DIR)
@@ -64,13 +70,14 @@ $(PACKAGE_DIR)/clean::
 # handled manually. .beam dependencies et al are created by the
 # generic output_ezs dependencies. For ease of comprehension, we save
 # out variables that we need.
-$(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION).ez_DIR:=$(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION)
-$(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION).ez_APP_FILE:=$($(PACKAGE_DIR)_APP_NAME).app
-$(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION).ez_APP:=$($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION).ez_APP_FILE).$($(PACKAGE_DIR)_VERSION)
-$(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION).ez_EBIN_BEAMS:=$($(PACKAGE_DIR)_EBIN_BEAMS)
-$(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION).ez_INCLUDE_HRLS:=$($(PACKAGE_DIR)_INCLUDE_HRLS)
-$(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION).ez_EXTRA_PACKAGE_DIRS:=$($(PACKAGE_DIR)_EXTRA_PACKAGE_DIRS)
-$(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION).ez: $($(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION).ez_APP) $($(PACKAGE_DIR)_EXTRA_TARGETS) | $(PACKAGE_DIR)/$(DIST_DIR) $($(PACKAGE_DIR)_EXTRA_PACKAGE_DIRS)
+TARGET:=$(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION).ez
+$(TARGET)_DIR:=$(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION)
+$(TARGET)_APP_FILE:=$($(PACKAGE_DIR)_APP_NAME).app
+$(TARGET)_APP:=$($(PACKAGE_DIR)_EBIN_DIR)/$($(TARGET)_APP_FILE).$($(PACKAGE_DIR)_VERSION)
+$(TARGET)_EBIN_BEAMS:=$($(PACKAGE_DIR)_EBIN_BEAMS)
+$(TARGET)_INCLUDE_HRLS:=$($(PACKAGE_DIR)_INCLUDE_HRLS)
+$(TARGET)_EXTRA_PACKAGE_DIRS:=$($(PACKAGE_DIR)_EXTRA_PACKAGE_DIRS)
+$(TARGET): $($(TARGET)_APP) $($(PACKAGE_DIR)_EXTRA_TARGETS) | $(PACKAGE_DIR)/$(DIST_DIR) $($(TARGET)_EXTRA_PACKAGE_DIRS)
 	rm -rf $@ $($@_DIR)
 	mkdir -p $($@_DIR)/ebin $($@_DIR)/include
 	$(foreach BEAM,$($@_EBIN_BEAMS),cp $(BEAM) $($@_DIR)/ebin;)
@@ -81,6 +88,8 @@ $(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION).
 
 $(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)_TARGET:=true
 
+# Generic recursive make invocation for other elements of OUTPUT_EZS
+# and INTERNAL_DEPS.
 define generic_ez
 # $(EZ) is in $(1)
 ifndef $(PACKAGE_DIR)/$(DIST_DIR)/$(1)_TARGET
