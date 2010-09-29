@@ -34,7 +34,7 @@ run_in_broker_DIR:=$(PACKAGE_DIR)
 run_in_broker: $($(PACKAGE_DIR)_TEST_EBIN_BEAMS) $(PACKAGE_DIR)_OUTPUT_EZS
 	$(call prepare_and_boot_broker,$($@_DIR),,RABBITMQ_ALLOW_INPUT=true)
 
-ifneq "$($(PACKAGE_DIR)_TEST_EBIN_BEAMS)" ""
+ifneq "$($(PACKAGE_DIR)_TEST_SCRIPTS)$($(PACKAGE_DIR)_TEST_COMMANDS)" ""
 .PHONY: test
 test_DIR:=$(PACKAGE_DIR)
 test_TEST_EBIN_DIR:=$($(PACKAGE_DIR)_TEST_EBIN_DIR)
@@ -63,7 +63,7 @@ endif
 
 .PHONY: coverage
 coverage: test
-endif # ifneq "$($(PACKAGE_DIR)_TEST_EBIN_BEAMS)" ""
+endif # ifneq "$($(PACKAGE_DIR)_TEST_SCRIPTS)$($(PACKAGE_DIR)_TEST_COMMANDS)" ""
 
 .PHONY: clean_local
 clean_local: $(PACKAGE_DIR)/clean
