@@ -22,19 +22,15 @@ checkout: $(foreach REP,$(REPOS),$(CURDIR)/$(REP)/Makefile)
 
 #----------------------------------
 
-# TODO SORT ME
-all:
-	$(foreach DIR, $(REPOS), $(MAKE) -C $(DIR) all &&) true
-
-# TODO SORT ME
-package:
-	$(foreach DIR, $(PLUGINS), $(MAKE) -C $(DIR) package &&) true
+.PHONY: release
+release:
+	$(foreach DIR,$(PLUGIN_REPOS),$(MAKE) -C $(DIR) -j release GLOBAL_VERSION=$(VERSION) &&) true
 
 #----------------------------------
 
 .PHONY: clean
 clean:
-	$(foreach DIR, $(REPOS), $(MAKE) -C $(DIR) clean;)
+	$(foreach DIR,$(REPOS),$(MAKE) -C $(DIR) clean;)
 
 #----------------------------------
 # Subrepository management
@@ -66,11 +62,8 @@ push: checkout
 #----------------------------------
 # Plugin management
 
-plugins-dist: package
+plugins-dist: release
 	rm -rf $(PLUGINS_DIST_DIR)
 	mkdir -p $(PLUGINS_DIST_DIR)
 	find . -name '*.ez' -exec cp -f {} $(PLUGINS_DIST_DIR) \;
-	for file in $(PLUGINS_DIST_DIR)/*.ez ; \
-	  do mv $${file} \
-	    $$(dirname $${file})/$$(basename $${file} .ez)-$(VERSION).ez ; \
-	  done
+

@@ -2,7 +2,6 @@ PLUGIN_REPOS:=erlang-rfc4627-wrapper \
               erlang-smtp-wrapper \
               mochiweb-wrapper \
               rabbitmq-bql \
-              rabbitmq-erlang-client \
               rabbitmq-external-exchange \
               rabbitmq-jsonrpc \
               rabbitmq-jsonrpc-channel \
@@ -16,7 +15,7 @@ PLUGIN_REPOS:=erlang-rfc4627-wrapper \
               toke \
               webmachine-wrapper
 
-CORE_REPOS:=rabbitmq-codegen rabbitmq-server
+CORE_REPOS:=rabbitmq-codegen rabbitmq-server rabbitmq-erlang-client
 
 REPOS:=$(PLUGIN_REPOS) $(CORE_REPOS)
 

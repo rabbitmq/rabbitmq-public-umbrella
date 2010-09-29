@@ -28,6 +28,9 @@ $(abspath $(CURDIR)/../rabbitmq-server)_VERSION:=$(GLOBAL_VERSION)
 .PHONY: clean
 clean::
 
+.PHONY: release
+release:
+
 %/$(DEPS_DIR):
 	mkdir $@
 
