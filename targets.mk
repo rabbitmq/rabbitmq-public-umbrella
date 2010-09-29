@@ -40,23 +40,20 @@ $($(PACKAGE_DIR)_TEST_EBIN_DIR):
 	mkdir -p $@
 
 # only do the _app.in => .app dance if we can actually find a
-# _app.in. If we can, make it phony because otherwise it may not be
-# rebuilt if just the version changes.
+# _app.in.
 ifneq "$(wildcard $($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME)_app.in)" ""
-.PHONY: $($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME).app
-$($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME).app_VERSION:=$($(PACKAGE_DIR)_VERSION)
-$($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME).app: $($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME)_app.in
+$($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME).app.$($(PACKAGE_DIR)_VERSION)_VERSION:=$($(PACKAGE_DIR)_VERSION)
+$($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME).app.$($(PACKAGE_DIR)_VERSION): $($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME)_app.in
 	sed -e 's:%%VSN%%:$($@_VERSION):g' < $< > $@
-
-.PHONY: $(PACKAGE_DIR)/clean_app
-$(PACKAGE_DIR)/clean:: $(PACKAGE_DIR)/clean_app
-$(PACKAGE_DIR)/clean_app:
-	rm -f $($(@D)_EBIN_DIR)/$($(@D)_APP_NAME).app
+else
+$($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME).app.$($(PACKAGE_DIR)_VERSION): $($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME).app
+	cp $< $@
 endif
 
 .PHONY: $(PACKAGE_DIR)/clean
 clean:: $(PACKAGE_DIR)/clean
 $(PACKAGE_DIR)/clean::
+	rm -f $($(@D)_EBIN_DIR)/$($(@D)_APP_NAME).app.*
 	rm -f $($(@D)_DEPS_FILE)
 	rm -rf $(@D)/$(DIST_DIR)
 	rm -f $($(@D)_EBIN_BEAMS) $($(@D)_GENERATED_ERLS) $($(@D)_TEST_EBIN_BEAMS)
@@ -66,17 +63,18 @@ $(PACKAGE_DIR)/clean::
 # generic output_ezs dependencies. For ease of comprehension, we save
 # out variables that we need.
 $(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION).ez_DIR:=$(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION)
-$(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION).ez_APP:=$($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME).app
+$(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION).ez_APP_FILE:=$($(PACKAGE_DIR)_APP_NAME).app
+$(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION).ez_APP:=$($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION).ez_APP_FILE).$($(PACKAGE_DIR)_VERSION)
 $(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION).ez_EBIN_BEAMS:=$($(PACKAGE_DIR)_EBIN_BEAMS)
 $(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION).ez_INCLUDE_HRLS:=$($(PACKAGE_DIR)_INCLUDE_HRLS)
 $(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION).ez_EXTRA_PACKAGE_DIRS:=$($(PACKAGE_DIR)_EXTRA_PACKAGE_DIRS)
-$(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION).ez: $($(PACKAGE_DIR)_EBIN_DIR)/$($(PACKAGE_DIR)_APP_NAME).app $($(PACKAGE_DIR)_EXTRA_TARGETS) | $(PACKAGE_DIR)/$(DIST_DIR) $($(PACKAGE_DIR)_EXTRA_PACKAGE_DIRS)
+$(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION).ez: $($(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)-$($(PACKAGE_DIR)_VERSION).ez_APP) $($(PACKAGE_DIR)_EXTRA_TARGETS) | $(PACKAGE_DIR)/$(DIST_DIR) $($(PACKAGE_DIR)_EXTRA_PACKAGE_DIRS)
 	rm -rf $@ $($@_DIR)
 	mkdir -p $($@_DIR)/ebin $($@_DIR)/include
 	$(foreach BEAM,$($@_EBIN_BEAMS),cp $(BEAM) $($@_DIR)/ebin;)
 	$(foreach HRL,$($@_INCLUDE_HRLS),cp $(HRL) $($@_DIR)/include;)
 	$(foreach EXTRA_DIR,$($@_EXTRA_PACKAGE_DIRS),cp -r $(EXTRA_DIR) $($@_DIR);)
-	cp $($@_APP) $($@_DIR)/ebin
+	cp $($@_APP) $($@_DIR)/ebin/$($@_APP_FILE)
 	cd $(dir $($@_DIR)) && zip -r $@ $(notdir $(basename $@))
 
 $(PACKAGE_DIR)/$(DIST_DIR)/$($(PACKAGE_DIR)_APP_NAME)_TARGET:=true
