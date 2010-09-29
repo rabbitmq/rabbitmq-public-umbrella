@@ -355,3 +355,43 @@
 # the public umbrella is asked to build all releasable plugins, yours
 # will be built. There is no need to declare RELEASABLE in any
 # dependencies.
+#
+#
+# Targets
+# =======
+#
+# Default target
+# The default target "builds the package" - all the members of
+# OUTPUT_EZS and their dependencies will be built.
+#
+# clean
+# This performs a transitive clean: the current package is cleaned, as
+# are all dependencies.
+#
+# clean_local
+# This only cleans the current package.
+#
+# test
+# This is only available if at least one of TEST_COMMANDS and
+# TEST_SCRIPTS is non-empty. It builds the package and any test erls,
+# starts a broker configured to run the plugin, and then executes both
+# TEST_COMMANDS and TEST_SCRIPTS.
+#
+# coverage
+# This is the same as test above, with the addition that code coverage
+# is enabled. After the tests complete, $(PACKAGE_DIR)/cover/ will
+# exist and contain annotated HTML files for the sources of the
+# package and package tests.
+#
+# run
+# This builds the package and tests, and starts erl with the code path
+# set to include the package's outputs, dependencies and tests.
+#
+# run_in_broker
+# This is the same as run above, except that a broker is started which
+# is configured to run the plugin.
+#
+# release
+# This builds the package iff RELEASABLE is defined.
+#
+# END
