@@ -3,12 +3,10 @@ ifndef $(PACKAGE_DIR)_TARGETS
 $(PACKAGE_DIR)_TARGETS:=true
 
 # get the ezs to depend on the beams, hrls and $(DIST_DIR)
-$(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS),$(eval $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ)-$($(PACKAGE_DIR)_VERSION).ez: $($(PACKAGE_DIR)_EBIN_BEAMS) $($(PACKAGE_DIR)_INCLUDE_HRLS)))
+$($(PACKAGE_DIR)_OUTPUT_EZS_PATHS): $($(PACKAGE_DIR)_EBIN_BEAMS) $($(PACKAGE_DIR)_INCLUDE_HRLS)
 
-# get any test beams to depend on all the ezs
-ifneq "$($(PACKAGE_DIR)_TEST_EBIN_BEAMS)" ""
-$(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS),$(eval $($(PACKAGE_DIR)_TEST_EBIN_BEAMS): $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ)-$($(PACKAGE_DIR)_VERSION).ez))
-endif
+# get the beams to depend on the internal deps
+$($(PACKAGE_DIR)_EBIN_BEAMS): $($(PACKAGE_DIR)_INTERNAL_DEPS_PATHS)
 
 # get extra targets to depend on the beams, hrls and $(DIST_DIR)
 $(foreach TARGET,$($(PACKAGE_DIR)_EXTRA_TARGETS),$(eval $(TARGET): $($(PACKAGE_DIR)_EBIN_BEAMS) $($(PACKAGE_DIR)_INCLUDE_HRLS)))
@@ -35,7 +33,7 @@ $($(PACKAGE_DIR)_TEST_EBIN_DIR)_MAIN_EBIN_DIR:=$($(PACKAGE_DIR)_EBIN_DIR)
 $($(PACKAGE_DIR)_TEST_EBIN_DIR)_INCLUDE_DIR:=$($(PACKAGE_DIR)_INCLUDE_DIR)
 $($(PACKAGE_DIR)_TEST_EBIN_DIR)_DIST_DIR:=$(PACKAGE_DIR)/$(DIST_DIR)
 $($(PACKAGE_DIR)_TEST_EBIN_DIR)_OPTS:=$($(PACKAGE_DIR)_ERLC_OPTS) $(GLOBAL_ERLC_OPTS)
-$($(PACKAGE_DIR)_TEST_EBIN_DIR)/%.beam: $($(PACKAGE_DIR)_TEST_SOURCE_DIR)/%.erl | $($(PACKAGE_DIR)_TEST_EBIN_DIR) $(PACKAGE_DIR)/$(DIST_DIR) $(PACKAGE_DIR)/$(DEPS_DIR)
+$($(PACKAGE_DIR)_TEST_EBIN_DIR)/%.beam: $($(PACKAGE_DIR)_TEST_SOURCE_DIR)/%.erl $($(PACKAGE_DIR)_OUTPUT_EZS_PATHS) | $($(PACKAGE_DIR)_TEST_EBIN_DIR)
 	ERL_LIBS=$($(@D)_DIST_DIR) $(ERLC) $($(@D)_OPTS) -I $($(@D)_INCLUDE_DIR) -pa $(@D) -pa $($(@D)_MAIN_EBIN_DIR) -o $(@D) $<
 
 $($(PACKAGE_DIR)_TEST_EBIN_DIR):
@@ -63,12 +61,6 @@ $(PACKAGE_DIR)/clean::
 	rm -rf $(@D)/$(DIST_DIR)
 	rm -f $($(@D)_EBIN_BEAMS) $($(@D)_GENERATED_ERLS) $($(@D)_TEST_EBIN_BEAMS)
 
-ifndef CLEAN_LOCAL
-CLEAN_LOCAL:=true
-.PHONY: clean_local
-clean_local: $(PACKAGE_DIR)/clean
-endif
-
 # only set up a target for the plain package ez. Other ezs must be
 # handled manually. .beam dependencies et al are created by the
 # generic output_ezs dependencies. For ease of comprehension, we save
@@ -93,7 +85,6 @@ define generic_ez
 # $(EZ) is in $(1)
 ifndef $(PACKAGE_DIR)/$(DIST_DIR)/$(1)_TARGET
 $(PACKAGE_DIR)/$(DIST_DIR)/$(1)_TARGET:=true
-.PHONY: $(PACKAGE_DIR)/$(DIST_DIR)/$(1)-$($(PACKAGE_DIR)_VERSION).ez
 $(PACKAGE_DIR)/$(DIST_DIR)/$(1)-$($(PACKAGE_DIR)_VERSION).ez:
 	$(MAKE) -C $(PACKAGE_DIR)/$(DEPS_DIR)/$(1) -j
 	cp $(PACKAGE_DIR)/$(DEPS_DIR)/$(1)/$$(@F) $$@
@@ -106,8 +97,6 @@ endif
 endef
 
 $(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS) $($(PACKAGE_DIR)_INTERNAL_DEPS),$(eval $(call generic_ez,$(strip $(EZ)))))
-
-$($(PACKAGE_DIR)_EBIN_BEAMS): $(patsubst %,$(PACKAGE_DIR)/$(DIST_DIR)/%-$($(PACKAGE_DIR)_VERSION).ez,$($(PACKAGE_DIR)_INTERNAL_DEPS))
 
 ifneq "$(strip $(TESTABLEGOALS))" "$($(PACKAGE_DIR)_DEPS_FILE)"
 ifneq "$(strip $(patsubst clean%,,$(patsubst %clean,,$(TESTABLEGOALS))))" ""

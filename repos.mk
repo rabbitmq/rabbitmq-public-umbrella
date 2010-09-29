@@ -1,21 +1,24 @@
-REPOS:=erlang-rfc4627-wrapper \
-       erlang-smtp-wrapper \
-       mochiweb-wrapper \
-       rabbitmq-bql \
-       rabbitmq-erlang-client \
-       rabbitmq-external-exchange \
-       rabbitmq-jsonrpc \
-       rabbitmq-jsonrpc-channel \
-       rabbitmq-management \
-       rabbitmq-mochiweb \
-       rabbitmq-shovel \
-       rabbitmq-smtp \
-       rabbitmq-status \
-       rabbitmq-stomp \
-       rabbitmq-toke \
-       toke \
-       webmachine-wrapper \
-       rabbitmq-server
+PLUGIN_REPOS:=erlang-rfc4627-wrapper \
+              erlang-smtp-wrapper \
+              mochiweb-wrapper \
+              rabbitmq-bql \
+              rabbitmq-erlang-client \
+              rabbitmq-external-exchange \
+              rabbitmq-jsonrpc \
+              rabbitmq-jsonrpc-channel \
+              rabbitmq-management \
+              rabbitmq-mochiweb \
+              rabbitmq-shovel \
+              rabbitmq-smtp \
+              rabbitmq-status \
+              rabbitmq-stomp \
+              rabbitmq-toke \
+              toke \
+              webmachine-wrapper
+
+CORE_REPOS:=rabbitmq-codegen rabbitmq-server
+
+REPOS:=$(PLUGIN_REPOS) $(CORE_REPOS)
 
 ifndef UMBRELLA_BASE_DIR
 UMBRELLA_BASE_DIR:=$(CURDIR)

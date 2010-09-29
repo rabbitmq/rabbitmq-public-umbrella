@@ -64,7 +64,8 @@
 
 include ../global.mk
 
-VARS:=SOURCE_DIR SOURCE_ERLS INCLUDE_DIR INCLUDE_HRLS EBIN_DIR EBIN_BEAMS DEPS_FILE APP_NAME OUTPUT_EZS INTERNAL_DEPS EXTRA_PACKAGE_DIRS EXTRA_TARGETS GENERATED_ERLS VERSION ERLC_OPTS TEST_DIR TEST_SOURCE_DIR TEST_SOURCE_ERLS TEST_EBIN_DIR TEST_EBIN_BEAMS TEST_COMMANDS TEST_SCRIPTS
+# be careful if reordering these.
+VARS:=SOURCE_DIR SOURCE_ERLS INCLUDE_DIR INCLUDE_HRLS EBIN_DIR EBIN_BEAMS DEPS_FILE APP_NAME OUTPUT_EZS INTERNAL_DEPS EXTRA_PACKAGE_DIRS EXTRA_TARGETS GENERATED_ERLS VERSION OUTPUT_EZS_PATHS INTERNAL_DEPS_PATHS ERLC_OPTS TEST_DIR TEST_SOURCE_DIR TEST_SOURCE_ERLS TEST_EBIN_DIR TEST_EBIN_BEAMS TEST_COMMANDS TEST_SCRIPTS
 
 ifdef PACKAGE_DIR
 
@@ -85,6 +86,8 @@ DEFAULT_APP_NAME:=$$(call package_to_app_name,$$(PACKAGE_NAME))
 DEFAULT_OUTPUT_EZS:=$$($$(PACKAGE_DIR)_APP_NAME)
 DEFAULT_DEPS_FILE:=$$(PACKAGE_DIR)/deps.mk
 DEFAULT_VERSION:=$$(GLOBAL_VERSION)
+DEFAULT_OUTPUT_EZS_PATHS:=$$(patsubst %,$$(PACKAGE_DIR)/$(DIST_DIR)/%-$$($$(PACKAGE_DIR)_VERSION).ez,$$($$(PACKAGE_DIR)_OUTPUT_EZS))
+DEFAULT_INTERNAL_DEPS_PATHS:=$$(patsubst %,$$(PACKAGE_DIR)/$(DIST_DIR)/%-$$($$(PACKAGE_DIR)_VERSION).ez,$$($$(PACKAGE_DIR)_INTERNAL_DEPS))
 
 DEFAULT_TEST_DIR:=$$(PACKAGE_DIR)/test
 DEFAULT_TEST_SOURCE_DIR:=$$($$(PACKAGE_DIR)_TEST_DIR)/src
@@ -116,53 +119,15 @@ ifdef DUMP_VARS
 $(foreach VAR,$(VARS),$(info $(call dump_var,$(VAR))))
 endif
 
-ifeq "$(SET_DEFAULT_GOAL)" "true"
-SET_DEFAULT_GOAL:=false
-
-.PHONY: $(PACKAGE_DIR)_OUTPUT_EZS
-$(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS),$(eval $(PACKAGE_DIR)_OUTPUT_EZS: $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ)-$($(PACKAGE_DIR)_VERSION).ez))
-
-.PHONY: test
-test_DIR:=$(PACKAGE_DIR)
-test_TEST_EBIN_DIR:=$($(PACKAGE_DIR)_TEST_EBIN_DIR)
-test: $($(PACKAGE_DIR)_TEST_EBIN_BEAMS)
-	rm -rf $($@_DIR)/tmp $($@_DIR)/plugins $($@_DIR)/cover
-	mkdir -p $($@_DIR)/tmp $($@_DIR)/plugins
-	cp -a $($@_DIR)/$(DIST_DIR)/*.ez $($@_DIR)/plugins
-	rm -f $($@_DIR)/plugins/rabbit_common*
-	RABBITMQ_PLUGINS_DIR=$($@_DIR)/plugins RABBITMQ_NODENAME=$(NODENAME) \
-	  RABBITMQ_LOG_BASE=$($@_DIR)/tmp RABBITMQ_MNESIA_BASE=$($@_DIR)/tmp \
-	  RABBITMQ_SERVER_START_ARGS="-pa $($($@_DIR)_TEST_EBIN_DIR) -coverage directories [$($@_COVERAGE)]" \
-	  $($@_DIR)/../rabbitmq-server/scripts/rabbitmq-server & sleep 8
-	echo > $($@_DIR)/rabbit-test-output && \
-	{ $(foreach BOOT_CMD,$(BOOT_CMDS),\
-            echo "$(BOOT_CMD)." | tee -a $($@_DIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $($@_DIR)/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
-	  $(foreach CMD,$($($@_DIR)_TEST_COMMANDS), \
-	    echo >> $($@_DIR)/rabbit-test-output && \
-	    echo "$(CMD)." | tee -a $($@_DIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $($@_DIR)/rabbit-test-output | egrep "{ok, " >/dev/null && ) true && \
-	  $(foreach SCRIPT,$($($@_DIR)_TEST_SCRIPTS),$(SCRIPT) && ) true || OK=false; } && \
-	{ $$OK || { cat $($@_DIR)/rabbit-test-output; echo "\n\nFAILED\n"; }; } && \
-	$(foreach CLEANUP_CMD,$(CLEANUP_CMDS),\
-            echo "$(CLEANUP_CMD)." | tee -a $($@_DIR)/rabbit-test-output | $(ERL_CALL) $(ERL_CALL_OPTS) | tee -a $($@_DIR)/rabbit-test-output | egrep "{ok, " >/dev/null; ) true && \
-	sleep 1 && \
-	echo "init:stop()." | $(ERL_CALL) $(ERL_CALL_OPTS) && \
-	rm -rf $($@_DIR)/tmp $($@_DIR)/plugins && \
-	{ $$OK && echo "\nPASSED\n"; }
-
-ifneq "$(findstring coverage,$(TESTABLEGOALS))" ""
-DEPS += coverage
-test_COVERAGE:=$(subst "\"" "\"","\""$(COMMA)"\"",$(foreach DIR,$(test_TEST_EBIN_DIR) $($(PACKAGE_DIR)_EBIN_DIR),"\""$(DIR)"\""))
-endif
-
-.PHONY: coverage
-coverage: test
-
+ifeq "$(TOP_LEVEL)" "true"
+TOP_LEVEL:=false
+include ../top.mk
 endif
 
 include ../common.mk
 
 else
-SET_DEFAULT_GOAL:=true
-endif
+TOP_LEVEL:=true
+endif # ifdef PACKAGE_DIR
 
 include ../deps.mk
