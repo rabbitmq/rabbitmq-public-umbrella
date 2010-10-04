@@ -28,12 +28,15 @@ MACPORTS_USERHOST=
 # RSync user/host to deploy to.  If empty, we don't deploy.
 DEPLOY_USERHOST=
 
+# PATH on DEPLOY_USERHOST to deploy to.
+DEPLOY_PATH=/home/rabbitmq/extras/releases
+
+# Which rabbitmq-umbrella deploy target (of deploy, deploy-live) to invoke
+DEPLOY_TARGET=deploy
+
 # The directory on the local host to use for the build.  If not set,
 # we will use a uniquely-named directory in /var/tmp.
 TOPDIR=
-
-# Which rabbitmq-umbrella deploy target to invoke
-DEPLOY_TARGET=deploy-stage
 
 # Where auxiliary scripts live
 SCRIPTDIR=$(dirname $0)
@@ -56,7 +59,7 @@ check_vars
 
 set -e -x
 
-vars="VERSION=$VERSION REAL_WEB_URL=$REAL_WEB_URL MACPORTS_USERHOST=\"$MACPORTS_USERHOST\" SSH_OPTS=\"$SSH_OPTS\" STAGE_DEPLOY_HOST=\"$DEPLOY_USERHOST\" LIVE_DEPLOY_HOST=\"$DEPLOY_USERHOST\" NIGHTLY_DEPLOY_HOST=\"$DEPLOY_USERHOST\" GNUPG_PATH=$KEYSDIR/keyring"
+vars="VERSION=$VERSION REAL_WEB_URL=$REAL_WEB_URL MACPORTS_USERHOST=\"$MACPORTS_USERHOST\" SSH_OPTS=\"$SSH_OPTS\" DEPLOY_HOST=\"$DEPLOY_USERHOST\" DEPLOY_PATH=\"$DEPLOY_PATH\" GNUPG_PATH=$KEYSDIR/keyring"
 
 # The maven deployment bits need access to credentials under KEYSDIR
 if [ -n "$KEYSDIR" ] ; then
