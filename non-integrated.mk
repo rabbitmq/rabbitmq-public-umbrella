@@ -25,7 +25,7 @@ $(PACKAGE_DIR)/clean:
 	$(MAKE) -C $(@D) clean
 
 .PHONY: $(PACKAGE_DIR)
-$(PACKAGE_DIR):
+$(PACKAGE_DIR): $(PACKAGE_DIR)/Makefile
 	$(MAKE) -C $@ -j VERSION=$($@_VERSION)
 
 endif
