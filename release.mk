@@ -268,10 +268,14 @@ endif
 ###########################################################################
 
 LIVE_DEPLOY_HOST=rabbit-web
-LIVE_DEPLOY_PATH=/home/rabbitmq/extras
+LIVE_DEPLOY_PATH=/home/rabbitmq/extras/releases
+
+# safety first
+NIGHTLY_DEPLOY_HOST=localhost
+NIGHTLY_DEPLOY_PATH=/home/rabbitmq/extras/nightlies
 
 STAGE_DEPLOY_HOST=rabbit-web-stage
-STAGE_DEPLOY_PATH=/home/rabbitmq/extras
+STAGE_DEPLOY_PATH=/home/rabbitmq/extras/releases
 
 RSYNC_CMD=rsync -irvpl --delete-after
 
@@ -280,17 +284,17 @@ DEPLOYMENT_SUBDIRECTORIES=rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-c
 DEPLOY_RSYNC_CMDS=\
 	set -x -e; \
 	for subdirectory in $(DEPLOYMENT_SUBDIRECTORIES) ; do \
-		ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/releases; if [ ! -d $$subdirectory ] ; then mkdir -p $$subdirectory; chmod g+w $$subdirectory; fi)"; \
+		ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path; if [ ! -d $$subdirectory ] ; then mkdir -p $$subdirectory; chmod g+w $$subdirectory; fi)"; \
 		$(RSYNC_CMD) $(PACKAGES_DIR)/$$subdirectory/* \
-		    $$deploy_host:$$deploy_path/releases/$$subdirectory ; \
+		    $$deploy_host:$$deploy_path/$$subdirectory ; \
 	done; \
 	for subdirectory in debian macports ; do \
 		$(RSYNC_CMD) $(PACKAGES_DIR)/$$subdirectory \
-	    	    $$deploy_host:$$deploy_path/releases; \
+	    	    $$deploy_host:$$deploy_path; \
 	done; \
 	unpacked_javadoc_dir=`(cd packages/rabbitmq-java-client; ls -td */rabbitmq-java-client-javadoc-*/ | head -1)`; \
-	ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/releases/rabbitmq-java-client; rm -f current-javadoc; ln -s $$unpacked_javadoc_dir current-javadoc)"; \
-	ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/releases/rabbitmq-server; rm -f current; ln -s $(VDIR) current)"; \
+	ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/rabbitmq-java-client; rm -f current-javadoc; ln -s $$unpacked_javadoc_dir current-javadoc)"; \
+	ssh $(SSH_OPTS) $$deploy_host "(cd $$deploy_path/rabbitmq-server; rm -f current; ln -s $(VDIR) current)"; \
 
 deploy-stage: verify-signatures fixup-permissions-for-deploy
 	deploy_host=$(STAGE_DEPLOY_HOST); \
@@ -301,6 +305,11 @@ deploy-live: verify-signatures deploy-maven fixup-permissions-for-deploy
 	deploy_host=$(LIVE_DEPLOY_HOST); \
 	     deploy_path=$(LIVE_DEPLOY_PATH); \
 	     $(DEPLOY_RSYNC_CMDS)
+
+deploy-nightly: verify-signatures fixup-permissions-for-deploy
+	deploy_host=$(NIGHTLY_DEPLOY_HOST); \
+	    deploy_path=$(NIGHTLY_DEPLOY_PATH); \
+	    $(DEPLOY_RSYNC_CMDS)
 
 fixup-permissions-for-deploy:
 	chmod -R g+w $(PACKAGES_DIR)
