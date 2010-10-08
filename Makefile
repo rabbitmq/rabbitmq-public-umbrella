@@ -1,3 +1,5 @@
+UMBRELLA_BASE_DIR:=$(CURDIR)
+
 include repos.mk
 
 #----------------------------------

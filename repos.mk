@@ -3,13 +3,18 @@
 # which should contain an listing of available plugins, and knows how
 # to check out any such plugin.
 #
-# If this file is not within the CURDIR, UMBRELLA_BASE_DIR should be
-# set to the abspath to the rabbitmq-public-umbrella directory.
+# UMBRELLA_BASE_DIR must be set before including this file.
+#
+# PLUGIN_REPOS should include every package that will be built and
+# tagged as part of the release process for plugins. Thus it should
+# include plugins, and their dependencies, but not things that are
+# built, tagged and release separately: i.e. the core components.
 
 PLUGIN_REPOS:=erlang-rfc4627-wrapper \
               erlang-smtp-wrapper \
               mochiweb-wrapper \
               rabbitmq-bql \
+              rabbitmq-erlang-client \
               rabbitmq-external-exchange \
               rabbitmq-jsonrpc \
               rabbitmq-jsonrpc-channel \
@@ -23,13 +28,9 @@ PLUGIN_REPOS:=erlang-rfc4627-wrapper \
               toke \
               webmachine-wrapper
 
-CORE_REPOS:=rabbitmq-codegen rabbitmq-server rabbitmq-erlang-client
+CORE_REPOS:=rabbitmq-codegen rabbitmq-server
 
 REPOS:=$(PLUGIN_REPOS) $(CORE_REPOS)
-
-ifndef UMBRELLA_BASE_DIR
-UMBRELLA_BASE_DIR:=$(CURDIR)
-endif
 
 HG_CORE_REPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
