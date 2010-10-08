@@ -68,4 +68,3 @@ plugins-dist: release
 	rm -rf $(PLUGINS_DIST_DIR)
 	mkdir -p $(PLUGINS_DIST_DIR)
 	find . -name '*.ez' -exec cp -f {} $(PLUGINS_DIST_DIR) \;
-
