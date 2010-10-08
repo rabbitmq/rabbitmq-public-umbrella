@@ -1,9 +1,19 @@
-# This file is included once, right at the start. Its variables should
-# not be dynamically altered.
+# This file is included once, immediately after parsing the package
+# Makefile for the first time. Thus no package-specific variables are
+# set at all at this point, nor should any package alter the variables
+# set here. It is expected that any variables set here may be
+# overridden by the command line invocation only.
+#
+# This file exists to set up constants, common targets, and to set the
+# relevant variables for non-integrated targets. In that spirit, it
+# also includes repos.mk, to bring in knowledge of how to checkout any
+# of the known repositories.
 
 ifndef INCLUDE_GLOBAL
 INCLUDE_GLOBAL:=true
 
+# This is the standard trick for making pattern substitution work
+# (amongst others) when the replacement needs to include a comma.
 COMMA:=,
 
 export GLOBAL_VERSION ?= 0.0.0
@@ -27,12 +37,6 @@ $(abspath $(CURDIR)/../rabbitmq-erlang-client)_VERSION:=$(GLOBAL_VERSION)
 
 $(abspath $(CURDIR)/../rabbitmq-server)_OUTPUT_EZS:=
 $(abspath $(CURDIR)/../rabbitmq-server)_VERSION:=$(GLOBAL_VERSION)
-
-.PHONY: clean
-clean::
-
-.PHONY: release
-release:
 
 %/$(DEPS_DIR):
 	mkdir $@

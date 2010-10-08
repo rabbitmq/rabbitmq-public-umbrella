@@ -3,9 +3,9 @@
 # $(PACKAGE_DIR)/Makefile and include.mk, and thus all the package's
 # variables are now configured and lifted.
 #
-# The purpose of this file is to create all the .PHONY targets that
-# need to take into account the settings and configuration of the
-# package.
+# The purpose of this file is to create all the top-level .PHONY
+# targets that need to take into account the settings and
+# configuration of the package.
 
 .PHONY: $(PACKAGE_DIR)_OUTPUT_EZS
 $(PACKAGE_DIR)_OUTPUT_EZS: $($(PACKAGE_DIR)_OUTPUT_EZS_PATHS)
@@ -21,6 +21,9 @@ $(PACKAGE_DIR)_OUTPUT_EZS: $($(PACKAGE_DIR)_OUTPUT_EZS_PATHS)
 ifeq "$(.DEFAULT_GOAL)" "$(PACKAGE_DIR)_OUTPUT_EZS_PATHS"
 .DEFAULT_GOAL:=$($(.DEFAULT_GOAL))
 endif
+
+.PHONY: release
+release:
 
 ifdef $(PACKAGE_DIR)_RELEASABLE
 release: $($(PACKAGE_DIR)_OUTPUT_EZS_PATHS)
@@ -86,6 +89,9 @@ endif
 .PHONY: coverage
 coverage: test
 endif # ifneq "$($(PACKAGE_DIR)_TEST_SCRIPTS)$($(PACKAGE_DIR)_TEST_COMMANDS)" ""
+
+.PHONY: clean
+clean::
 
 .PHONY: clean_local
 clean_local: $(PACKAGE_DIR)/clean

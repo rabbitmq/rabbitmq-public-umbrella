@@ -4,8 +4,13 @@
 # If you're a plugin developer and want to get your plugin to work
 # with the build system, please see the README.makefiles file.
 #
+#
 # Internal notes
 # ==============
+#
+# This diagram reflects only the general theme of the dependencies and
+# does not cover tests or the various extension points for additional
+# targets.
 #
 #      ebin/$(APP_NAME).app -?-> ebin/$(APP_NAME)_app.in
 #       ^
@@ -61,6 +66,12 @@
 # always be taken. However, make -j still works, and there is no
 # possibility of missing changes.
 #
+#
+# The sole purpose of include.mk is to set and lift all
+# package-specific variables into the package's namespace. Thus it
+# does not set up any dependencies, and merely includes other files as
+# necessary. The last thing it does is to include deps.mk, which
+# causes recursive descent of the package's dependencies.
 
 include ../global.mk
 

@@ -1,6 +1,11 @@
 # This file is included exactly once per package. It sets the
 # dependencies within a package, and contains targets for building the
-# package's beams.
+# package's beams (including the test beams). It knows how to build
+# the deps.mk file and includes it when appropriate. It also contains
+# the recipies for building the OUTPUT_EZS. In short, this file
+# contains all the targets and dependencies to correctly build the
+# artifacts from a single repository. It is not concerned with any
+# descent of dependencies.
 
 ifdef PACKAGE_DIR
 ifndef $(PACKAGE_DIR)_TARGETS

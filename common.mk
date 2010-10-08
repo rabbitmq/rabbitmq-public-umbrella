@@ -1,4 +1,6 @@
-# This file is included every time we visit a package. It sets up
+# This file is included every time we visit a package. The sole
+# purpose of this file is to enforce the dependencies between the
+# different packages as per each package's DEPS variable. It sets up
 # reverse pointers to our parents (thus relies on the
 # $(PACKAGE_DIR)_PARENTS variables that deps.mk creates) for our
 # OUTPUT_EZS.

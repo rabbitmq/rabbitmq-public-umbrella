@@ -8,7 +8,9 @@
 # target and if so then treats the dependency specially.
 #
 # The last thing that occurs prior to recursion into a child is the
-# inclusion of targets.mk. The same package may be visited several
+# inclusion of targets.mk (or, if the child is non-integrated, the
+# inclusion of non-integrated as the recursive step (i.e. no real
+# recursion in this case)). The same package may be visited several
 # times owing to the diamond problem. Because parent pointers thus
 # expand (see common.mk), descent through children may happen more
 # than once.
