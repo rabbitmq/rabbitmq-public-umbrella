@@ -1,3 +1,7 @@
+.PHONY: default
+default:
+	@echo No default target
+
 UMBRELLA_BASE_DIR:=$(CURDIR)
 include repos.mk
 
