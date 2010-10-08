@@ -24,7 +24,7 @@ checkout: $(foreach REP,$(REPOS),$(CURDIR)/$(REP)/Makefile)
 
 .PHONY: release
 release: checkout
-	$(foreach DIR,$(PLUGIN_REPOS),$(MAKE) -C $(DIR) -j release GLOBAL_VERSION=$(VERSION) &&) true
+	$(foreach DIR,$(PLUGIN_REPOS),$(MAKE) -C $(DIR) release GLOBAL_VERSION=$(VERSION) &&) true
 
 #----------------------------------
 
