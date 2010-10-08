@@ -2,7 +2,7 @@
 # ============
 #
 # If you're a plugin developer and want to get your plugin to work
-# with the build system, please see the README_Makefiles file.
+# with the build system, please see the README.makefiles file.
 #
 # Internal notes
 # ==============
