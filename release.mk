@@ -291,7 +291,7 @@ DEPLOY_RSYNC_CMDS=\
 	ssh $(SSH_OPTS) $(DEPLOY_HOST) "(cd $(DEPLOY_PATH)/rabbitmq-server; rm -f current; ln -s $(VDIR) current)"; \
 
 deploy: verify-signatures fixup-permissions-for-deploy
-     $(DEPLOY_RSYNC_CMDS)
+	$(DEPLOY_RSYNC_CMDS)
 
 deploy-live: verify-signatures deploy deploy-maven
 
