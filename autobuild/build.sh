@@ -161,7 +161,7 @@ fi
 rsync -a $TOPDIR/ $BUILD_USERHOST:$topdir
 
 # Do per-user install of the required erlang/OTP versions
-ssh $SSH_OPTS $BUILD_USERHOST "$topdir/install-otp.sh R12B-3"
+ssh $SSH_OPTS $BUILD_USERHOST "$topdir/install-otp.sh R12B-5"
 
 if [ -z "$WEB_URL" ] ; then
     # Run the website under a local python process
@@ -242,7 +242,7 @@ fi
 
 ssh $SSH_OPTS $BUILD_USERHOST '
     set -e -x
-    PATH=$HOME/otp-R12B-3/bin:$PATH
+    PATH=$HOME/otp-R12B-5/bin:$PATH
     cd '$topdir'
     [ -d keyring ] && chmod -R a+rX,u+w keyring
     cd rabbitmq-umbrella

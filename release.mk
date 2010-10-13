@@ -26,7 +26,7 @@ BUNDLES_PACKAGES_DIR=$(PACKAGES_DIR)/bundles/$(VDIR)
 PLUGINS_DIR=$(PACKAGES_DIR)/plugins/$(VDIR)
 ABSOLUTE_PLUGINS_DIR=$(CURDIR)/$(PLUGINS_DIR)
 
-REQUIRED_EMULATOR_VERSION=5.6.3
+REQUIRED_EMULATOR_VERSION=5.6.5
 ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
 
 REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-erlang-client rabbitmq-public-umbrella
