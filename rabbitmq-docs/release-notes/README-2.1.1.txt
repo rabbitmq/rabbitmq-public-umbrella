@@ -6,9 +6,9 @@ Release Highlights
 server
 ------
 enhancements
- - faster connection termination for connections that use exclusive queues
  - reduce disk use when creating and deleting queues
- - parallelise queue deletion
+ - faster connection termination and queue deletion for connections
+   that use exclusive queues
  - miscellaneous persister performance improvements
  - extend queue leases on declaration
  - add 'client_flow' channel info item for 'rabbitmqctl list_channels'
@@ -18,10 +18,11 @@ enhancements
 
 bug fixes
  - fix a bug that could kill rabbit after a queue.purge
+ - fix a bug which could cause 'rabbitmqctl list_connections' to crash
+   some of the connection handlers
  - reduce per-queue memory back to expected levels
+ - don't ignore channel.flow when there were no consumers
  - fix some bugs that caused too few or too many stats to be emitted
- - fix a bug that caused channel.flow to be ignored when there were no consumers
- - fix a bug which could cause rabbitmqctl to crash the reader
 
 .net client
 -----------
