@@ -20,7 +20,6 @@ bug fixes
  - fix a bug that could kill rabbit after a queue.purge
  - reduce per-queue memory back to expected levels
  - fix some bugs that caused too few or too many stats to be emitted
- - fix a miscellaneous bug related to reserved method fields
  - fix a bug that caused channel.flow to be ignored when there were no consumers
  - fix a bug which could cause rabbitmqctl to crash the reader
 
