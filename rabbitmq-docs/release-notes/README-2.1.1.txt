@@ -28,10 +28,10 @@ bug fixes
 java client
 -----------
 bug fixes
- - fix a bug in heartbeating that caused the client to hang on unreliable
-   networks
- - fix a bug that caused the client to hang when trying to consume from
-   inexistent queues in parallel
+ - eliminate the possibility of deadlock when opening channels at the
+   same times as others are being closed
+ - move heartbeat sender into a separate thread to ensure that missing
+   heartbeats are detected promptly in all cases
 
 .net client
 -----------
