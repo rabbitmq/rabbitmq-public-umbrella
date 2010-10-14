@@ -6,6 +6,7 @@ Release Highlights
 server
 ------
 enhancements
+ - add exchange to exchange bindings
  - reduce disk use when creating and deleting queues
  - faster connection termination and queue deletion for connections
    that use exclusive queues
@@ -23,6 +24,14 @@ bug fixes
  - reduce per-queue memory back to expected levels
  - don't ignore channel.flow when there were no consumers
  - fix some bugs that caused too few or too many stats to be emitted
+
+java client
+-----------
+bug fixes
+ - fix a bug in heartbeating that caused the client to hang on unreliable
+   networks
+ - fix a bug that caused the client to hang when trying to consume from
+   inexistent queues in parallel
 
 .net client
 -----------
