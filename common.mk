@@ -29,6 +29,8 @@
 # INTERNAL_DEPS depend on the parent's local copy of our (the child's)
 # OUTPUT_EZS.
 
+# $(info I am $(PACKAGE_DIR) and my parents are $($(PACKAGE_DIR)_PARENTS))
+
 define parent_requires_ezs
 # parent is in $(1)
 $(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS),$(call parent_requires_ez,$(1),$(EZ)))

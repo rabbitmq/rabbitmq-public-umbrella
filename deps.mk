@@ -31,9 +31,7 @@ include ../common.mk
 else
 $(strip $(1))_VISITED:=true
 ifeq "$(filter $(notdir $(strip $(1))),$(NON_INTEGRATED))" ""
-$(foreach VAR,$(VARS),$(eval $(VAR):=undefined))
-include $(strip $(1))/package.mk
-include ../include.mk
+include ../package.mk
 else
 include ../non-integrated.mk
 endif
