@@ -11,6 +11,9 @@ include repos.mk
 .PHONY: co
 co: checkout
 
+.PHONY: ci
+ci: checkin
+
 .PHONY: up
 up: update
 
@@ -63,6 +66,10 @@ tag: checkout
 .PHONY: push
 push: checkout
 	$(foreach DIR,. $(REPOS),(cd $(DIR); hg push -f);)
+
+.PHONY: checkin
+checkin: checkout
+	$(foreach DIR,. $(REPOS),(cd $(DIR); hg ci);)
 
 #----------------------------------
 # Plugin management
