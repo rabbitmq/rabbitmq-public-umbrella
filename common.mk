@@ -11,11 +11,17 @@
 # now make sure that foo's EBIN_BEAMS depend on our (bar's)
 # OUTPUT_EZS.
 #
-# We have to afford the possibility of visiting this multiple times. E.g.
-# foo -> bar; foo -> baz; bar -> qux; baz -> qux
-# The first time we visit qux, we will only have one parent (either
-# bar or baz). The second time we visit it, we will know of both
-# parents and can thus ensure we get all the correct dependencies.
+# We have to afford the possibility of visiting each package multiple
+# times. E.g.  foo -> bar; foo -> baz; bar -> qux; baz -> qux. The
+# first time we visit qux, we will only have one parent (either bar or
+# baz). The second time we visit it, we will know of both parents and
+# can thus ensure we get all the correct dependencies. However, we
+# deps.mk detects whether or not we've already visited qux. If we
+# have, deps.mk simply sets up the PACKAGE_DIR and PACKAGE_NAME vars,
+# and directly includes common.mk for every repeated visit to a
+# package. Thus the dependencies on the package's OUTPUT_EZS are
+# created, but without having to fully visit the package (and its
+# children) multiple times.
 #
 # We start at the bottom of the file, and say that for each parent we
 # know about, we're going to make the parent depend on all of our
