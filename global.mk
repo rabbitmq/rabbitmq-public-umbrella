@@ -16,6 +16,33 @@ INCLUDE_GLOBAL:=true
 # (amongst others) when the replacement needs to include a comma.
 COMMA:=,
 
+VARS:=SOURCE_DIR \
+      SOURCE_ERLS \
+      INCLUDE_DIR \
+      INCLUDE_HRLS \
+      EBIN_DIR \
+      EBIN_BEAMS \
+      DEPS_FILE \
+      APP_NAME \
+      OUTPUT_EZS \
+      INTERNAL_DEPS \
+      EXTRA_PACKAGE_DIRS \
+      EXTRA_TARGETS \
+      GENERATED_ERLS \
+      VERSION \
+      OUTPUT_EZS_PATHS \
+      INTERNAL_DEPS_PATHS \
+      ERLC_OPTS \
+      TEST_DIR \
+      TEST_SOURCE_DIR \
+      TEST_SOURCE_ERLS \
+      TEST_EBIN_DIR \
+      TEST_EBIN_BEAMS \
+      TEST_COMMANDS \
+      TEST_SCRIPTS \
+      RELEASABLE \
+      DEPS
+
 export GLOBAL_VERSION ?= 0.0.0
 export ERLC ?= erlc
 export ERL ?= erl
