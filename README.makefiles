@@ -5,63 +5,56 @@ This suite of Makefiles exists to make it easy to express dependency
 relationships between different plugins (or packages - from here on
 called the package as not all packages have to be plugins), and to
 have them build easily. The general idea is that in your package
-directory you have a Makefile, in which you first declare a few
-variables, and then the last thing is you "include
-../include.mk". You should then be able to issue make within your
-package directory and rely on this system to build all the
-dependencies required.
+directory you have:
+
+1. Makefile
+  This contains the single line:
+include ../include.mk
+
+2. package.mk
+  This contains variable declarations and recipes as needed
+
+You should then be able to issue make within your package directory
+and rely on this system to build all the dependencies required.
 
 The overall goal is the construction of a .ez file, with the name
-based on the package name. This will be constructed and placed in
-the dist directory. In that directory you will also find the out of
-of the transitive closure of all dependencies of the
-package. E.g. if your package is A, and depends on B, and package B
-depends on C, then C will produce C.ez which will be supplied to
-B. B will produce B.ez and then both C.ez and B.ez will be supplied
-to A, which will produce A.ez, leaving all three .ez files in the
-dist directory of C.
+based on the package name. This will be constructed and placed in the
+dist directory. In that directory you will also find the out of of the
+transitive closure of all dependencies of the package. E.g. if your
+package is A, and depends on B, and package B depends on C, then C
+will produce C.ez which will be supplied to B. B will produce B.ez and
+then both C.ez and B.ez will be supplied to A, which will produce
+A.ez, leaving all three .ez files in the dist directory of C.
 
-Recursive invocations of make are avoided where ever possible and
-are undesirable. This is because they must be declared as .PHONY
-targets (because they themselves are encapsulating the dependency
-information required to determine whether or not anything needs
-rebuilding) and thus are always re-invoked. The properties of .PHONY
-targets are that anything that depends on a .PHONY target is itself
-a .PHONY target. This is unfortunate as it means that any package
-that depends on any other package that is not fully integrated with
-this system, and thus requires recursive make, is itself forever
-rebuilt. Hopefully the existence of this system will slowly force
-other important packages to become properly integrated: the
-rabbitmq-erlang-client and rabbitmq-server being the primary
-sticking points. Nevertheless, the correct tracking of dependencies
-between packages means you never have to explicitly rebuild in some
-other package directory, and you never need to issue make clean to
-get rid of out-of-date artifacts.
+Recursive invocations of make are avoided where ever possible and are
+undesirable. This is because they must be declared as .PHONY targets
+(because they themselves are encapsulating the dependency information
+required to determine whether or not anything needs rebuilding) and
+thus are always re-invoked. The properties of .PHONY targets are that
+anything that depends on a .PHONY target is itself a .PHONY
+target. This is unfortunate as it means that any package that depends
+on any other package that is not fully integrated with this system,
+and thus requires recursive make, is itself forever rebuilt. Hopefully
+the existence of this system will slowly force other important
+packages to become properly integrated: the rabbitmq-erlang-client and
+rabbitmq-server being the primary sticking points. Nevertheless, the
+correct tracking of dependencies between packages means you never have
+to explicitly rebuild in some other package directory, and you never
+need to issue make clean to get rid of out-of-date artifacts.
 
 
-Package Makefile
-================
+package.mk
+==========
 
-The package Makefile should not assume it is the top-level
-Makefile. It should never refer to paths relative to itself. This is
-because some other package could always depend upon it and thus
-paths would be relative to that other directory.
+The package.mk should never refer to paths relative to itself. This is
+because some other package could always depend upon it and thus paths
+would be relative to that other directory.
 
-To aid with this, before a package Makefile is read, the variables
-PACKAGE_DIR and PACKAGE_NAME are set. The former is the absolute
-path to and including the package directory, whilst the latter is
-just the name of the package directory. These variables should never
-be modified. (In the case of the top-level Makefile, it is actually
-read twice: the second time with these variables set).
-
-The general structure of the Makefile should be to set the variables
-and rules it needs, and then to call "include ../include.mk". Note
-that the include must be the last thing to happen because once
-control flow returns beneath this point, the values of PACKAGE_DIR
-and PACKAGE_NAME may well have changed, thus it is not safe to use
-them. (At this point, it's actually returning up the chain of
-dependencies: PACKAGE_NAME and PACKAGE_DIR will likely represent one
-of the leaves in the dependency tree.)
+To aid with this, before a package.mk is read in, the variables
+PACKAGE_DIR and PACKAGE_NAME are set. The former is the absolute path
+to and including the package directory, whilst the latter is just the
+name of the package directory. These variables should never be
+modified.
 
 
 Variables
@@ -73,8 +66,8 @@ PACKAGE_NAME :: string - name of package directory
 PACKAGE_DIR :: abspath - absolute path to and including package dir
 
 The following can be changed, but only globally, not per package
-(i.e. set them as environment variables or arguments to the top
-level make invocation). Note they may be lost for non-integrated
+(i.e. set them as environment variables or arguments to the top level
+make invocation). Note they may be lost for non-integrated
 packages. These variables are exported and so can be used in
 non-integrated packages and recursive make invocations.
 
@@ -86,9 +79,9 @@ DIST_DIR :: path - defaults to dist
 DEPS_DIR :: path - defaults to deps
 GLOBAL_VERSION :: string - defaults to 0.0.0
 
-The following are the variables that may be set in the package
-Makefile. In general, unless you know better, please use := to
-declare these variables, not =
+The following are the variables that may be set in the package.mk
+file. In general, unless you know better, please use := to declare
+these variables, not =
 
 SOURCE_DIR :: abspath
   Default: $(PACKAGE_DIR)/src
@@ -192,8 +185,8 @@ Important note for OUTPUT_EZS and INTERNAL_DEPS
   provide your own recipe. In that case, set
   $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ)_TARGET and then provide a rule to
   build $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ)-$(VERSION).ez. E.g. if you
-  want to manually control the building of foo.ez, in the package
-  Makefile:
+  want to manually control the building of foo.ez, in the package's
+  package.mk file:
 
   $(PACKAGE_DIR)/$(DIST_DIR)/foo_TARGET:=true
   $(PACKAGE_DIR)/$(DIST_DIR)/foo-%.ez: ... foo's prerequisites ...
@@ -247,15 +240,13 @@ There is a potential problem with non-integrated dependencies
 (recursive invocations of make), and generated sources that can lead
 to infinite recursion.
 
-Example:
+Example package.mk:
 
 DEPS:=something-non-integrated
 GENERATE_SOURCES:=$(PACKAGE_DIR)/src/foo.erl
 
 %/src/foo.erl: %/src/foo.input %/ebin/library.beam
         $(ERL) -pa ebin -noshell -eval 'library:do_work("$@", "$<")'
-
-include ../include.mk
 
 All the beams have the various DEPS as prerequisites. Thus we can
 start by going off and building the DEPS. Then we can build
@@ -266,16 +257,15 @@ again. However, because the DEPS are non-integrated and thus .PHONY,
 it has no choice but to run them again. Even if the DEP doesn't
 produce new artifacts, by the very fact it's .PHONY, its artifacts,
 fresh or not, get copied and unpacked in our DIST_DIR. They are now
-found to be younger than library.beam. As a result library.beam has
-to be remade, which then means that foo.erl has to be remade which
-then means that the DEPS_FILE has to be remade... cue loop.
+found to be younger than library.beam. As a result library.beam has to
+be remade, which then means that foo.erl has to be remade which then
+means that the DEPS_FILE has to be remade... cue loop.
 
 The problem here is that library.erl is in SOURCE_ERLS, and
-subsequently ends up in EBIN_BEAMS, hence depends on DEPS. If we
-avoid that, then whilst foo.beam may need to be rebuilt owing to
-updated DEPS artifacts, we do not need to rebuild foo.erl, and thus
-the DEPS_FILE doesn't become invalidated. Thus the solution is to
-add:
+subsequently ends up in EBIN_BEAMS, hence depends on DEPS. If we avoid
+that, then whilst foo.beam may need to be rebuilt owing to updated
+DEPS artifacts, we do not need to rebuild foo.erl, and thus the
+DEPS_FILE doesn't become invalidated. Thus the solution is to add:
 
 SOURCE_DIR:=$(PACKAGE_DIR)/src
 SOURCE_ERLS:=$(filter-out %/library.erl,$(wildcard $(SOURCE_DIR)/*.erl))
@@ -351,10 +341,9 @@ Releases
 --------
 
 If your package is releasable, declare RELEASABLE:=true in your
-Makefile, prior to the include ../include.mk directive. Then, when
-the public umbrella is asked to build all releasable plugins, yours
-will be built. There is no need to declare RELEASABLE in any
-dependencies.
+package.mk. Then, when the public umbrella is asked to build all
+releasable plugins, yours will be built. There is no need to declare
+RELEASABLE in any dependencies.
 
 
 Targets
