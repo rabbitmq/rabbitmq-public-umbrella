@@ -15,6 +15,7 @@ enhancements
  - extend queue leases on declaration
  - add 'client_flow' channel info item for 'rabbitmqctl list_channels'
  - add SSL information for 'rabbitmqctl list_connections'
+ - enforce restrictions regarding the default exchange
  - add version information to database - for future upgrades
  - better memory detection on AIX
 
@@ -22,7 +23,6 @@ bug fixes
  - fix a bug that could kill rabbit after a queue.purge
  - fix a bug which could cause 'rabbitmqctl list_connections' to crash
    some of the connection handlers
- - enforce restrictions regarding the default exchange
  - reduce per-queue memory back to expected levels
  - don't ignore channel.flow when there were no consumers
  - fix some bugs that caused too few or too many stats to be emitted
