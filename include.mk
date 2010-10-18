@@ -47,7 +47,9 @@
 # the dependencies for OUTPUT_EZS needs correcting (see point 2
 # above). E.g. foo -> bar; foo -> baz; bar -> qux; baz -> qux: when
 # visiting qux, we need to ensure both bar and baz depend on the
-# qux.ez outputs.
+# qux.ez outputs. However, in subsequent visits to qux, we detect
+# whether we've already loaded that package, and minimise the work we
+# have to do.
 #
 # 5. targets.mk is only included for fully integrated packages and is
 # only included once per package.
@@ -67,11 +69,9 @@
 # possibility of missing changes.
 #
 #
-# The sole purpose of include.mk is to set and lift all
-# package-specific variables into the package's namespace. Thus it
-# does not set up any dependencies, and merely includes other files as
-# necessary. The last thing it does is to include deps.mk, which
-# causes recursive descent of the package's dependencies.
+# The purpose of this file is to load the global definitions and then
+# start on the recursive descent of the package dependencies by
+# including deps.mk.
 
 include ../global.mk
 include ../deps.mk

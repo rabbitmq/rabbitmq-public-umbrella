@@ -1,7 +1,7 @@
 # This file, like global.mk, is included only once. However, unlike
-# global, this file is included only after the second pass through the
-# $(PACKAGE_DIR)/Makefile and include.mk, and thus all the package's
-# variables are now configured and lifted.
+# global, this file is included only after the inclusion of the
+# top-package's package.mk (via the umbrella's package.mk), and thus
+# all the package's variables are now configured and lifted.
 #
 # The purpose of this file is to create all the top-level .PHONY
 # targets that need to take into account the settings and

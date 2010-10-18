@@ -1,3 +1,10 @@
+# The purpose of this file is to set and lift all package-specific
+# variables into the package's namespace. Thus it does not set up any
+# dependencies, and merely includes other files as necessary. The last
+# thing it does is to include deps.mk, which causes recursive descent
+# of the package's dependencies.
+#
+#
 # First blank out all the variables.
 $(foreach VAR,$(VARS),$(eval $(VAR):=))
 
@@ -46,5 +53,8 @@ TOP_LEVEL:=true
 include ../top.mk
 endif
 
+# include common so that our parents depend on our OUTPUT_EZS
 include ../common.mk
+
+# recurse into our own dependencies
 include ../deps.mk

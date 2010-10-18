@@ -27,6 +27,9 @@ define package_recurse
 PACKAGE_DIR:=$(1)
 PACKAGE_NAME:=$(2)
 ifdef $(strip $(1))_VISITED
+# we've already loaded this child, but from a different parent, so all
+# we need to do is make sure we depend on its outputs, which is done
+# by including common.mk
 include ../common.mk
 else
 $(strip $(1))_VISITED:=true

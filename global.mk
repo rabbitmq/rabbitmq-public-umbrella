@@ -79,13 +79,10 @@ $(subst __,_,$(patsubst rabbitmq%,rabbit_%,$(subst -,_,$(1))))
 endef
 
 # This function is used to lift variables into the $(PACKAGE_DIR)
-# namespace. If the variable contains the text "undefined", then the
-# default value is used. The use of eval, and the $-escaping within
-# the DEFAULT_* variables introduces laziness: the values can refer to
-# other variables which are not defined. E.g. in the package Makefile,
-# you can refer to $$(SOURCE_DIR) without declaring SOURCE_DIR and
-# thus rely on the default value.
-# variable name is in $(1), default variable expression is in $(2)
+# namespace. The use of simple assignment is deliberate at this point
+# to force evaluation and capture of any recursively-declared
+# variables.
+# variable name is in $(1), namespace is in $(2)
 define lift_var
 $$(eval $(2)_$(1):=$($(1)))
 endef
