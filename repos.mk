@@ -5,16 +5,15 @@
 #
 # UMBRELLA_BASE_DIR must be set before including this file.
 #
-# PLUGIN_REPOS should include every package that will be built and
-# tagged as part of the release process for plugins. Thus it should
-# include plugins, and their dependencies, but not things that are
-# built, tagged and release separately: i.e. the core components.
+# PLUGIN_REPOS should include every package that has a "release"
+# target: i.e. integrated packages only. Thus it should include
+# plugins, and their dependencies, but not things that are built,
+# tagged and release separately: i.e. the core components.
 
 PLUGIN_REPOS:=erlang-rfc4627-wrapper \
               erlang-smtp-wrapper \
               mochiweb-wrapper \
               rabbitmq-bql \
-              rabbitmq-erlang-client \
               rabbitmq-external-exchange \
               rabbitmq-jsonrpc \
               rabbitmq-jsonrpc-channel \
@@ -28,7 +27,7 @@ PLUGIN_REPOS:=erlang-rfc4627-wrapper \
               toke \
               webmachine-wrapper
 
-CORE_REPOS:=rabbitmq-codegen rabbitmq-server
+CORE_REPOS:=rabbitmq-codegen rabbitmq-server rabbitmq-erlang-client
 
 REPOS:=$(PLUGIN_REPOS) $(CORE_REPOS)
 
