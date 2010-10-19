@@ -7,7 +7,7 @@ server
 ------
 enhancements
  - add exchange to exchange bindings. See
-   www.rabbitmq.com/extensions.html#exchange-bindings
+   www.rabbitmq.com/extensions.html#exchange-bindings. Blog post forthcoming.
  - reduce disk use when creating and deleting queues
  - faster connection termination and queue deletion for connections
    that use exclusive queues
