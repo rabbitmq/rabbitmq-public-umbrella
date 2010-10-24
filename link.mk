@@ -66,7 +66,7 @@ endef
 
 define link
 # package_dir is in $(1)
-$(foreach DEP,$($(2)_DEPS),$(eval $(call ancestor_requires_descendant,$(1),$($(DEP)_DIR))))
+$(foreach DEP,$($(2)_DEPS),$(call ancestor_requires_descendant,$(1),$($(DEP)_DIR)))
 endef
 
 $(foreach PACKAGE_NAME,$(PACKAGE_NAMES),$(eval $(call link,$($(PACKAGE_NAME)_DIR),$($(PACKAGE_NAME)_DIR))))
