@@ -62,7 +62,7 @@ $(call link,$(1),$(2))
 endef
 
 define link
-# package_dir is in $(1)
+# ancestor package_dir is in $(1). descendant* package_dir is in $(2)
 $(foreach DEP,$($(2)_DEPS),$(call ancestor_requires_descendant,$(1),$($(DEP)_DIR)))
 endef
 
