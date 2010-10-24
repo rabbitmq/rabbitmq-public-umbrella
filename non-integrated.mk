@@ -3,7 +3,7 @@
 # non-integrated packages. The actual settings for such packages are
 # found in global.mk.
 #
-# common.mk is still used to set up the links to the parents of such
+# link.mk is still used to set up the links to the parents of such
 # non-integrated children, so that they know what .ezs to copy up and
 # unpack.
 

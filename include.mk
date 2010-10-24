@@ -41,7 +41,7 @@
 #
 # 3. The contents of global.mk are included just once.
 #
-# 4. common.mk is included as the last file ever included when parsing
+# 4. link.mk is included as the last file ever included when parsing
 # files. It creates dependencies between different packages based on
 # the ancestor's DEPS variable, and the descents various EZ outputs.
 #
@@ -69,4 +69,4 @@
 
 include ../global.mk
 include ../deps.mk
-include ../common.mk
+include ../link.mk
