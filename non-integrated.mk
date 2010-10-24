@@ -16,8 +16,10 @@ define make_in_non_intergrated
 $(1): $(2)
 endef
 
+$(PACKAGE_DIR)_OUTPUT_EZS_PATHS:=$(patsubst %,$(PACKAGE_DIR)/$(DIST_DIR)/%-$($(PACKAGE_DIR)_VERSION).ez,$($(PACKAGE_DIR)_OUTPUT_EZS))
+
 # the output ezs are just dependent on the package_dir itself (though PHONY)
-$(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS),$(eval $(call make_in_non_intergrated,$(PACKAGE_DIR)/$(DIST_DIR)/$(EZ)-$($(PACKAGE_DIR)_VERSION).ez,$(PACKAGE_DIR))))
+$(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS_PATHS),$(eval $(call make_in_non_intergrated,$(EZ),$(PACKAGE_DIR))))
 
 .PHONY: $(PACKAGE_DIR)/clean
 clean:: $(PACKAGE_DIR)/clean
@@ -29,7 +31,5 @@ $(PACKAGE_DIR): $(PACKAGE_DIR)/Makefile
 	$(MAKE) -C $@ VERSION=$($@_VERSION)
 
 endif
-
-include ../common.mk
 
 endif

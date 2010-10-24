@@ -41,15 +41,9 @@
 #
 # 3. The contents of global.mk are included just once.
 #
-# 4. common.mk is included every time we visit a package. This is true
-# even if we've already visited a package and is essential as we may
-# discover a package has more parents than we'd previously thought and
-# the dependencies for OUTPUT_EZS needs correcting (see point 2
-# above). E.g. foo -> bar; foo -> baz; bar -> qux; baz -> qux: when
-# visiting qux, we need to ensure both bar and baz depend on the
-# qux.ez outputs. However, in subsequent visits to qux, we detect
-# whether we've already loaded that package, and minimise the work we
-# have to do.
+# 4. common.mk is included as the last file ever included when parsing
+# files. It creates dependencies between different packages based on
+# the ancestor's DEPS variable, and the descents various EZ outputs.
 #
 # 5. targets.mk is only included for fully integrated packages and is
 # only included once per package.
@@ -75,3 +69,4 @@
 
 include ../global.mk
 include ../deps.mk
+include ../common.mk

@@ -1,62 +1,72 @@
-# This file is included every time we visit a package. The sole
-# purpose of this file is to enforce the dependencies between the
-# different packages as per each package's DEPS variable. It sets up
-# reverse pointers to our parents (thus relies on the
-# $(PACKAGE_DIR)_PARENTS variables that deps.mk creates) for our
-# OUTPUT_EZS.
+# This file is included as the last file to include at the end of
+# parsing an constructing the entire Makefile. The sole purpose of
+# this file is to enforce the dependencies between the different
+# packages as per each package's DEPS variable.
 #
-# Thus if foo depends on bar, we start in foo, but we don't know what
-# the OUTPUT_EZS of bar are going to be. So deps.mk sets
-# bar_PARENTS:=foo, and then when we visit foo and come in here, we
-# now make sure that foo's EBIN_BEAMS depend on our (bar's)
-# OUTPUT_EZS.
+# The PACKAGE_NAMES variable contains the name of every package that
+# we have visited and thus is necessary to build. We iterate over
+# these, and form the transitive closure, ensuring that an ancestor's
+# BEAMS and INTERNAL_DEPS are dependent upon its descendants' EZS
+# (both OUTPUT_EZS and INTERNAL_DEPS (of the descendant)). Thus:
 #
-# We have to afford the possibility of visiting each package multiple
-# times. E.g.  foo -> bar; foo -> baz; bar -> qux; baz -> qux. The
-# first time we visit qux, we will only have one parent (either bar or
-# baz). The second time we visit it, we will know of both parents and
-# can thus ensure we get all the correct dependencies. However, we
-# deps.mk detects whether or not we've already visited qux. If we
-# have, deps.mk simply sets up the PACKAGE_DIR and PACKAGE_NAME vars,
-# and directly includes common.mk for every repeated visit to a
-# package. Thus the dependencies on the package's OUTPUT_EZS are
-# created, but without having to fully visit the package (and its
-# children) multiple times.
+#      A
+#     / \
+#    B   C
+#     \ /
+#      D
+#      |
+#      E
 #
-# We start at the bottom of the file, and say that for each parent we
-# know about, we're going to make the parent depend on all of our
-# OUTPUT_EZS. That amounts to making the parent's BEAMS and
-# INTERNAL_DEPS depend on the parent's local copy of our (the child's)
-# OUTPUT_EZS.
+# A : B C D E
+# B : D E
+# C : D E
+# D : E
+# E :
+#
 
-# $(info I am $(PACKAGE_DIR) and my parents are $($(PACKAGE_DIR)_PARENTS))
+define ancestor_requires_ez
+# ancestor package_dir is in $(1).
+# descendant package_dir is in $(2).
+# descendant full ez path is in $(3)
+# descendant full ez path transposed into ancestor is in $(4)
 
-define parent_requires_ezs
-# parent is in $(1)
-$(foreach EZ,$($(PACKAGE_DIR)_OUTPUT_EZS),$(call parent_requires_ez,$(1),$(EZ)))
-endef
+ifndef $(4)
+$(4):=true
 
-define parent_requires_ez
-# parent is in $(1), ez is in $(2)
-ifndef $(1)/$(DIST_DIR)/$(2)
-$(1)/$(DIST_DIR)/$(2):=true
-# the parent's beams depend on the child's ez
-$($(1)_EBIN_BEAMS): $(1)/$(DIST_DIR)/$(2)-$($(PACKAGE_DIR)_VERSION).ez.stamp
-# $$(info $($(1)_EBIN_BEAMS): $(1)/$(DIST_DIR)/$(2)-$($(PACKAGE_DIR)_VERSION).ez.stamp)
-# the parent's internal deps depend on the child's ez
-$(patsubst %,$(1)/$(DIST_DIR)/%-$($(PACKAGE_DIR)_VERSION).ez,$($(1)_INTERNAL_DEPS)): $(1)/$(DIST_DIR)/$(2)-$($(PACKAGE_DIR)_VERSION).ez.stamp
-# $$(info $(patsubst %,$(1)/$(DIST_DIR)/%-$($(PACKAGE_DIR)_VERSION).ez,$($(1)_INTERNAL_DEPS)): $(1)/$(DIST_DIR)/$(2)-$($(PACKAGE_DIR)_VERSION).ez.stamp)
-# $$(info $(1)/$(DIST_DIR)/$(2)-$($(PACKAGE_DIR)_VERSION).ez.stamp: $(PACKAGE_DIR)/$(DIST_DIR)/$(2)-$($(PACKAGE_DIR)_VERSION).ez)
-$(1)/$(DIST_DIR)/$(2)-$($(PACKAGE_DIR)_VERSION).ez.stamp_CHILD_VERSION:=$($(PACKAGE_DIR)_VERSION)
-$(1)/$(DIST_DIR)/$(2)-$($(PACKAGE_DIR)_VERSION).ez.stamp: $(PACKAGE_DIR)/$(DIST_DIR)/$(2)-$($(PACKAGE_DIR)_VERSION).ez | $(1)/$(DIST_DIR)
-	rm -rf $(1)/$(DIST_DIR)/$(2)-$$($$@_CHILD_VERSION).ez $(1)/$(DIST_DIR)/$(2)-$$($$@_CHILD_VERSION)
-	cp $$< $(1)/$(DIST_DIR)/
-	cd $(1)/$(DIST_DIR)/ && unzip $(2)-$$($$@_CHILD_VERSION).ez
+# the ancestor's beams depend on the child's ez in the ancestor's dist dir
+# $$(info $($(1)_EBIN_BEAMS): $(4).stamp)
+$($(1)_EBIN_BEAMS): $(4).stamp
+
+# the ancestor's internal deps depend on the child's ez
+$($(1)_INTERNAL_DEPS_PATHS): $(4).stamp
+
+# $$(info $(4).stamp: $(3) | $(1)/$(DIST_DIR))
+$(4).stamp: $(3) | $(1)/$(DIST_DIR)
+	rm -rf $(4) $(patsubst %.ez,%,$(4)) $$@
+	cp $$< $$(@D)
+	cd $$(@D) && unzip $(notdir $(4))
 	touch $$@
-
 endif
-# form transitive closure so that ezs keep travelling upwards
-$(foreach PARENT,$($(1)_PARENTS),$(eval $(call parent_requires_ezs,$(PARENT))))
+
 endef
 
-$(foreach PARENT,$($(PACKAGE_DIR)_PARENTS),$(eval $(call parent_requires_ezs,$(PARENT))))
+define ancestor_requires_descendant
+# ancestor package_dir is in $(1). descendant package_dir is in $(2)
+# $$(info $(1) : $(2))
+
+# the ancestor's requires descendant's EZS
+$(foreach EZ,$($(2)_OUTPUT_EZS_PATHS),$(call ancestor_requires_ez,$(1),$(2),$(EZ),$(patsubst $(2)/%,$(1)/%,$(EZ))))
+
+# the ancestor's requires descendant's INTERNAL_DEPS
+$(foreach EZ,$($(2)_INTERNAL_DEPS_PATHS),$(call ancestor_requires_ez,$(1),$(2),$(EZ),$(patsubst $(2)/%,$(1)/%,$(EZ))))
+
+# form transitive closure - ancestor requires _all_ its descendants
+$(call link,$(1),$(2))
+endef
+
+define link
+# package_dir is in $(1)
+$(foreach DEP,$($(2)_DEPS),$(eval $(call ancestor_requires_descendant,$(1),$($(DEP)_DIR))))
+endef
+
+$(foreach PACKAGE_NAME,$(PACKAGE_NAMES),$(eval $(call link,$($(PACKAGE_NAME)_DIR),$($(PACKAGE_NAME)_DIR))))

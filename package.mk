@@ -53,8 +53,5 @@ TOP_LEVEL:=true
 include ../top.mk
 endif
 
-# include common so that our parents depend on our OUTPUT_EZS
-include ../common.mk
-
 # recurse into our own dependencies
 include ../deps.mk

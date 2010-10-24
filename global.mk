@@ -16,6 +16,8 @@ INCLUDE_GLOBAL:=true
 # (amongst others) when the replacement needs to include a comma.
 COMMA:=,
 
+PACKAGE_NAMES:=
+
 VARS:=SOURCE_DIR \
       SOURCE_ERLS \
       INCLUDE_DIR \
