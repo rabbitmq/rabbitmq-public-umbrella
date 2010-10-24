@@ -54,11 +54,8 @@ define ancestor_requires_descendant
 # ancestor package_dir is in $(1). descendant package_dir is in $(2)
 # $$(info $(1) : $(2))
 
-# the ancestor's requires descendant's EZS
-$(foreach EZ,$($(2)_OUTPUT_EZS_PATHS),$(call ancestor_requires_ez,$(1),$(2),$(EZ),$(patsubst $(2)/%,$(1)/%,$(EZ))))
-
-# the ancestor's requires descendant's INTERNAL_DEPS
-$(foreach EZ,$($(2)_INTERNAL_DEPS_PATHS),$(call ancestor_requires_ez,$(1),$(2),$(EZ),$(patsubst $(2)/%,$(1)/%,$(EZ))))
+# the ancestor's requires descendant's EZS and INTERNAL_DEPS
+$(foreach EZ,$($(2)_OUTPUT_EZS_PATHS) $($(2)_INTERNAL_DEPS_PATHS),$(call ancestor_requires_ez,$(1),$(2),$(strip $(EZ)),$(patsubst $(2)/%,$(1)/%,$(strip $(EZ)))))
 
 # form transitive closure - ancestor requires _all_ its descendants
 $(call link,$(1),$(2))
@@ -69,4 +66,4 @@ define link
 $(foreach DEP,$($(2)_DEPS),$(call ancestor_requires_descendant,$(1),$($(DEP)_DIR)))
 endef
 
-$(foreach PACKAGE_NAME,$(PACKAGE_NAMES),$(eval $(call link,$($(PACKAGE_NAME)_DIR),$($(PACKAGE_NAME)_DIR))))
+$(foreach PACKAGE_NAME,$(PACKAGE_NAMES),$(eval $(call link,$($(strip $(PACKAGE_NAME))_DIR),$($(strip $(PACKAGE_NAME))_DIR))))

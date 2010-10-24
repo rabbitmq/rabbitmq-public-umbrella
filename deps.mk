@@ -15,11 +15,11 @@ define package_recurse
 # child abspath is in $(1). Child name is in $(2)
 PACKAGE_DIR:=$(1)
 PACKAGE_NAME:=$(2)
-$(strip $(2))_DIR:=$(strip $(1))
-ifndef $(strip $(1))_VISITED
-$(strip $(1))_VISITED:=true
-PACKAGE_NAMES += $(strip $(2))
-ifeq "$(filter $(notdir $(strip $(1))),$(NON_INTEGRATED))" ""
+$(2)_DIR:=$(1)
+ifndef $(1)_VISITED
+$(1)_VISITED:=true
+PACKAGE_NAMES += $(2)
+ifeq "$(filter $(notdir $(1)),$(NON_INTEGRATED))" ""
 include ../package.mk
 else
 include ../non-integrated.mk
@@ -29,7 +29,7 @@ endef
 
 ifdef BASE_CASE_DONE
 include ../targets.mk
-$(foreach DEP,$($(PACKAGE_DIR)_DEPS),$(eval $(call package_recurse,$(abspath $(CURDIR)/../$(strip $(DEP))),$(strip $(DEP)))))
+$(foreach DEP,$($(PACKAGE_DIR)_DEPS),$(eval $(call package_recurse,$(strip $(abspath $(CURDIR)/../$(strip $(DEP)))),$(strip $(DEP)))))
 else
 .DEFAULT_GOAL:=$(CURDIR)_OUTPUT_EZS_PATHS
 
