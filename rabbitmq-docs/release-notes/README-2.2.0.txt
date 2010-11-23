@@ -15,6 +15,7 @@ bug fixes
 
 enhancements
  - automatic, lossless upgrade to new versions of RabbitMQ
+ (when not clustered)
  - support per-queue message TTL. See:
  http://www.rabbitmq.com/extensions.html#queue-ttl
  - store passwords as hashes
@@ -41,6 +42,12 @@ bug fixes
 
 enhancements
  - the management plugin is now fully cluster-aware
+- show detailed incoming/outgoing message rates per channel, exchange
+ and queue
+ - show active/idle state for channels and queues
+ - show node uptime, rabbit version, erlang version and total queued
+ messages
+ - add tab completion to rabbitmqadmin
 
 STOMP plugin
 ------------
