@@ -9,18 +9,25 @@ bug fixes
  - clustering reset no longer destroys installed plugins
  - fix race condition between queue declaration and connection
  termination that causes spurious noproc errors to appear in the log
-- fix memory leak when channel consume on many queues but do not close
- - fix issue with backing queue where changes to the queue index state
- are lost
+- fix memory leak when long-running channels consume and cancel on
+ many queues
+ - fix issue that causes cross-cluster communication to deadlock after
+ sustained cluster activity
+ - brokers started with rabbitmq_multi.bat are now restartable
+ - queue.declare and exchange.declare raise precondition_failed rather
+ than not_allowed
 
 enhancements
  - automatic, lossless upgrade to new versions of RabbitMQ
  (when not clustered)
  - support per-queue message TTL. See:
  http://www.rabbitmq.com/extensions.html#queue-ttl
+ - the volume of pending acks is now bounded by disk space rather
+ than by memory
  - store passwords as hashes
  - allow server properties to be configured in the RabbitMQ config file
  - SSL connections are listed as such by rabbitmqctl
+ - removed support for basic.recover with requeue=false
 
 java client
 ---------
