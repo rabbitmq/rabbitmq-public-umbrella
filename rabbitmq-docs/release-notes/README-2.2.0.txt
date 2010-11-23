@@ -15,7 +15,8 @@ bug fixes
  sustained cluster activity
  - brokers started with rabbitmq_multi.bat are now restartable
  - queue.declare and exchange.declare raise precondition_failed rather
- than not_allowed
+ than not_allowed when attempting to redeclare a queue or exchange
+ with parameters different than those currently known to the broker
 
 enhancements
  - automatic, lossless upgrade to new versions of RabbitMQ
