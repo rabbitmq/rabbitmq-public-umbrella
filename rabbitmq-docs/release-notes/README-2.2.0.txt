@@ -8,9 +8,8 @@ server
 bug fixes
  - clustering reset no longer destroys installed plugins
  - fix race condition between queue declaration and connection
- termination that causes spurious connection_closed_abruptly messages
- in the log
- - fix memory leak when channel consume on many queues but do not close
+ termination that causes spurious noproc errors to appear in the log
+- fix memory leak when channel consume on many queues but do not close
  - fix issue with backing queue where changes to the queue index state
  are lost
 
