@@ -34,7 +34,7 @@ bug fixes
 management plugin
 -----------
 bug fixes
- - fix authentication is Safari
+ - fix issue preventing user authentication when using Safari
  - backing queue stats now display correctly
 
 enhancements
