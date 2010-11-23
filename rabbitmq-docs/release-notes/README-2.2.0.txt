@@ -5,51 +5,49 @@ Release Highlights
 
 server
 ------
-enhancements
- - automatic, lossless upgrade of queue and message state
- - support for per-queue message TTL. See:
-   http://www.rabbitmq.com/extensions.html#queue-ttl
- - store passwords as hashes
- - server properties can now be configured in the RabbitMQ config
-  file
- - SSL connections are now listed as such by rabbitmqctl
-
 bug fixes
  - clustering reset no longer destroys installed plugins
- - fixed race condition between queue declaration and connection
-  termination
- - fixed potential leak of channel state
- - fixed index state loss in variable queue
+ - fix race condition between queue declaration and connection termination
+ - fix memory leak when channel consume on many queues but do not close
+ - fix issue with backing queue where changes to the queue index state are lost
+
+enhancements
+ - automatic, lossless upgrade of queue and message state
+ - support per-queue message TTL. See:
+   http://www.rabbitmq.com/extensions.html#queue-ttl
+ - store passwords as hashes
+ - allow server properties to be configured in the RabbitMQ config file
+ - SSL connections are listed as such by rabbitmqctl
 
 java client
 -----------
 enhancements
  - 'noAck' argument renamed to 'autoAck'
- - added PossibleAuthenticationFailureException and
+ - add PossibleAuthenticationFailureException and
  ProtocolVersionMismatchException to match up with the .net client.
 
 .net client
 -----------
 bug fixes
- - fixed race condition during connection.close
+ - fix race condition during connection.close
 
 management plugin
 -----------
+bug fixes
+ - fix authentication is Safari
+ - backing queue stats now display correctly
+
 enhancements
  - the management plugin is now fully cluster-aware
-
-bug fixes
- - fixed authentication is Safari
- - backing queue stats now display correctly
 
 STOMP plugin
 ----------
 enhancements
- - Overhauled the destination selection process to use only the
+ - Overhaul the destination selection process to use only the
  'destination' header
- - Added support for /queue and /topic destinations
- - Removed support for custom 'routing_key' and 'exchange headers' and
- introduced /exchange/<name>/<key> destination type
+ - Add support for /queue and /topic destinations
+ - Remove support for custom 'routing_key' and 'exchange headers' and
+ introduce /exchange/<name>/<key> destination type
  - The order of SEND and SUBSCRIBE frames is no longer important
  - STOMP connections show up as such in the management plugin
 
