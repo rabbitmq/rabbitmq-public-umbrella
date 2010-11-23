@@ -43,12 +43,12 @@ enhancements
 STOMP plugin
 ----------
 enhancements
- - Overhaul the destination selection process to use only the
+ - overhaul the destination selection process to use only the
  'destination' header
- - Add support for /queue and /topic destinations
- - Remove support for custom 'routing_key' and 'exchange headers' and
+ - add support for /queue and /topic destinations
+ - remove support for custom 'routing_key' and 'exchange headers' and
  introduce /exchange/<name>/<key> destination type
- - The order of SEND and SUBSCRIBE frames is no longer important
+ - the order of SEND and SUBSCRIBE frames is no longer important
  - STOMP connections show up as such in the management plugin
 
 Upgrading
