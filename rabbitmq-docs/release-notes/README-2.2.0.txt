@@ -32,7 +32,7 @@ enhancements
 - SSL connections are listed as such by rabbitmqctl
 - simplify permission configuration by removing the client
   permission scope
-- improved throughput of basic.publish by up to 13%
+- improved throughput of basic.publish
 - removed support for basic.recover with requeue=false
 
 java client
