@@ -14,6 +14,8 @@ bug fixes
   termination that causes spurious noproc errors to appear in the log
 - fix memory leak when long-running channels consume and cancel on
   many queues
+- fix queue memory leak when using the management plugin or other
+  consumers of queue statistics
 - queue.declare and exchange.declare raise precondition_failed rather
   than not_allowed when attempting to redeclare a queue or exchange
   with parameters different than those currently known to the broker
@@ -28,6 +30,9 @@ enhancements
 - store passwords as hashes
 - allow server properties to be configured in the RabbitMQ config file
 - SSL connections are listed as such by rabbitmqctl
+- simplify permission configuration by removing the client
+  permission scope
+- improved throughput of basic.publish by up to 13%
 - removed support for basic.recover with requeue=false
 
 java client
@@ -41,7 +46,7 @@ enhancements
 -----------
 bug fixes
 - fix race condition that can cause spurious SocketErrors to be thrown
- during connection.close
+  during connection.close
 
 management plugin
 -----------------
@@ -68,6 +73,17 @@ enhancements
   introduce /exchange/<name>/<key> destination type
 - the order of SEND and SUBSCRIBE frames is no longer important
 - STOMP listeners show up as such in the management plugin
+
+build and packaging
+-------------------
+bug fixes
+- remove build-time dependency on OTP source to allow users to
+  build without the OTP source present
+- eliminate all valid dialyzer errors
+
+enhancements
+- include pre-compiled man pages in the MacPorts distribution,
+  drastically reducing the number of dependencies required.
 
 Upgrading
 =========
