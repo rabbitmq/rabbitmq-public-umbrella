@@ -40,7 +40,8 @@ enhancements
 .net client
 -----------
 bug fixes
-- fix race condition during connection.close
+- fix race condition that can cause spurious SocketErrors to be thrown
+ during connection.close
 
 management plugin
 -----------------
