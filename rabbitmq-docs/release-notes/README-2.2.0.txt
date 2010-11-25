@@ -47,6 +47,8 @@ enhancements
 bug fixes
 - fix race condition that can cause spurious SocketErrors to be thrown
   during connection.close
+- fix WCF support to use 'amq.direct' exchange instead of default
+  exchange
 
 management plugin
 -----------------
