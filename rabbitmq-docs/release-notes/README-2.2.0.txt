@@ -101,5 +101,5 @@ you will need to upgrade first from 2.1.0 to 2.1.1, and then from
 2.1.1 to 2.2.0.
 
 There is no support in the broker for upgrading from releases prior
-to 2.1.0 while retaining database; the old database will be moved
+to 2.1.0 while the retaining database; the old database will be moved
 aside when the new version of the broker starts.
