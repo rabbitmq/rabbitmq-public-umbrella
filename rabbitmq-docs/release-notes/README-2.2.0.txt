@@ -89,7 +89,17 @@ enhancements
 
 Upgrading
 =========
-The database schema has changed since the last release
-(2.1.1). However, with the introduction of the new lossless upgrade
-feature, RabbitMQ will upgrade databases from 2.1.1 to the new
-schema format automatically.
+The database schema has changed since the last release (2.1.1). However,
+with the introduction of the new lossless upgrade feature, RabbitMQ will
+upgrade databases from 2.1.1 to the new schema format automatically.
+
+Upgrade for nodes in a cluster is not supported.
+
+Note also that upgrade directly from 2.1.0 to 2.2.0 is not supported;
+in order to perform such an upgrade while retaining the database,
+you will need to upgrade first from 2.1.0 to 2.1.1, and then from
+2.1.1 to 2.2.0.
+
+There is no support in the broker for upgrading from releases prior
+to 2.1.0 while retaining database; the old database will be moved
+aside when the new version of the broker starts.
