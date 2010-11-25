@@ -8,14 +8,14 @@ server
 bug fixes
 - fix issue that causes cross-cluster communication to deadlock after
   sustained cluster activity
+- fix queue memory leak when using the management plugin or other
+  consumers of queue statistics
 - brokers started with rabbitmq_multi.bat are now restartable
 - clustering reset no longer destroys installed plugins
 - fix race condition between queue declaration and connection
   termination that causes spurious noproc errors to appear in the log
 - fix memory leak when long-running channels consume and cancel on
   many queues
-- fix queue memory leak when using the management plugin or other
-  consumers of queue statistics
 - queue.declare and exchange.declare raise precondition_failed rather
   than not_allowed when attempting to redeclare a queue or exchange
   with parameters different than those currently known to the broker
@@ -89,5 +89,5 @@ Upgrading
 =========
 The database schema has changed since the last release
 (2.1.1). However, with the introduction of the new lossless upgrade
-feature, RabbitMQ will upgrade your database to the new schema format
-automatically.
+feature, RabbitMQ will upgrade databases from 2.1.1 to the new
+schema format automatically.
