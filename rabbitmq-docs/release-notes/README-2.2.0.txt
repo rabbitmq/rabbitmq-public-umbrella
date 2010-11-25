@@ -89,17 +89,18 @@ enhancements
 
 Upgrading
 =========
-The database schema has changed since the last release (2.1.1). However,
-with the introduction of the new lossless upgrade feature, RabbitMQ will
-upgrade databases from 2.1.1 to the new schema format automatically.
+To upgrade a non-clustered RabbitMQ from release 2.1.1 or later, simply
+install the new version. All configuration and persistent message data
+is retained.
 
-Upgrade for nodes in a cluster is not supported.
+To upgrade a non-clustered RabbitMQ from release 2.1.0, first upgrade
+to 2.1.1 (which retains all data), and then to the current version as
+described above.
 
-Note also that upgrade directly from 2.1.0 to 2.2.0 is not supported;
-in order to perform such an upgrade while retaining the database,
-you will need to upgrade first from 2.1.0 to 2.1.1, and then from
-2.1.1 to 2.2.0.
-
-There is no support in the broker for upgrading from releases prior
-to 2.1.0 while the retaining database; the old database will be moved
-aside when the new version of the broker starts.
+To upgrade a clustered RabbitMQ or from releases prior to 2.1.0, if
+the RabbitMQ installation does not contain any important data then
+simply install the new version. RabbitMQ will move the existing data
+to a backup location before creating a fresh, empty database. A
+warning is recorded in the logs. If your RabbitMQ installation
+contains important data then we recommend you contact
+support@rabbitmq.com for assistance with the upgrade.
