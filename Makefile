@@ -1,6 +1,6 @@
 .PHONY: default
 default:
-	@echo No default target
+	@echo No default target && false
 
 # PLUGIN_REPOS = our plugins repos; what needs to be tagged at release time.
 # CORE_REPOS = PLUGIN_REPOS + server and codegen, i.e. everything we can hg
@@ -9,33 +9,47 @@ default:
 # checkout in any way.
 # PLUGINS = PLUGIN_REPOS + external repos, i.e. every plugin we need to build.
 
-PLUGIN_REPOS=rabbitmq-erlang-client \
-           rabbitmq-jsonrpc rabbitmq-mochiweb \
-           rabbitmq-jsonrpc-channel rabbitmq-management-agent \
-           rabbitmq-management rabbitmq-stomp rabbitmq-smtp rabbitmq-shovel
+PACKAGE_REPOS:=\
+    erlang-rfc4627-wrapper \
+    erlang-smtp-wrapper \
+    mochiweb-wrapper \
+    rabbitmq-external-exchange \
+    rabbitmq-jsonrpc \
+    rabbitmq-jsonrpc-channel \
+    rabbitmq-management \
+    rabbitmq-management-agent \
+    rabbitmq-mochiweb \
+    rabbitmq-shovel \
+    rabbitmq-smtp \
+    rabbitmq-stomp \
+    rabbitmq-toke \
+    toke \
+    webmachine-wrapper
 
-CORE_REPOS=rabbitmq-server rabbitmq-codegen $(PLUGIN_REPOS)
+REPOS:=rabbitmq-server rabbitmq-erlang-client rabbitmq-codegen $(PACKAGE_REPOS)
 
-REPOS=$(CORE_REPOS) erlang-rfc4627
-BRANCH=default
-PLUGINS=rabbitmq-erlang-client rabbitmq-jsonrpc rabbitmq-mochiweb \
-	rabbitmq-jsonrpc-channel erlang-rfc4627 rabbitmq-smtp \
-	rabbitmq-stomp rabbitmq-shovel rabbitmq-management-agent \
-	rabbitmq-management
+BRANCH:=default
 
 HG_CORE_REPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
-
-ifeq ($(HG_CORE_REPOBASE),)
-HG_CORE_REPOBASE=http://hg.rabbitmq.com/
+ifndef HG_CORE_REPOBASE
+HG_CORE_REPOBASE:=http://hg.rabbitmq.com/
 endif
 
 #----------------------------------
 
 all:
-	$(foreach DIR, $(REPOS), $(MAKE) -C $(DIR) all &&) true
+	make -f all-packages.mk all-packages GLOBAL_VERSION=$(VERSION)
 
-package:
-	$(foreach DIR, $(PLUGINS), $(MAKE) -C $(DIR) package &&) true
+release:
+	make -f all-packages.mk all-releasable GLOBAL_VERSION=$(VERSION)
+
+clean:
+	make -f all-packages.mk clean-all-packages
+
+plugins-dist: release
+	rm -rf $(PLUGINS_DIST_DIR)
+	mkdir -p $(PLUGINS_DIST_DIR)
+	find . -name '*.ez' -exec cp -f {} $(PLUGINS_DIST_DIR) \;
 
 #----------------------------------
 # Convenience aliases
@@ -61,18 +75,6 @@ up_c: named_update
 checkout: $(foreach REP,$(REPOS),$(CURDIR)/$(REP)/Makefile)
 
 #----------------------------------
-
-.PHONY: release
-release: checkout
-	$(foreach DIR,$(PLUGIN_REPOS),$(MAKE) -C $(DIR) release GLOBAL_VERSION=$(VERSION) &&) true
-
-#----------------------------------
-
-.PHONY: clean
-clean:
-	$(foreach DIR,$(REPOS),$(MAKE) -C $(DIR) clean;)
-
-#----------------------------------
 # Subrepository management
 
 .PHONY: status
@@ -93,7 +95,7 @@ named_update: pull
 
 .PHONY: tag
 tag: checkout
-	$(foreach DIR,. $(PLUGIN_REPOS),(cd $(DIR); hg tag $(TAG));)
+	$(foreach DIR,. $(PACKAGE_REPOS),(cd $(DIR); hg tag $(TAG));)
 
 .PHONY: push
 push: checkout
@@ -102,11 +104,3 @@ push: checkout
 .PHONY: checkin
 checkin: checkout
 	$(foreach DIR,. $(REPOS),(cd $(DIR); hg ci);)
-
-#----------------------------------
-# Plugin management
-
-plugins-dist: release
-	rm -rf $(PLUGINS_DIST_DIR)
-	mkdir -p $(PLUGINS_DIST_DIR)
-	find . -name '*.ez' -exec cp -f {} $(PLUGINS_DIST_DIR) \;
