@@ -1,5 +1,6 @@
-# The order of these repos is VERY important because some repos depend on
-# other repos, so be careful when playing with this
+.PHONY: default
+default:
+	@echo No default target
 
 # PLUGIN_REPOS = our plugins repos; what needs to be tagged at release time.
 # CORE_REPOS = PLUGIN_REPOS + server and codegen, i.e. everything we can hg
@@ -39,60 +40,73 @@ package:
 #----------------------------------
 # Convenience aliases
 
+.PHONY: co
 co: checkout
+
+.PHONY: ci
+ci: checkin
+
+.PHONY: up
 up: update
+
+.PHONY: st
+st: status
+
+.PHONY: up_c
+up_c: named_update
 
 #----------------------------------
 
-clean:
-	$(foreach DIR, $(REPOS), $(MAKE) -C $(DIR) clean;)
+.PHONY: checkout
+checkout: $(foreach REP,$(REPOS),$(CURDIR)/$(REP)/Makefile)
 
-distclean:
-	$(foreach DIR, $(REPOS), $(MAKE) -C $(DIR) distclean;)
+#----------------------------------
+
+.PHONY: release
+release: checkout
+	$(foreach DIR,$(PLUGIN_REPOS),$(MAKE) -C $(DIR) release GLOBAL_VERSION=$(VERSION) &&) true
+
+#----------------------------------
+
+.PHONY: clean
+clean:
+	$(foreach DIR,$(REPOS),$(MAKE) -C $(DIR) clean;)
 
 #----------------------------------
 # Subrepository management
 
-$(CORE_REPOS):
-	hg clone $(HG_CORE_REPOBASE)/$@
-
-erlang-rfc4627:
-	git clone http://github.com/tonyg/erlang-rfc4627.git
-
-checkout: $(REPOS)
-
-st: checkout
+.PHONY: status
+status: checkout
 	$(foreach DIR,. $(REPOS),(cd $(DIR); hg st -mad) &&) true
 
+.PHONY: pull
 pull: checkout
 	$(foreach DIR,. $(REPOS),(cd $(DIR); hg pull) &&) true
 
+.PHONY: update
 update: pull
 	$(foreach DIR,. $(REPOS),(cd $(DIR); hg up) &&) true
 
-named_update: checkout
-	$(foreach DIR,. $(CORE_REPOS),(cd $(DIR); hg up -C $(BRANCH));)
+.PHONY: named_update
+named_update: pull
+	$(foreach DIR,. $(REPOS),(cd $(DIR); hg up -C $(BRANCH));)
 
+.PHONY: tag
 tag: checkout
 	$(foreach DIR,. $(PLUGIN_REPOS),(cd $(DIR); hg tag $(TAG));)
 
+.PHONY: push
 push: checkout
-	$(foreach DIR,. $(PLUGIN_REPOS),(cd $(DIR); hg push -f);)
+	$(foreach DIR,. $(REPOS),(cd $(DIR); hg push -f);)
+
+.PHONY: checkin
+checkin: checkout
+	$(foreach DIR,. $(REPOS),(cd $(DIR); hg ci);)
 
 #----------------------------------
 # Plugin management
-attach_plugins:
-	mkdir -p rabbitmq-server/plugins
-	rm -f rabbitmq-server/plugins/*
-	$(foreach DIR, $(PLUGINS), (cd rabbitmq-server/plugins; ln -sf ../../$(DIR)) &&) true
-	$(foreach DIR, $(PLUGINS), $(foreach DEP, $(shell make -s -C $(DIR) list-deps), (cd rabbitmq-server/plugins; ln -sf ../../$(DIR)/$(DEP)) &&)) true
-	rabbitmq-server/scripts/rabbitmq-activate-plugins
 
-plugins-dist: package
+plugins-dist: release
 	rm -rf $(PLUGINS_DIST_DIR)
 	mkdir -p $(PLUGINS_DIST_DIR)
 	find . -name '*.ez' -exec cp -f {} $(PLUGINS_DIST_DIR) \;
-	for file in $(PLUGINS_DIST_DIR)/*.ez ; \
-	  do mv $${file} \
-	    $$(dirname $${file})/$$(basename $${file} .ez)-$(VERSION).ez ; \
-	  done
