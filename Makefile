@@ -71,8 +71,11 @@ up_c: named_update
 
 #----------------------------------
 
+$(REPOS):
+	hg clone $(HG_CORE_REPOBASE)/$@
+
 .PHONY: checkout
-checkout: $(foreach REP,$(REPOS),$(CURDIR)/$(REP)/Makefile)
+checkout: $(REPOS)
 
 #----------------------------------
 # Subrepository management
