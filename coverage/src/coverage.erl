@@ -31,7 +31,7 @@
 
 -export([start_coverage/0]).
 -export([start/2, stop/1]).
--export([init/1]). 
+-export([init/1]).
 
 stop(_State) ->
     case application:get_env(coverage, directories) of
@@ -63,5 +63,5 @@ start_coverage() ->
               end, ok, Directories)
     end.
 
-init([]) -> 
+init([]) ->
     {ok, {{one_for_all, 0, 1}, []}}.
