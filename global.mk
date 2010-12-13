@@ -56,7 +56,7 @@ export DIST_DIR ?= dist
 export DEPS_DIR ?= deps
 
 export ERL_CALL ?= erl_call
-export NODENAME:=rabbit-test@$(shell hostname -s)
+export NODENAME:=rabbit-test
 export ERL_CALL_OPTS:=-sname $(NODENAME) -e
 
 NON_INTEGRATED:=rabbitmq-server rabbitmq-erlang-client
