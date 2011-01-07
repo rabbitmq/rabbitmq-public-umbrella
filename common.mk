@@ -101,6 +101,11 @@ endif
 define safe_include
 ifndef CLEANING
 -include $(1)
+
+# If we fail to make the fragment, make will just loop trying to
+# create it.  So we have to explicitly catch that case.
+$$(if $$(MAKE_RESTARTS),$$(if $$(wildcard $(1)),,$$(error Failed to produce $(1))))
+
 endif
 endef
 
