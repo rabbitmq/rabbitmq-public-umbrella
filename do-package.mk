@@ -25,14 +25,14 @@ ifndef NON_INTEGRATED_$(PACKAGE_DIR)
 
 # Set all the per-package vars to their default values
 
-SOURCE_DIR=$(PACKAGE_DIR)/src
-SOURCE_ERLS=$(wildcard $(SOURCE_DIR)/*.erl)
+SOURCE_DIRS:=$(PACKAGE_DIR)/src
+SOURCE_ERLS=$(foreach D,$(SOURCE_DIRS),$(wildcard $(D)/*.erl))
 
-INCLUDE_DIR=$(PACKAGE_DIR)/include
-INCLUDE_HRLS=$(wildcard $(INCLUDE_DIR)/*.hrl)
+INCLUDE_DIRS:=$(PACKAGE_DIR)/include
+INCLUDE_HRLS=$(foreach D,$(INCLUDE_DIRS),$(wildcard $(D)/*.hrl))
 
-EBIN_DIR=$(PACKAGE_DIR)/ebin
-EBIN_BEAMS=$(patsubst $(SOURCE_DIR)/%.erl,$(EBIN_DIR)/%.beam,$(SOURCE_ERLS))
+EBIN_DIR:=$(PACKAGE_DIR)/ebin
+EBIN_BEAMS=$(patsubst %,$(EBIN_DIR)/%.beam,$(notdir $(basename $(SOURCE_ERLS))))
 
 PACKAGE_NAME=$(notdir $(abspath $(PACKAGE_DIR)))
 APP_NAME=$(call package_to_app_name,$(PACKAGE_NAME))
@@ -49,10 +49,10 @@ RELEASABLE:=
 DEPS:=
 
 TEST_DIR=$(PACKAGE_DIR)/test
-TEST_SOURCE_DIR=$(TEST_DIR)/src
-TEST_SOURCE_ERLS=$(wildcard $(TEST_SOURCE_DIR)/*.erl)
+TEST_SOURCE_DIRS=$(TEST_DIR)/src
+TEST_SOURCE_ERLS=$(foreach D,$(TEST_SOURCE_DIRS),$(wildcard $(D)/*.erl))
 TEST_EBIN_DIR=$(TEST_DIR)/ebin
-TEST_EBIN_BEAMS=$(patsubst $(TEST_SOURCE_DIR)/%.erl,$(TEST_EBIN_DIR)/%.beam,$(TEST_SOURCE_ERLS))
+TEST_EBIN_BEAMS=$(patsubst %,$(TEST_EBIN_DIR)/%.beam,$(notdir $(basename $(TEST_SOURCE_ERLS))))
 TEST_COMMANDS:=
 TEST_SCRIPTS:=
 
@@ -94,6 +94,18 @@ EZ_FILE:=$(PACKAGE_DIR)/dist/$(APP_NAME)-$(VERSION).ez
 
 APP_FILE:=$(EBIN_DIR)/$(APP_NAME).app
 
+# Generate a rule to compile .erl files from the directory $(1) into
+# directory $(2), taking extra erlc options from $(3)
+define package_source_dir_targets
+$(2)/%.beam: $(1)/%.erl $(PACKAGE_DIR)/build/dep-apps/.done | $(DEPS_FILE)
+	@mkdir -p $$(@D)
+	ERL_LIBS=$(PACKAGE_DIR)/build/dep-apps $(ERLC) $(ERLC_OPTS) $(GLOBAL_ERLC_OPTS) $(foreach D,$(INCLUDE_DIRS),-I $(D) )-pa $$(@D) -o $$(@D) $(3) $$<
+
+endef
+
+$(eval $(foreach D,$(SOURCE_DIRS),$(call package_source_dir_targets,$(D),$(EBIN_DIR),)))
+$(eval $(foreach D,$(TEST_SOURCE_DIRS),$(call package_source_dir_targets,$(D),$(TEST_EBIN_DIR),-pa $(EBIN_DIR))))
+
 define package_targets
 
 # Put all relevant ezs into the dist dir for this package, including
@@ -121,16 +133,6 @@ $(PACKAGE_DIR)/build/app/.done: $(EBIN_BEAMS) $(INCLUDE_HRLS) $(APP_FILE) $(EXTR
 	$(call copy,$(INCLUDE_HRLS),$(APP_DIR)/include)
 	$(call copy,$(EXTRA_PACKAGE_DIRS),$(APP_DIR))
 	touch $$@
-
-# How to compile beam files
-$(EBIN_DIR)/%.beam: $(SOURCE_DIR)/%.erl $(PACKAGE_DIR)/build/dep-apps/.done | $(DEPS_FILE)
-	@mkdir -p $$(@D)
-	ERL_LIBS=$(PACKAGE_DIR)/build/dep-apps $(ERLC) $(ERLC_OPTS) $(GLOBAL_ERLC_OPTS) -I $(INCLUDE_DIR) -pa $$(@D) -o $$(@D) $$<
-
-# How to compile test beam files
-$(TEST_EBIN_DIR)/%.beam: $(TEST_SOURCE_DIR)/%.erl $(PACKAGE_DIR)/build/dep-apps/.done $(EBIN_BEAMS)
-	@mkdir -p $$(@D)
-	ERL_LIBS=$(PACKAGE_DIR)/build/dep-apps $(ERLC) $(ERLC_OPTS) $(GLOBAL_ERLC_OPTS) -I $(INCLUDE_DIR) -pa $(EBIN_DIR) -pa $$(@D) -o $$(@D) $$<
 
 # Produce the .app file from an _app.in file, if present.
 ifneq "$(wildcard $(EBIN_DIR)/$(APP_NAME)_app.in)" ""
