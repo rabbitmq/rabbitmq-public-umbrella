@@ -15,6 +15,7 @@ PACKAGE_REPOS:=\
     erlang-smtp-wrapper \
     mochiweb-wrapper \
     rabbitmq-auth-backend-ldap \
+    rabbitmq-auth-mechanism-ssl \
     rabbitmq-external-exchange \
     rabbitmq-jsonrpc \
     rabbitmq-jsonrpc-channel \
