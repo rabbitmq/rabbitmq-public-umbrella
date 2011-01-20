@@ -10,9 +10,11 @@ default:
 # PLUGINS = PLUGIN_REPOS + external repos, i.e. every plugin we need to build.
 
 PACKAGE_REPOS:=\
+    eldap-wrapper \
     erlang-rfc4627-wrapper \
     erlang-smtp-wrapper \
     mochiweb-wrapper \
+    rabbitmq-auth-backend-ldap \
     rabbitmq-external-exchange \
     rabbitmq-jsonrpc \
     rabbitmq-jsonrpc-channel \
