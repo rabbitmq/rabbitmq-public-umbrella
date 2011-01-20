@@ -39,6 +39,8 @@ APP_NAME=$(call package_to_app_name,$(PACKAGE_NAME))
 DEPS_FILE=$(PACKAGE_DIR)/build/deps.mk
 VERSION=$(GLOBAL_VERSION)
 
+APP_FILE=$(EBIN_DIR)/$(APP_NAME).app
+
 EXTRA_PACKAGE_DIRS:=
 EXTRA_TARGETS:=
 
@@ -55,6 +57,30 @@ TEST_EBIN_DIR=$(TEST_DIR)/ebin
 TEST_EBIN_BEAMS=$(patsubst %,$(TEST_EBIN_DIR)/%.beam,$(notdir $(basename $(TEST_SOURCE_ERLS))))
 TEST_COMMANDS:=
 TEST_SCRIPTS:=
+
+# Wrapper package vars
+
+# Set one of these to say where the upstream repo lives
+UPSTREAM_GIT:=
+UPSTREAM_HG:=
+
+UPSTREAM_TYPE=$(if $(UPSTREAM_GIT),git)$(if $(UPSTREAM_HG),hg)
+
+# The upstream revision to use.  Leave empty for default or master
+REVISION:=
+
+# Should the app version retain the version from the original .app file?
+RETAIN_UPSTREAM_VERSION:=
+
+# Where to clone the upstream to.
+CLONE_DIR=$(PACKAGE_DIR)/$(patsubst %-wrapper,%,$(PACKAGE_NAME))-$(UPSTREAM_TYPE)
+
+# Where the upstream's usual directories are
+UPSTREAM_SOURCE_DIRS=$(CLONE_DIR)/src
+UPSTREAM_INCLUDE_DIRS=$(CLONE_DIR)/include
+
+# The upstream's original app file, before we tweak it
+UPSTREAM_APP_FILE:=
 
 package_targets=
 
@@ -82,6 +108,63 @@ ifdef package_targets
 $(eval $(package_targets))
 endif
 
+# Handle wrapper packages
+ifneq ($(UPSTREAM_TYPE),)
+
+SOURCE_DIRS+=$(UPSTREAM_SOURCE_DIRS)
+INCLUDE_DIRS+=$(UPSTREAM_INCLUDE_DIRS)
+
+UPSTREAM_SHORT_HASH:=
+UPSTREAM_VERSION:=
+
+# Include the version information.  This is generated based on the
+# upstream revision id, and so ensures that we remake after doing the
+# clone.
+$(eval $(call safe_include,$(PACKAGE_DIR)/version.mk))
+
+VERSION:=$(if $(RETAIN_UPSTREAM_VERSION),$(UPSTREAM_VERSION)-)rmq$(GLOBAL_VERSION)-$(UPSTREAM_TYPE)$(UPSTREAM_SHORT_HASH)
+
+define package_targets
+
+$(UPSTREAM_APP_FILE): $(CLONE_DIR)/.done
+
+$(PACKAGE_DIR)/version.mk: $(UPSTREAM_APP_FILE) $(CLONE_DIR)/.done
+ifdef UPSTREAM_GIT
+	echo UPSTREAM_SHORT_HASH:=`git --git-dir=$(CLONE_DIR)/.git log -n 1 --format=format:"%h" HEAD` >$$@
+endif
+ifdef UPSTREAM_HG
+	echo UPSTREAM_SHORT_HASH:=`hg id -R $(CLONE_DIR) -i | cut -c -7` >$$@
+endif
+	sed -n -e 's|^.*{vsn, *"\([^"]*\)".*$$$$|UPSTREAM_VERSION:=\1|p' <$$< >>$$@
+
+ifdef UPSTREAM_GIT
+$(CLONE_DIR)/.done:
+	rm -rf $(CLONE_DIR)
+	git clone $(UPSTREAM_GIT) $(CLONE_DIR)
+	$(if $(UPSTREAM_REVISION),cd $(CLONE_DIR) && git checkout $(UPSTREAM_REVISION))
+	$(if $(WRAPPER_PATCHES),$(foreach F,$(WRAPPER_PATCHES),patch -d $(CLONE_DIR) -p1 <$(PACKAGE_DIR)/$(F) &&) :)
+	touch $$@
+endif # UPSTREAM_GIT
+
+ifdef UPSTREAM_HG
+$(CLONE_DIR)/.done:
+	rm -rf $(CLONE_DIR)
+	hg clone -r $(or $(UPSTREAM_REVISION),default) $(UPSTREAM_HG) $(CLONE_DIR)
+	$(if $(WRAPPER_PATCHES),$(foreach F,$(WRAPPER_PATCHES),patch -d $(CLONE_DIR) -p1 <$(PACKAGE_DIR)/$(F) &&) :)
+	touch $$@
+endif # UPSTREAM_HG
+
+$(APP_FILE): $(UPSTREAM_APP_FILE) $(PACKAGE_DIR)/version.mk
+	@mkdir -p $$(@D)
+	sed -e 's|{vsn, *\"[^\"]*\"|{vsn,\"$(VERSION)\"|' <$$< >$$@
+
+$(PACKAGE_DIR)+clean::
+	rm -rf $(CLONE_DIR) $(APP_FILE) $(PACKAGE_DIR)/version.mk
+endef # package_targets
+$(eval $(package_targets))
+
+endif # UPSTREAM_TYPE
+
 ifdef RELEASABLE
 all-releasable:: $(PACKAGE_DIR)+all
 endif
@@ -91,8 +174,6 @@ DEP_PATHS:=$(foreach DEP,$(DEPS),$(call package_to_path,$(DEP)))
 
 APP_DIR:=$(PACKAGE_DIR)/build/app/$(APP_NAME)-$(VERSION)
 EZ_FILE:=$(PACKAGE_DIR)/dist/$(APP_NAME)-$(VERSION).ez
-
-APP_FILE:=$(EBIN_DIR)/$(APP_NAME).app
 
 # Generate a rule to compile .erl files from the directory $(1) into
 # directory $(2), taking extra erlc options from $(3)
@@ -106,6 +187,7 @@ endef
 $(eval $(foreach D,$(SOURCE_DIRS),$(call package_source_dir_targets,$(D),$(EBIN_DIR),)))
 $(eval $(foreach D,$(TEST_SOURCE_DIRS),$(call package_source_dir_targets,$(D),$(TEST_EBIN_DIR),-pa $(EBIN_DIR))))
 
+# The targets common to all integrated packages
 define package_targets
 
 # Put all relevant ezs into the dist dir for this package, including
@@ -140,7 +222,7 @@ $(EBIN_DIR)/$(APP_NAME).app: $(EBIN_DIR)/$(APP_NAME)_app.in
 	sed -e 's:%%VSN%%:$(VERSION):g' <$$< >$$@
 
 $(PACKAGE_DIR)+clean::
-	rm -f $(EBIN_DIR)/$(APP_NAME).app
+	rm -f $(APP_FILE)
 endif
 
 # Unpack the ezs from dependency packages, so that their contents are
@@ -152,7 +234,7 @@ $(PACKAGE_DIR)/build/dep-apps/.done: $(PACKAGE_DIR)/build/dep-ezs/.done
 	touch $$@
 
 $(PACKAGE_DIR)+clean::
-	rm -rf $(EBIN_DIR)/*.beam $(PACKAGE_DIR)/dist $(PACKAGE_DIR)/build
+	rm -rf $(EBIN_DIR)/*.beam $(TEST_EBIN_DIR)/*.beam $(PACKAGE_DIR)/dist $(PACKAGE_DIR)/build
 
 $(PACKAGE_DIR)+clean-with-deps:: $(foreach P,$(DEP_PATHS),$(P)+clean-with-deps)
 
@@ -261,7 +343,7 @@ else # NON_INTEGRATED_$(PACKAGE_DIR)
 define package_targets
 
 $(PACKAGE_DIR)/dist/.done:
-	$$(MAKE) -C $(PACKAGE_DIR) VERSION=$(VERSION)
+	$$(MAKE) -C $(PACKAGE_DIR) VERSION=$(GLOBAL_VERSION)
 	mkdir -p $$(@D)
 	touch $$@
 
