@@ -6,19 +6,23 @@ Release Highlights
 server
 ------
 bug fixes
-- issue with message store deleting open files on Windows
+- prevent message store deleting open files leading to eaccess on Windows
+  and potential disk space leak
+- ensure regular flushes of queue index data to disk
 - SASL PLAIN parser made more robust
 - reduced likelihood of race conditions in user-supplied exchange
   implementations
-- fixes for Solaris 10
-- various other bug fixes
+- fix startup scripts to work on Solaris 10
+- prevent large content frames from blocking other channels on a connection
+- incorrect serialisation of PIDs in clusters
+- supervision of channel write process
+- various bugs in delegate
 
 enhancements
 - add confirm mode - an extension to the AMQP 0-9-1 spec allowing
   clients to receive streaming receipt confirmations for the messages
   they publish. See
   http://www.rabbitmq.com/extensions.html#confirms for more information.
-- allow node name to be specified without a host
 - improved diagnostic error messages in common startup error cases
 - add a basic.nack method. See
   http://www.rabbitmq.com/extensions.html#negative-acknowledgements
@@ -31,10 +35,17 @@ enhancements
 - internal exchanges (cannot be published to directly,
   typically used with exchange-to-exchange bindings)
 - users can be made unable to log in with a password
+- list SSL algorithm information in rabbitmqctl
+- allow node name to be specified without a host
+- persister optimisation - eliminate unnecessary pending actions upon
+  queue deletion (pseudo pipeline flush)
 
 
 java client
 -----------
+bug fixes
+- generated source in Maven source bundle
+
 enhancements
 - confirm mode
 - pluggable SASL authentication mechanisms
@@ -43,12 +54,13 @@ enhancements
 .net client
 -----------
 bug fixes
-- noAck in Subscription class
+- noAck set correctly in Subscription class
 
 enhancements
 - confirm mode
 - pluggable SASL authentication mechanisms
 - API tidied up to more closely resemble that of the Java client
+- distribute XML documentation with binary release
 
 
 management plugin
