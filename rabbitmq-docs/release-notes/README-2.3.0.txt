@@ -14,10 +14,13 @@ bug fixes
 - reduced likelihood of race conditions in user-supplied exchange
   implementations
 - fix startup scripts to work on Solaris 10
-- prevent large content frames from blocking other channels on a connection
-- incorrect serialisation of PIDs in clusters
-- supervision of channel write process
-- various bugs in delegate
+- prevent delivery of large messages to consumers from blocking deliveries
+  on other channels
+- incorrect serialisation of PIDs in clusters leading to problems
+  viewing detailed statistics in the management plugin
+- crashing writer not closing connection
+- various bugs in delegate leading to poor cluster performance and
+  nodes blocking if other nodes are down
 
 enhancements
 - add confirm mode - an extension to the AMQP 0-9-1 spec allowing
@@ -44,12 +47,10 @@ enhancements
 
 java client
 -----------
-bug fixes
-- generated source in Maven source bundle
-
 enhancements
 - confirm mode
 - pluggable SASL authentication mechanisms
+- generated source in Maven source bundle
 
 
 .net client
