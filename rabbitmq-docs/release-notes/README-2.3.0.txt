@@ -74,6 +74,7 @@ bug fixes
 enhancements
 - command line tool rabbitmqadmin can display overview statistics and
   filter columns
+- context-sensitive help
 - API: empty fields can be omitted on PUT
 - management plugin no longer depends on the crypto application,
   simplifying installation for some users
