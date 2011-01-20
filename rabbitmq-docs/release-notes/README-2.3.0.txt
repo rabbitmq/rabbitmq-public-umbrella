@@ -21,6 +21,7 @@ bug fixes
 - crashing writer not closing connection
 - various bugs in delegate leading to poor cluster performance and
   nodes blocking if other nodes are down
+- diagnostics on rabbitmqctl list_consumers
 
 enhancements
 - add confirm mode - an extension to the AMQP 0-9-1 spec allowing
@@ -92,6 +93,12 @@ enhancements
 - Updates to support the draft STOMP 1.1 spec
 - Major refactoring to use OTP behaviours
 - Enhanced and fixed examples
+
+
+shovel plugin
+-------------
+bug fixes
+- close client connections properly if failure occurs during startup
 
 
 ssl authentication mechanism plugin
