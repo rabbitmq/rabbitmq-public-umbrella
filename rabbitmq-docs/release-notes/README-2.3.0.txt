@@ -6,7 +6,7 @@ Release Highlights
 server
 ------
 bug fixes
-- fix issue with message store deleting open files on Windows
+- issue with message store deleting open files on Windows
 - SASL PLAIN parser made more robust
 - reduced likelihood of race conditions in user-supplied exchange
   implementations
@@ -24,39 +24,38 @@ enhancements
   http://www.rabbitmq.com/extensions.html#negative-acknowledgements
 - add an unforgeable user-id header. See
   http://www.rabbitmq.com/extensions.html#validated-user-id
-- support for pluggable SASL authentication mechanisms, and a new plugin
+- pluggable SASL authentication mechanisms, and a new plugin
   to authenticate using SSL (see below)
-- support for authentication / authorisation backends, and a new plugin
+- pluggable authentication / authorisation backends, and a new plugin
   to authenticate and authorise using LDAP (see below)
-- support for internal exchanges (cannot be published to directly,
+- internal exchanges (cannot be published to directly,
   typically used with exchange-to-exchange bindings)
-- support for users which cannot log in with a password
+- users can be made unable to log in with a password
 
 
 java client
 -----------
 enhancements
-- support for confirm mode
-- support for pluggable SASL authentication mechanisms
+- confirm mode
+- pluggable SASL authentication mechanisms
 
 
 .net client
 -----------
 bug fixes
-- fixed noAck in Subscription class
+- noAck in Subscription class
 
 enhancements
-- support for confirm mode
-- support for pluggable SASL authentication mechanisms
-- support for exchange to exchange bindings
+- confirm mode
+- pluggable SASL authentication mechanisms
 - API tidied up to more closely resemble that of the Java client
 
 
 management plugin
 -----------------
 bug fixes
-- fix race condition that can lead to stats db failing on queue deletion
-- fix closing connections on remote cluster nodes
+- race condition that can lead to stats db failing on queue deletion
+- closing connections on remote cluster nodes
 
 enhancements
 - command line tool rabbitmqadmin can display overview statistics and
@@ -69,10 +68,10 @@ enhancements
 STOMP plugin
 ------------
 bug fixes
-- fix channel leak on UNSUBSCRIBE
-- fix SEND after UNSUBSCRIBE
-- fix SUBSCRIBE to non-existent exchange
-- fix UNSUBSCRIBE receipts
+- channel leak on UNSUBSCRIBE
+- SEND after UNSUBSCRIBE
+- SUBSCRIBE to non-existent exchange
+- UNSUBSCRIBE receipts
 
 enhancements
 - Updates to support the draft STOMP 1.1 spec
