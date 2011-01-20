@@ -67,7 +67,10 @@ UPSTREAM_HG:=
 UPSTREAM_TYPE=$(if $(UPSTREAM_GIT),git)$(if $(UPSTREAM_HG),hg)
 
 # The upstream revision to use.  Leave empty for default or master
-REVISION:=
+UPSTREAM_REVISION:=
+
+# Patches to apply to the upstream codebase, if any
+WRAPPER_PATCHES:=
 
 # Should the app version retain the version from the original .app file?
 RETAIN_UPSTREAM_VERSION:=
