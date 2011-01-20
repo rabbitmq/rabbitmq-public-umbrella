@@ -8,7 +8,8 @@ server
 bug fixes
 - prevent message store deleting open files leading to eaccess on Windows
   and potential disk space leak
-- ensure regular flushes of queue index data to disk
+- ensure regular flushes of queue index data to disk resulting in better
+  data retention in the event of a broker failure
 - SASL PLAIN parser made more robust
 - reduced likelihood of race conditions in user-supplied exchange
   implementations
