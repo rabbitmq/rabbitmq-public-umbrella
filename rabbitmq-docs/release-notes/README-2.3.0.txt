@@ -29,37 +29,68 @@ enhancements
 - support for authentication / authorisation backends, and a new plugin
   to authenticate and authorise using LDAP (see below)
 - support for internal exchanges (cannot be published to directly,
-  typically used in exchange-to-exchange bindings)
+  typically used with exchange-to-exchange bindings)
+- support for users which cannot log in with a password
 
 
 java client
 -----------
+enhancements
+- support for confirm mode
+- support for pluggable SASL authentication mechanisms
 
 
 .net client
 -----------
+bug fixes
+- fixed noAck in Subscription class
+
+enhancements
+- support for confirm mode
+- support for pluggable SASL authentication mechanisms
+- support for exchange to exchange bindings
+- API tidied up to more closely resemble that of the Java client
 
 
 management plugin
 -----------------
+bug fixes
+- fix race condition that can lead to stats db failing on queue deletion
+- fix closing connections on remote cluster nodes
+
+enhancements
+- command line tool rabbitmqadmin can display overview statistics and
+  filter columns
+- API: empty fields can be omitted on PUT
+- management plugin no longer depends on the crypto application,
+  simplifying installation for some users
 
 
 STOMP plugin
 ------------
+bug fixes
+- fix channel leak on UNSUBSCRIBE
+- fix SEND after UNSUBSCRIBE
+- fix SUBSCRIBE to non-existent exchange
+- fix UNSUBSCRIBE receipts
 
-
-build and packaging
--------------------
+enhancements
+- Updates to support the draft STOMP 1.1 spec
+- Major refactoring to use OTP behaviours
+- Enhanced and fixed examples
 
 
 ssl authentication mechanism plugin
 -----------------------------------
-
+Experimental plugin allowing clients to authenticate with the SASL
+EXTERNAL mechanism and client SSL certificates. A password is not
+required.
 
 
 ldap authentication backend plugin
 ----------------------------------
-
+Experimental plugin allowing the authentication / authorisation
+database to be hosted in an LDAP server.
 
 
 Upgrading
