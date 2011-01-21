@@ -21,8 +21,8 @@ bug fixes
 - crashing writer not closing connection
 - various bugs in delegate leading to poor cluster performance and
   nodes blocking if other nodes are down
-- race condition in clusters when channels commit / abort transaction
-  and close that could lead to queues crashing
+- prevent potential crash of queues in clusters in the event of
+  improbable ordering of events upon the death of a channel
 - diagnostics on rabbitmqctl list_consumers
 
 enhancements
