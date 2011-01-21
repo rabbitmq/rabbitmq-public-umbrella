@@ -76,9 +76,11 @@ enhancements
 - command line tool rabbitmqadmin can display overview statistics and
   filter columns
 - context-sensitive help
+- web UI state is persistent
+- display statistics for confirms
 - API: empty fields can be omitted on PUT
-- management plugin no longer depends on the crypto application,
-  simplifying installation for some users
+- no longer depends on the crypto application, simplifying installation
+  for some users
 
 
 STOMP plugin
