@@ -40,6 +40,7 @@ enhancements
 - internal exchanges (cannot be published to directly,
   typically used with exchange-to-exchange bindings)
 - users can be made unable to log in with a password
+- IPv6 support. RabbitMQ will listen on IPv4 and IPv6 by default.
 - list SSL algorithm information in rabbitmqctl
 - allow node name to be specified without a host
 - better error reporting on startup failure due to already running
@@ -99,6 +100,7 @@ enhancements
 - updates to support the draft STOMP 1.1 spec
 - major refactoring to use OTP behaviours
 - enhanced and fixed examples
+- IPv6 support
 
 
 shovel plugin
