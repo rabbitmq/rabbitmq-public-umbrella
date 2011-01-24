@@ -8,22 +8,20 @@ server
 bug fixes
 - prevent message store deleting open files leading to eaccess on Windows
   and potential disk space leak
+- various bugs in delegate leading to poor cluster performance and
+  nodes blocking if other nodes are down
 - ensure regular flushes of queue index data to disk resulting in better
   data retention in the event of a broker failure
-- SASL PLAIN parser made more robust
-- reduced likelihood of race conditions in user-supplied exchange
-  implementations
+- make SASL PLAIN parser more robust
 - fix startup scripts to work on Solaris 10
 - prevent delivery of large messages to consumers from blocking deliveries
   on other channels
-- incorrect serialisation of PIDs in clusters leading to problems
-  viewing detailed statistics in the management plugin
-- crashing writer not closing connection
-- various bugs in delegate leading to poor cluster performance and
-  nodes blocking if other nodes are down
+- correct serialisation of PIDs in clusters, without which the
+  management plug-in failed to display some detailed stats
 - prevent potential crash of queues in clusters in the event of
   improbable ordering of events upon the death of a channel
-- diagnostics on rabbitmqctl list_consumers
+- add missing failure diagnostics on rabbitmqctl list_consumers
+- fix truncated failure diagnostics for rabbitmqctl under Windows
 
 enhancements
 - add confirm mode - an extension to the AMQP 0-9-1 spec allowing
@@ -44,8 +42,12 @@ enhancements
 - users can be made unable to log in with a password
 - list SSL algorithm information in rabbitmqctl
 - allow node name to be specified without a host
+- better error reporting on startup failure due to already running
+  broker
 - persister optimisation - eliminate unnecessary pending actions upon
   queue deletion (pseudo pipeline flush)
+- improve pluggable exchange type API to allow better handling of race
+  conditions
 
 
 java client
@@ -53,7 +55,7 @@ java client
 enhancements
 - confirm mode
 - pluggable SASL authentication mechanisms
-- generated source in Maven source bundle
+- include generated source in Maven source bundle
 
 
 .net client
@@ -88,15 +90,15 @@ enhancements
 STOMP plugin
 ------------
 bug fixes
-- channel leak on UNSUBSCRIBE
-- SEND after UNSUBSCRIBE
-- SUBSCRIBE to non-existent exchange
-- UNSUBSCRIBE receipts
+- plug channel leak on UNSUBSCRIBE
+- fix breakage of SEND after UNSUBSCRIBE
+- gracefully handle SUBSCRIBE to non-existent exchange
+- correct semantics of UNSUBSCRIBE receipts
 
 enhancements
-- Updates to support the draft STOMP 1.1 spec
-- Major refactoring to use OTP behaviours
-- Enhanced and fixed examples
+- updates to support the draft STOMP 1.1 spec
+- major refactoring to use OTP behaviours
+- enhanced and fixed examples
 
 
 shovel plugin
