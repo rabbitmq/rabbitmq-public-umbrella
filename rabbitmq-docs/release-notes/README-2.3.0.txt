@@ -12,6 +12,8 @@ bug fixes
   nodes blocking if other nodes are down
 - ensure regular flushes of queue index data to disk resulting in better
   data retention in the event of a broker failure
+- prevent queues from hibernating indefinitely on startup under memory
+  pressure
 - make SASL PLAIN parser more robust
 - fix startup scripts to work on Solaris 10
 - prevent delivery of large messages to consumers from blocking deliveries
