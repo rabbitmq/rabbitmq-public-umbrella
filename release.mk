@@ -213,7 +213,7 @@ rabbitmq-dotnet-artifacts: prepare
 
 WINDOWS_BUNDLE_TMP_DIR=$(PACKAGES_DIR)/complete-rabbitmq-bundle-$(VERSION)
 .PHONY: rabbitmq-windows-bundle
-rabbitmq-windows-bundle: rabbitmq-server-windows-packaging rabbitmq-dotnet-artifacts
+rabbitmq-windows-bundle: rabbitmq-server-windows-exe-packaging rabbitmq-dotnet-artifacts
 	rm -rf $(WINDOWS_BUNDLE_TMP_DIR)
 	mkdir -p $(WINDOWS_BUNDLE_TMP_DIR)
 	[ -f /tmp/otp_win32_R13B03.exe ] || \
