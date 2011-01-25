@@ -98,7 +98,7 @@ prepare: checkout
 		echo "Alternatively, set the makefile variable REQUIRED_EMULATOR_VERSION=$(ACTUAL_EMULATOR_VERSION) ."; \
 		[ -n "$(UNOFFICIAL_RELEASE)" ] )
 	@echo Checking the presence of the tools necessary to build a release on a Debian based OS.
-	dpkg -L cdbs elinks fakeroot findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip python-pexpect openssl xmlto xsltproc git-core > /dev/null
+	dpkg -L cdbs elinks fakeroot findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip python-pexpect openssl xmlto xsltproc git-core nsis > /dev/null
 	@echo All required tools are installed, great!
 
 
@@ -118,6 +118,7 @@ rabbitmq-server-clean:
 	$(MAKE) -C rabbitmq-server distclean
 	$(MAKE) -C rabbitmq-server/packaging/generic-unix clean
 	$(MAKE) -C rabbitmq-server/packaging/windows clean
+	$(MAKE) -C rabbitmq-server/packaging/windows-exe clean
 	$(MAKE) -C rabbitmq-server/packaging/debs/Debian clean
 	$(MAKE) -C rabbitmq-server/packaging/debs/apt-repository clean
 	$(MAKE) -C rabbitmq-server/packaging/RPMS/Fedora clean
@@ -128,6 +129,7 @@ rabbitmq-server-artifacts: rabbitmq-server-srcdist
 rabbitmq-server-artifacts: rabbitmq-server-website-manpages
 rabbitmq-server-artifacts: rabbitmq-server-generic-unix-packaging
 rabbitmq-server-artifacts: rabbitmq-server-windows-packaging
+rabbitmq-server-artifacts: rabbitmq-server-windows-exe-packaging
 rabbitmq-server-artifacts: rabbitmq-server-debian-packaging
 rabbitmq-server-artifacts: rabbitmq-server-rpm-packaging
 
@@ -152,6 +154,11 @@ rabbitmq-server-generic-unix-packaging: rabbitmq-server-srcdist
 rabbitmq-server-windows-packaging: rabbitmq-server-srcdist
 	$(MAKE) -C rabbitmq-server/packaging/windows dist VERSION=$(VERSION)
 	cp rabbitmq-server/packaging/windows/rabbitmq-server-windows-*.zip $(SERVER_PACKAGES_DIR)
+
+.PHONY: rabbitmq-server-windows-exe-packaging
+rabbitmq-server-windows-exe-packaging: rabbitmq-server-windows-packaging
+	$(MAKE) -C rabbitmq-server/packaging/windows-exe dist VERSION=$(VERSION)
+	cp rabbitmq-server/packaging/windows-exe/rabbitmq-server-*.exe $(SERVER_PACKAGES_DIR)
 
 .PHONY: rabbitmq-server-debian-packaging
 rabbitmq-server-debian-packaging: rabbitmq-server-srcdist
@@ -214,6 +221,7 @@ rabbitmq-windows-bundle: rabbitmq-server-windows-packaging rabbitmq-dotnet-artif
 	cp /tmp/otp_win32_R13B03.exe $(WINDOWS_BUNDLE_TMP_DIR)
 	cp \
 		$(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip \
+		$(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).exe \
 		$(JAVA_CLIENT_PACKAGES_DIR)/rabbitmq-java-client-bin-$(VERSION).zip \
 		$(DOTNET_CLIENT_PACKAGES_DIR)/rabbitmq-dotnet-client-$(VERSION).msi \
 		$(WINDOWS_BUNDLE_TMP_DIR)
