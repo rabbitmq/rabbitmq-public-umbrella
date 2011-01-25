@@ -28,7 +28,6 @@ enhancements
   clients to receive streaming receipt confirmations for the messages
   they publish. See
   http://www.rabbitmq.com/extensions.html#confirms for more information.
-- improved diagnostic error messages in common startup error cases
 - add a basic.nack method. See
   http://www.rabbitmq.com/extensions.html#negative-acknowledgements
 - add an unforgeable user-id header. See
@@ -42,9 +41,8 @@ enhancements
 - users can be made unable to log in with a password
 - IPv6 support. RabbitMQ will listen on IPv4 and IPv6 by default.
 - list SSL algorithm information in rabbitmqctl
+- improved diagnostic error messages in common startup error cases
 - allow node name to be specified without a host
-- better error reporting on startup failure due to already running
-  broker
 - persister optimisation - eliminate unnecessary pending actions upon
   queue deletion (pseudo pipeline flush)
 - improve pluggable exchange type API to allow better handling of race
