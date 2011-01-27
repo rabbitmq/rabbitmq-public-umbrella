@@ -14,6 +14,9 @@ bug fixes
   data retention in the event of a broker failure
 - prevent queues from hibernating indefinitely on startup under memory
   pressure
+- prevent message store in-memory cache from becoming too large
+- prevent infinite loop after certain types of queue process crash,
+  and prevent such a crash during queue deletion on Erlang R12B3
 - make SASL PLAIN parser more robust
 - fix startup scripts to work on Solaris 10
 - prevent delivery of large messages to consumers from blocking deliveries
