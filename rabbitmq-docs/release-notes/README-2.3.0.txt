@@ -15,9 +15,8 @@ bug fixes
 - prevent queues from hibernating indefinitely on startup under memory
   pressure
 - prevent message store in-memory cache from becoming too large
-- prevent infinite loop after certain types of queue process crash
-- prevent infinite loop when registering a consumer twice using Erlang R12B3
-
+- prevent infinite loop after certain types of queue process crash,
+  and prevent such a crash during queue deletion on Erlang R12B3
 - make SASL PLAIN parser more robust
 - fix startup scripts to work on Solaris 10
 - prevent delivery of large messages to consumers from blocking deliveries
@@ -28,7 +27,6 @@ bug fixes
   improbable ordering of events upon the death of a channel
 - add missing failure diagnostics on rabbitmqctl list_consumers
 - fix truncated failure diagnostics for rabbitmqctl under Windows
-- remove stale pids in supervisor2 with extended timeouts
 
 enhancements
 - add confirm mode - an extension to the AMQP 0-9-1 spec allowing
