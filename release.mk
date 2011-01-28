@@ -29,6 +29,8 @@ ABSOLUTE_PLUGINS_DIR=$(CURDIR)/$(PLUGINS_DIR)
 REQUIRED_EMULATOR_VERSION=5.6.5
 ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
 
+BUNDLE_ERLANG_VERSION=R14B01
+
 REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-erlang-client rabbitmq-public-umbrella
 
 HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
@@ -209,9 +211,9 @@ WINDOWS_BUNDLE_TMP_DIR=$(PACKAGES_DIR)/complete-rabbitmq-bundle-$(VERSION)
 rabbitmq-windows-bundle: rabbitmq-server-windows-packaging rabbitmq-dotnet-artifacts
 	rm -rf $(WINDOWS_BUNDLE_TMP_DIR)
 	mkdir -p $(WINDOWS_BUNDLE_TMP_DIR)
-	[ -f /tmp/otp_win32_R13B03.exe ] || \
-		wget -P /tmp http://erlang.org/download/otp_win32_R13B03.exe
-	cp /tmp/otp_win32_R13B03.exe $(WINDOWS_BUNDLE_TMP_DIR)
+	[ -f /tmp/otp_win32_$(BUNDLE_ERLANG_VERSION).exe ] || \
+		wget -P /tmp http://erlang.org/download/otp_win32_$(BUNDLE_ERLANG_VERSION).exe
+	cp /tmp/otp_win32_$(BUNDLE_ERLANG_VERSION).exe $(WINDOWS_BUNDLE_TMP_DIR)
 	cp \
 		$(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip \
 		$(JAVA_CLIENT_PACKAGES_DIR)/rabbitmq-java-client-bin-$(VERSION).zip \
