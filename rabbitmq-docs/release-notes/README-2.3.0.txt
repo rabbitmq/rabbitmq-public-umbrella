@@ -21,6 +21,8 @@ bug fixes
 - fix startup scripts to work on Solaris 10
 - prevent delivery of large messages to consumers from blocking deliveries
   on other channels
+- basic.recover affects prefetch count
+- prevent channel crash on basic.recover to a deleted queue
 - correct serialisation of PIDs in clusters, without which the
   management plug-in failed to display some detailed stats
 - prevent potential crash of queues in clusters in the event of
@@ -56,6 +58,10 @@ enhancements
 
 java client
 -----------
+bug fixes
+- fix for compilation under Java 1.5
+- remove support for Java 1.4
+
 enhancements
 - confirm mode
 - pluggable SASL authentication mechanisms
@@ -79,6 +85,8 @@ management plugin
 bug fixes
 - race condition that can lead to stats db failing on queue deletion
 - closing connections on remote cluster nodes
+- fix web UI memory leaks in Chrome
+- mitigate web UI memory leaks in all browsers
 
 enhancements
 - command line tool rabbitmqadmin can display overview statistics and
@@ -106,10 +114,21 @@ enhancements
 - IPv6 support
 
 
+build and packaging
+-------------------
+
+enhancements
+- Windows bundle now includes Erlang R14B01
+
+
 shovel plugin
 -------------
 bug fixes
 - close client connections properly if failure occurs during startup
+
+enhancements
+- allow specification of heartbeat, frame_max and channel_max in
+  connection URI
 
 
 ssl authentication mechanism plugin
