@@ -1,0 +1,386 @@
+Introduction
+============
+
+This suite of Makefiles exists to make it easy to express dependency
+relationships between different plugins (or packages - from here on
+called the package as not all packages have to be plugins), and to
+have them build easily. The general idea is that in your package
+directory you have:
+
+1. Makefile
+  This contains the single line:
+include ../include.mk
+
+2. package.mk
+  This contains variable declarations and recipes as needed
+
+You should then be able to issue make within your package directory
+and rely on this system to build all the dependencies required.
+
+The overall goal is the construction of a .ez file, with the name
+based on the package name. This will be constructed and placed in the
+dist directory. In that directory you will also find the out of of the
+transitive closure of all dependencies of the package. E.g. if your
+package is A, and depends on B, and package B depends on C, then C
+will produce C.ez which will be supplied to B. B will produce B.ez and
+then both C.ez and B.ez will be supplied to A, which will produce
+A.ez, leaving all three .ez files in the dist directory of C.
+
+Recursive invocations of make are avoided where ever possible and are
+undesirable. This is because they must be declared as .PHONY targets
+(because they themselves are encapsulating the dependency information
+required to determine whether or not anything needs rebuilding) and
+thus are always re-invoked. The properties of .PHONY targets are that
+anything that depends on a .PHONY target is itself a .PHONY
+target. This is unfortunate as it means that any package that depends
+on any other package that is not fully integrated with this system,
+and thus requires recursive make, is itself forever rebuilt. Hopefully
+the existence of this system will slowly force other important
+packages to become properly integrated: the rabbitmq-erlang-client and
+rabbitmq-server being the primary sticking points. Nevertheless, the
+correct tracking of dependencies between packages means you never have
+to explicitly rebuild in some other package directory, and you never
+need to issue make clean to get rid of out-of-date artifacts.
+
+
+package.mk
+==========
+
+The package.mk should never refer to paths relative to itself. This is
+because some other package could always depend upon it and thus paths
+would be relative to that other directory.
+
+To aid with this, before a package.mk is read in, the variables
+PACKAGE_DIR and PACKAGE_NAME are set. The former is the absolute path
+to and including the package directory, whilst the latter is just the
+name of the package directory. These variables should never be
+modified.
+
+
+Variables
+---------
+
+Don't ever assign to these:
+
+PACKAGE_NAME :: string - name of package directory
+PACKAGE_DIR :: abspath - absolute path to and including package dir
+
+The following can be changed, but only globally, not per package
+(i.e. set them as environment variables or arguments to the top level
+make invocation). Note they may be lost for non-integrated
+packages. These variables are exported and so can be used in
+non-integrated packages and recursive make invocations.
+
+ERLC :: string - defaults to erlc
+GLOBAL_ERLC_OPTS :: string - defaults to "-Wall +debug_info"
+ERL :: string - defaults to erl
+TMPDIR :: path - defaults to /tmp
+DIST_DIR :: path - defaults to dist
+DEPS_DIR :: path - defaults to deps
+GLOBAL_VERSION :: string - defaults to 0.0.0
+
+The following are the variables that may be set in the package.mk
+file. In general, unless you know better, please use := to declare
+these variables, not =
+
+SOURCE_DIR :: abspath
+  Default: $(PACKAGE_DIR)/src
+
+SOURCE_ERLS :: [abspath]
+  Default: $(wildcard $(SOURCE_DIR)/*.erl)
+  Notes: Be careful with the effect of this, GENERATED_ERLS, and the
+  potential for infinite recursion. See Note on Dynamic Dependencies
+  below.
+
+INCLUDE_DIR :: abspath
+  Default: $(PACKAGE_DIR)/include
+
+INCLUDE_HRLS :: [abspath]
+  Default: $(wildcard $(INCLUDE_DIR)/*.hrl)
+
+EBIN_DIR :: abspath
+  Default: $(PACKAGE_DIR)/ebin
+
+EBIN_BEAMS :: [abspath]
+  Default: $(patsubst $(SOURCE_DIR)/%.erl,$(EBIN_DIR)/%.beam,$(SOURCE_ERLS))
+
+VERSION :: string
+  Default: $(GLOBAL_VERSION)
+
+These first seven variables set up the basic means for constructing
+the contents of the $(APP_NAME)-$(VERSION).ez default output
+target. The source erls must be compiled to beams and then with the
+hrls, placed in $(APP_NAME)-$(VERSION).ez. Note that our
+"generate_deps" script is used to dynamically find the dependencies
+between the hrls, erls and beams.
+
+DEPS :: [string]
+  Default:
+  Notes: name the packages that you depend on (names only - not
+  paths). These should correspond to directory names that are
+  siblings of the current package. Name the package, not the
+  artifacts produced by building that package.
+
+ERLC_OPTS :: string
+  Default:
+  Notes: additional options to $(ERLC). Combined with
+  $(GLOBAL_ERLC_OPTS)
+
+The following variables you should only have to touch if you're
+doing something a bit special:
+
+GENERATED_ERLS :: [abspath]
+  Default:
+  Notes: If you are dynamically generating sources, set this to the
+  absolute paths of the sources you are generating. You will likely
+  have to add explicit rules to your Makefile to ensure these
+  sources can be built. The $(DEPS_FILE) depends on these sources
+  (the sources must exist before dependency analysis can occur) and
+  there is the potential for infinite recursion with this feature in
+  combination with $(SOURCE_ERLS). See Note on Dynamic Dependencies
+  below. Note that this is simply achieved by adding the
+  GENERATED_ERLS to SOURCE_ERLS, thus GENERATED_ERLS can actually be
+  any arbitrary target that must be invoked prior to dependency
+  generation.
+
+APP_NAME :: string
+  Default: $(PACKAGE_NAME) with _ for - and with rabbit for rabbitmq
+  Notes: This determines the expected name of the app descriptor. As
+  part of building $(APP_NAME)-$(VERSION).ez, it is expected to find
+  $(EBIN_DIR)/$(APP_NAME).app. Iff $(EBIN_DIR)/$(APP_NAME)_app.in is
+  found, $(EBIN_DIR)/$(APP_NAME).app will be automatically generated
+  from this, replacing %%VSN%% with $(VERSION) in the file's
+  content. See also the section below: App files.
+
+OUTPUT_EZS :: [string not ending with .ez]
+  Default: $(APP_NAME)
+  Notes: This forms the top level goals for each package. Every
+  string in this variable (EZ) will result in an attempt to build
+  $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ)-$(VERSION).ez.  Every EZ depends
+  on all the $(EBIN_BEAMS) being built. By default,
+  $(APP_NAME)-$(VERSION).ez will construct, as previously described,
+  a .ez containing the $(EBIN_BEAMS) and $(EBIN_HRLS)
+  configured. Other EZs within $(OUTPUT_EZS) which are not
+  $(APP_NAME) will default to a recursive make invocation in
+  $(PACKAGE_DIR)/$(DEPS_DIR)/$(EZ) with the assumption that this
+  will cause $(PACKAGE_DIR)/$(DEPS_DIR)/$(EZ)/$(EZ)-$(VERSION).ez to
+  be constructed, which will then be copied to
+  $(PACKAGE_DIR)/$(DIST_DIR)/.  However, in general, recursive make
+  is evil and as explained above must always be .PHONY.
+
+INTERNAL_DEPS :: [string not ending with .ez]
+  Default:
+  See also: EXTRA_TARGETS
+  Notes: This operates identically to OUTPUT_EZS with the exception
+  that $(EBIN_BEAMS) depends on these targets. I.e. if you need some
+  libraries to be compiled before your own $(SOURCE_ERLS) can be
+  compiled then you need to have those libraries compiled and placed
+  into a .ez by the same mechanism as described in OUTPUT_EZS above.
+  Note that these targets depend on the DEPS of the package:
+  i.e. they won't be built until the DEPS have been built.
+
+Important note for OUTPUT_EZS and INTERNAL_DEPS
+  You may not want the default recipe of the recursive make
+  invocation in $(PACKAGE_DIR)/$(DEPS_DIR)/$(EZ) - you may wish to
+  provide your own recipe. In that case, set
+  $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ)_TARGET and then provide a rule to
+  build $(PACKAGE_DIR)/$(DIST_DIR)/$(EZ)-$(VERSION).ez. E.g. if you
+  want to manually control the building of foo.ez, in the package's
+  package.mk file:
+
+  $(PACKAGE_DIR)/$(DIST_DIR)/foo_TARGET:=true
+  $(PACKAGE_DIR)/$(DIST_DIR)/foo-%.ez: ... foo's prerequisites ...
+           ... instructions to build foo-$(VERSION).ez ...
+           cd $(@D) && unzip $@
+
+  Note the last instruction is required due to limitations of erlc:
+  the EZ must be unpacked in the $(DIST_DIR). Also DO NOT use
+  $(PACKAGE_DIR) in recipe _commands_ as variables in recipes are
+  only expanded when the recipe is invoked. At this point, the value
+  of $(PACKAGE_DIR) may well refer to some other package. $(@D) and
+  friends are the correct solution to this problem.
+
+EXTRA_PACKAGE_DIRS :: [abspath]
+  Default:
+  Notes: These are paths to directories that you want to be included
+  in $(APP_NAME)-$(VERSION).ez. The $(APP_NAME)-$(VERSION).ez target
+  has an order-only prerequisite on $(EXTRA_PACKAGE_DIRS) (i.e. they
+  must exist, but timestamps are ignored). No targets are provided
+  to build these directories so if they don't already exist, you
+  should arrange for them to be created. Something like:
+
+  $(EXTRA_PACKAGE_DIRS): %:
+          mkdir -p $@
+
+  would work well (static pattern rule).
+
+EXTRA_TARGETS :: [string]
+  Default:
+  Notes: The targets listed here depend on the $(EBIN_BEAMS) being
+  built and are prerequisites of $(APP_NAME)-$(VERSION).ez. Thus
+  like OUTPUT_EZS, these will be invoked only after the
+  $(EBIN_BEAMS) have been built, but there are no default
+  recipes. One example use of this is to ensure other package
+  artifacts are built, or to ensure that changing any such target
+  causes the $(APP_NAME)-$(VERSION).ez to be rebuilt.
+
+The following variables you should never have to touch.
+
+DEPS_FILE :: abspath
+  Default: $(PACKAGE_DIR)/deps.mk
+  Notes: This is the location of the file created by the
+  generate_deps script. There is no reason to change this from its
+  default.
+
+
+Important Note on Dynamic Dependencies
+--------------------------------------
+
+There is a potential problem with non-integrated dependencies
+(recursive invocations of make), and generated sources that can lead
+to infinite recursion.
+
+Example package.mk:
+
+DEPS:=something-non-integrated
+GENERATE_SOURCES:=$(PACKAGE_DIR)/src/foo.erl
+
+%/src/foo.erl: %/src/foo.input %/ebin/library.beam
+        $(ERL) -pa ebin -noshell -eval 'library:do_work("$@", "$<")'
+
+All the beams have the various DEPS as prerequisites. Thus we can
+start by going off and building the DEPS. Then we can build
+library.beam from library.erl, and then foo.erl as per the rule
+above. Then we can do dependency analysis and spit out our deps.mk
+DEPS_FILE which we then try and include, at which point make starts
+again. However, because the DEPS are non-integrated and thus .PHONY,
+it has no choice but to run them again. Even if the DEP doesn't
+produce new artifacts, by the very fact it's .PHONY, its artifacts,
+fresh or not, get copied and unpacked in our DIST_DIR. They are now
+found to be younger than library.beam. As a result library.beam has to
+be remade, which then means that foo.erl has to be remade which then
+means that the DEPS_FILE has to be remade... cue loop.
+
+The problem here is that library.erl is in SOURCE_ERLS, and
+subsequently ends up in EBIN_BEAMS, hence depends on DEPS. If we avoid
+that, then whilst foo.beam may need to be rebuilt owing to updated
+DEPS artifacts, we do not need to rebuild foo.erl, and thus the
+DEPS_FILE doesn't become invalidated. Thus the solution is to add:
+
+SOURCE_DIR:=$(PACKAGE_DIR)/src
+SOURCE_ERLS:=$(filter-out %/library.erl,$(wildcard $(SOURCE_DIR)/*.erl))
+
+
+App files
+---------
+
+The $(APP_NAME)-$(VERSION).ez output target has to have an
+ebin/$(APP_NAME).app file within it. The build system understands
+how to go from $(APP_NAME)_app.in to $(APP_NAME).in by replacing
+%%VSN%% within the contents of the file with the $(VERSION). Because
+the $(VERSION) can change, this poses a problem as we must know
+whether or not to regenerate the .app file with the new
+$(VERSION). To avoid having to declare the $(APP_NAME).app target
+.PHONY, we have an intermediate target of
+$(EBIN_DIR)/$(APP_NAME).app.$(VERSION). Then, when assembling the
+.ez, we simply depend on the .app file with the current $(VERSION)
+and copy that across, renaming it as we go.
+
+In some circumstances, e.g. when wrapping external libraries which
+have their own versions, the package needs to take responsibility
+for generating the .app file. This is normally because there is no
+$(APP_NAME)_app.in file, and so the build will break with no target
+found for the app file. Again, declaring that target as .PHONY
+should be avoided. Thus you can declare a target which outputs
+$(EBIN_DIR)/$(APP_NAME).app.$(VERSION) and does any necessary
+magic. To prevent this being overridden later, simply declare:
+
+$(PACKAGE_DIR)_APP:=true
+
+prior to the include ../include.mk directive.
+
+
+Testing
+-------
+
+The following variables can be set to incorporate package
+tests. Testing starts by starting a broker which is configured to
+run the current plugin.
+
+TEST_DIR :: abspath
+  Default: $(PACKAGE_DIR)/test
+
+TEST_SOURCE_DIR :: abspath
+  Default: $(TEST_DIR)/src
+
+TEST_SOURCE_ERLS :: [abspath]
+  Default: $(wildcard $(TEST_SOURCE_DIR)/*.erl)
+
+TEST_EBIN_DIR :: abspath
+  Default: $(TEST_DIR)/ebin
+
+TEST_EBIN_BEAMS :: [abspath]
+  Default: $(patsubst $(TEST_SOURCE_DIR)/%.erl,$(TEST_EBIN_DIR)/%.beam,$(TEST_SOURCE_ERLS))
+
+These first five variables control the locations of any Erlang tests
+for the package.
+
+TEST_COMMANDS :: string
+  Default:
+  Notes: This should be a space-separated list of erlang expressions
+  which will be invoked within the broker during testing.
+
+TEST_SCRIPTS :: [abspath]
+  Default:
+  Notes: The elements of this list are assumed to be executable
+  scripts which are invoked to test the package. This permits tests
+  to be written in different languages.
+
+
+Releases
+--------
+
+If your package is releasable, declare RELEASABLE:=true in your
+package.mk. Then, when the public umbrella is asked to build all
+releasable plugins, yours will be built. There is no need to declare
+RELEASABLE in any dependencies.
+
+
+Targets
+=======
+
+Default target
+The default target "builds the package" - all the members of
+OUTPUT_EZS and their dependencies will be built.
+
+clean
+This performs a transitive clean: the current package is cleaned, as
+are all dependencies.
+
+clean_local
+This only cleans the current package.
+
+test
+This is only available if at least one of TEST_COMMANDS and
+TEST_SCRIPTS is non-empty. It builds the package and any test erls,
+starts a broker configured to run the plugin, and then executes both
+TEST_COMMANDS and TEST_SCRIPTS.
+
+coverage
+This is the same as test above, with the addition that code coverage
+is enabled. After the tests complete, $(PACKAGE_DIR)/cover/ will
+exist and contain annotated HTML files for the sources of the
+package and package tests.
+
+run
+This builds the package and tests, and starts erl with the code path
+set to include the package's outputs, dependencies and tests.
+
+run_in_broker
+This is the same as run above, except that a broker is started which
+is configured to run the plugin.
+
+release
+This builds the package iff RELEASABLE is defined.
+
+END
