@@ -322,8 +322,13 @@ run: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS)
 run_in_broker: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS)
 	$(call run_broker,'-pa $(TEST_EBIN_DIR)',RABBITMQ_ALLOW_INPUT=true)
 
+# pre-test-checks can be used by packages to verify that prerequisites
+# are satisfied before running tests.
+.PHONY: $(PACKAGE_DIR)+pre-test-checks
+$(PACKAGE_DIR)+pre-test-checks::
+
 .PHONY: test
-test: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS)
+test: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test-checks
 	$(call run_tests)
 
 .PHONY: coverage
