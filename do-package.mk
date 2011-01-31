@@ -356,6 +356,7 @@ $(PACKAGE_DIR)/dist/.done:
 	touch $$@
 
 $(PACKAGE_DIR)+clean::
+	rm -f $(PACKAGE_DIR)/dist/.done
 	$$(MAKE) -C $(PACKAGE_DIR) clean
 
 endef
