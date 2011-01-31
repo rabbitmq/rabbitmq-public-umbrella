@@ -5,7 +5,7 @@
 
 # Make version check
 REQUIRED_MAKE_VERSION:=3.81
-ifneq ($(shell echo -e "$(MAKE_VERSION)\n$(REQUIRED_MAKE_VERSION)" | sort -t. -n | head -1),$(REQUIRED_MAKE_VERSION))
+ifneq ($(shell ( echo "$(MAKE_VERSION)" ; echo "$(REQUIRED_MAKE_VERSION)" ) | sort -t. -n | head -1),$(REQUIRED_MAKE_VERSION))
 $(error GNU make version $(REQUIRED_MAKE_VERSION) required)
 endif
 
