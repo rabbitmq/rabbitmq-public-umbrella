@@ -9,13 +9,24 @@ include $(UMBRELLA_BASE_DIR)/common.mk
 PACKAGE_DIR:=$(call canonical_path,.)
 
 # Produce all of the releasable artifacts of this package
+.PHONY: all
 all: $(PACKAGE_DIR)+all
 
 # Clean the package and all its dependencies
+.PHONY: clean
 clean: $(PACKAGE_DIR)+clean-with-deps
 
 # Clean just the initial package
+.PHONY: clean-local
 clean-local: $(PACKAGE_DIR)+clean
+
+# Test the package
+.PHONY: test
+test: $(PACKAGE_DIR)+test
+
+# Test the package with code coverage recording on
+.PHONY: coverage
+coverage: $(PACKAGE_DIR)+coverage
 
 # Do the initial package
 include $(UMBRELLA_BASE_DIR)/do-package.mk

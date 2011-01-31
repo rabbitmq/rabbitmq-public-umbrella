@@ -284,32 +284,22 @@ define run_tests
 	$(call run_broker,'-pa $(TEST_EBIN_DIR) -coverage directories ["$(EBIN_DIR)"$(COMMA)"$(TEST_EBIN_DIR)"]',,$(1)) &
 	sleep 5
 	echo > $(TEST_TMPDIR)/rabbit-test-output && \
-	if $(foreach BOOT_CMD,$(BOOT_CMDS),\
-               echo "$(BOOT_CMD)." \
-	         | tee -a $(TEST_TMPDIR)/rabbit-test-output \
-	         | $(ERL_CALL) $(ERL_CALL_OPTS) \
-                 | tee -a $(TEST_TMPDIR)/rabbit-test-output \
-	         | egrep "{ok, " >/dev/null && ) \
-	     $(foreach CMD,$(TEST_COMMANDS), \
-	       echo >> $(TEST_TMPDIR)/rabbit-test-output && \
-	       echo "$(CMD)." \
-                 | tee -a $(TEST_TMPDIR)/rabbit-test-output \
-                 | $(ERL_CALL) $(ERL_CALL_OPTS) \
-                 | tee -a $(TEST_TMPDIR)/rabbit-test-output \
-                 | egrep "{ok, " >/dev/null && ) \
-	     $(foreach SCRIPT,$(TEST_SCRIPTS),$(SCRIPT) && ) : ; then \
+	if $(foreach CMD,$(TEST_COMMANDS), \
+	     echo >> $(TEST_TMPDIR)/rabbit-test-output && \
+	     echo "$(CMD)." \
+               | tee -a $(TEST_TMPDIR)/rabbit-test-output \
+               | $(ERL_CALL) $(ERL_CALL_OPTS) \
+               | tee -a $(TEST_TMPDIR)/rabbit-test-output \
+               | egrep "{ok, " >/dev/null && ) \
+	    $(foreach SCRIPT,$(TEST_SCRIPTS),$(SCRIPT) && ) : ; then \
 	  echo "\nPASSED\n" ; \
 	else \
 	  cat $(TEST_TMPDIR)/rabbit-test-output ; \
 	  echo "\n\nFAILED\n" ; \
 	fi
-	-$(foreach CLEANUP_CMD,$(CLEANUP_CMDS),\
-          echo "$(CLEANUP_CMD)." \
-	    | tee -a $(TEST_TMPDIR)/rabbit-test-output \
-	    | $(ERL_CALL) $(ERL_CALL_OPTS) \
-	    | tee -a $(TEST_TMPDIR)/rabbit-test-output ;) \
 	sleep 1
 	echo "init:stop()." | $(ERL_CALL) $(ERL_CALL_OPTS)
+	sleep 1
 endef
 
 define package_targets
@@ -322,17 +312,17 @@ run: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS)
 run_in_broker: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS)
 	$(call run_broker,'-pa $(TEST_EBIN_DIR)',RABBITMQ_ALLOW_INPUT=true)
 
-# pre-test-checks can be used by packages to verify that prerequisites
-# are satisfied before running tests.
+# A hook to allow packages to verify that prerequisites are satisfied
+# before running tests.
 .PHONY: $(PACKAGE_DIR)+pre-test-checks
 $(PACKAGE_DIR)+pre-test-checks::
 
-.PHONY: test
-test: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test-checks
+.PHONY: $(PACKAGE_DIR)+test
+$(PACKAGE_DIR)+test: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test-checks
 	$(call run_tests)
 
-.PHONY: coverage
-coverage: $(PACKAGE_DIR)/dist/.done $(COVERAGE_PATH)/dist/.done $(TEST_EBIN_BEAMS)
+.PHONY: $(PACKAGE_DIR)+coverage
+$(PACKAGE_DIR)+coverage: $(PACKAGE_DIR)/dist/.done $(COVERAGE_PATH)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test-checks
 	$(call run_tests,$(COVERAGE_PATH)/dist/*.ez)
 
 endef
