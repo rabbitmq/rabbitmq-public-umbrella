@@ -37,7 +37,7 @@ EBIN_BEAMS=$(patsubst %,$(EBIN_DIR)/%.beam,$(notdir $(basename $(SOURCE_ERLS))))
 PACKAGE_NAME=$(notdir $(abspath $(PACKAGE_DIR)))
 APP_NAME=$(call package_to_app_name,$(PACKAGE_NAME))
 DEPS_FILE=$(PACKAGE_DIR)/build/deps.mk
-VERSION=$(GLOBAL_VERSION)
+PACKAGE_VERSION=$(VERSION)
 
 APP_FILE=$(EBIN_DIR)/$(APP_NAME).app
 
@@ -125,7 +125,7 @@ UPSTREAM_VERSION:=
 # clone.
 $(eval $(call safe_include,$(PACKAGE_DIR)/version.mk))
 
-VERSION:=$(if $(RETAIN_UPSTREAM_VERSION),$(UPSTREAM_VERSION)-)rmq$(GLOBAL_VERSION)-$(UPSTREAM_TYPE)$(UPSTREAM_SHORT_HASH)
+PACKAGE_VERSION:=$(if $(RETAIN_UPSTREAM_VERSION),$(UPSTREAM_VERSION)-)rmq$(VERSION)-$(UPSTREAM_TYPE)$(UPSTREAM_SHORT_HASH)
 
 define package_targets
 
@@ -159,7 +159,7 @@ endif # UPSTREAM_HG
 
 $(APP_FILE): $(UPSTREAM_APP_FILE) $(PACKAGE_DIR)/version.mk
 	@mkdir -p $$(@D)
-	sed -e 's|{vsn, *\"[^\"]*\"|{vsn,\"$(VERSION)\"|' <$$< >$$@
+	sed -e 's|{vsn, *\"[^\"]*\"|{vsn,\"$(PACKAGE_VERSION)\"|' <$$< >$$@
 
 $(PACKAGE_DIR)+clean::
 	rm -rf $(CLONE_DIR) $(APP_FILE) $(PACKAGE_DIR)/version.mk
@@ -175,8 +175,8 @@ endif
 # Convert the DEPS package names to canonical paths
 DEP_PATHS:=$(foreach DEP,$(DEPS),$(call package_to_path,$(DEP)))
 
-APP_DIR:=$(PACKAGE_DIR)/build/app/$(APP_NAME)-$(VERSION)
-EZ_FILE:=$(PACKAGE_DIR)/dist/$(APP_NAME)-$(VERSION).ez
+APP_DIR:=$(PACKAGE_DIR)/build/app/$(APP_NAME)-$(PACKAGE_VERSION)
+EZ_FILE:=$(PACKAGE_DIR)/dist/$(APP_NAME)-$(PACKAGE_VERSION).ez
 
 # Generate a rule to compile .erl files from the directory $(1) into
 # directory $(2), taking extra erlc options from $(3)
@@ -222,7 +222,7 @@ $(PACKAGE_DIR)/build/app/.done: $(EBIN_BEAMS) $(INCLUDE_HRLS) $(APP_FILE) $(EXTR
 # Produce the .app file from an _app.in file, if present.
 ifneq "$(wildcard $(EBIN_DIR)/$(APP_NAME)_app.in)" ""
 $(EBIN_DIR)/$(APP_NAME).app: $(EBIN_DIR)/$(APP_NAME)_app.in
-	sed -e 's:%%VSN%%:$(VERSION):g' <$$< >$$@
+	sed -e 's:%%VSN%%:$(PACKAGE_VERSION):g' <$$< >$$@
 
 $(PACKAGE_DIR)+clean::
 	rm -f $(APP_FILE)
@@ -351,7 +351,7 @@ else # NON_INTEGRATED_$(PACKAGE_DIR)
 define package_targets
 
 $(PACKAGE_DIR)/dist/.done:
-	$$(MAKE) -C $(PACKAGE_DIR) VERSION=$(GLOBAL_VERSION)
+	$$(MAKE) -C $(PACKAGE_DIR) VERSION=$(VERSION)
 	mkdir -p $$(@D)
 	touch $$@
 

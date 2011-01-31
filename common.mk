@@ -13,8 +13,9 @@ endif
 # (amongst others) when the replacement needs to include a comma.
 COMMA:=,
 
+VERSION:=0.0.0
+
 # TODO: do all of these really need exporting?
-export GLOBAL_VERSION ?= 0.0.0
 export ERLC ?= erlc
 export ERL ?= erl
 export TMPDIR ?= /tmp

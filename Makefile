@@ -38,13 +38,15 @@ ifndef HG_CORE_REPOBASE
 HG_CORE_REPOBASE:=http://hg.rabbitmq.com/
 endif
 
+VERSION:=0.0.0
+
 #----------------------------------
 
 all:
-	make -f all-packages.mk all-packages GLOBAL_VERSION=$(VERSION)
+	make -f all-packages.mk all-packages VERSION=$(VERSION)
 
 release:
-	make -f all-packages.mk all-releasable GLOBAL_VERSION=$(VERSION)
+	make -f all-packages.mk all-releasable VERSION=$(VERSION)
 
 clean:
 	make -f all-packages.mk clean-all-packages
