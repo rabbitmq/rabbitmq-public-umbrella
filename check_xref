@@ -35,9 +35,9 @@ main([PackageDir]) ->
         ")",
 
     %% 'U' is the set of unknown Functions
-    %% 'range' takes the RHS in all call pairs (From, To)
     %% '*' is set intersection
-    %% 'closure' gives the transitive closue
+    %% 'range' takes the RHS in all call pairs (From, To)
+    %% 'closure' gives the transitive closure
     %% 'E' is all edges (i.e. all calls)
     %% '|' is the subset of calls from any of the vertices
     %%
