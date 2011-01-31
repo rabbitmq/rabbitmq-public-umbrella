@@ -121,10 +121,26 @@ ssh $SSH_OPTS $ROOT_USERHOST '
         exit 1
     esac
 
+    case `uname -m` in
+    i686*)
+        ARCH=i386
+        ;;
+    x86_64*)
+        ARCH=amd64
+        ;;
+    *)
+        echo Unrecognised architecture `uname -m`
+        exit 1
+    esac
+
+    # Pull NSIS 2.46 from squeeze
+    wget http://ftp.uk.debian.org/debian/pool/main/n/nsis/nsis_2.46-2_${ARCH}.deb
+    dpkg -i nsis_2.46-2_${ARCH}.deb
+
     DEBIAN_FRONTEND=noninteractive ; export DEBIAN_FRONTEND
     apt-get -y update
     apt-get -y dist-upgrade
-    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm reprepro tofrodos zip unzip ant $java_package htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev python-pexpect openssl s3cmd fakeroot git-core m4 xmlto mercurial xsltproc nsis
+    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm reprepro tofrodos zip unzip ant $java_package htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev python-pexpect openssl s3cmd fakeroot git-core m4 xmlto mercurial xsltproc
     [ -n "$uja_command" ] && eval $uja_command
 '
 
