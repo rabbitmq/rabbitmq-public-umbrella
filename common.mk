@@ -3,6 +3,12 @@
 # UMBRELLA_BASE_DIR should be set to the path of the
 # rabbitmq-public-umbrella directory before this file is included.
 
+# Make version check
+REQUIRED_MAKE_VERSION:=3.81
+ifneq ($(shell echo "$(MAKE_VERSION)\n$(REQUIRED_MAKE_VERSION)" | sort -t. -n | head -1),$(REQUIRED_MAKE_VERSION))
+$(error GNU make version $(REQUIRED_MAKE_VERSION) required)
+endif
+
 # This is the standard trick for making pattern substitution work
 # (amongst others) when the replacement needs to include a comma.
 COMMA:=,
