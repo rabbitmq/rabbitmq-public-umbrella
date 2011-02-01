@@ -1,5 +1,6 @@
-# The order of these repos is VERY important because some repos depend on
-# other repos, so be careful when playing with this
+.PHONY: default
+default:
+	@echo No default target && false
 
 # PLUGIN_REPOS = our plugins repos; what needs to be tagged at release time.
 # CORE_REPOS = PLUGIN_REPOS + server and codegen, i.e. everything we can hg
@@ -8,93 +9,106 @@
 # checkout in any way.
 # PLUGINS = PLUGIN_REPOS + external repos, i.e. every plugin we need to build.
 
-PLUGIN_REPOS=rabbitmq-erlang-client \
-           rabbitmq-jsonrpc rabbitmq-mochiweb \
-           rabbitmq-jsonrpc-channel rabbitmq-management-agent \
-           rabbitmq-management rabbitmq-stomp rabbitmq-smtp rabbitmq-shovel \
-           rabbitmq-auth-backend-ldap rabbitmq-auth-mechanism-ssl
+PACKAGE_REPOS:=\
+    eldap-wrapper \
+    erlang-rfc4627-wrapper \
+    erlang-smtp-wrapper \
+    mochiweb-wrapper \
+    rabbitmq-auth-backend-ldap \
+    rabbitmq-auth-mechanism-ssl \
+    rabbitmq-external-exchange \
+    rabbitmq-jsonrpc \
+    rabbitmq-jsonrpc-channel \
+    rabbitmq-management \
+    rabbitmq-management-agent \
+    rabbitmq-mochiweb \
+    rabbitmq-shovel \
+    rabbitmq-smtp \
+    rabbitmq-stomp \
+    rabbitmq-toke \
+    toke \
+    webmachine-wrapper
 
-CORE_REPOS=rabbitmq-server rabbitmq-codegen $(PLUGIN_REPOS)
+REPOS:=rabbitmq-server rabbitmq-erlang-client rabbitmq-codegen $(PACKAGE_REPOS)
 
-REPOS=$(CORE_REPOS) erlang-rfc4627
-BRANCH=default
-PLUGINS=rabbitmq-erlang-client rabbitmq-jsonrpc rabbitmq-mochiweb \
-	rabbitmq-jsonrpc-channel erlang-rfc4627 rabbitmq-smtp \
-	rabbitmq-stomp rabbitmq-shovel rabbitmq-management-agent \
-	rabbitmq-management rabbitmq-auth-backend-ldap \
-	rabbitmq-auth-mechanism-ssl
+BRANCH:=default
 
 HG_CORE_REPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
-
-ifeq ($(HG_CORE_REPOBASE),)
-HG_CORE_REPOBASE=http://hg.rabbitmq.com/
+ifndef HG_CORE_REPOBASE
+HG_CORE_REPOBASE:=http://hg.rabbitmq.com/
 endif
+
+VERSION:=0.0.0
 
 #----------------------------------
 
 all:
-	$(foreach DIR, $(REPOS), $(MAKE) -C $(DIR) all &&) true
+	make -f all-packages.mk all-packages VERSION=$(VERSION)
 
-package:
-	$(foreach DIR, $(PLUGINS), $(MAKE) -C $(DIR) package &&) true
+release:
+	make -f all-packages.mk all-releasable VERSION=$(VERSION)
+
+clean:
+	make -f all-packages.mk clean-all-packages
+
+plugins-dist: release
+	rm -rf $(PLUGINS_DIST_DIR)
+	mkdir -p $(PLUGINS_DIST_DIR)
+	find . -name '*.ez' -exec cp -f {} $(PLUGINS_DIST_DIR) \;
 
 #----------------------------------
 # Convenience aliases
 
+.PHONY: co
 co: checkout
+
+.PHONY: ci
+ci: checkin
+
+.PHONY: up
 up: update
+
+.PHONY: st
+st: status
+
+.PHONY: up_c
+up_c: named_update
 
 #----------------------------------
 
-clean:
-	$(foreach DIR, $(REPOS), $(MAKE) -C $(DIR) clean;)
+$(REPOS):
+	hg clone $(HG_CORE_REPOBASE)/$@
 
-distclean:
-	$(foreach DIR, $(REPOS), $(MAKE) -C $(DIR) distclean;)
+.PHONY: checkout
+checkout: $(REPOS)
 
 #----------------------------------
 # Subrepository management
 
-$(CORE_REPOS):
-	hg clone $(HG_CORE_REPOBASE)/$@
-
-erlang-rfc4627:
-	git clone http://github.com/tonyg/erlang-rfc4627.git
-
-checkout: $(REPOS)
-
-st: checkout
+.PHONY: status
+status: checkout
 	$(foreach DIR,. $(REPOS),(cd $(DIR); hg st -mad) &&) true
 
+.PHONY: pull
 pull: checkout
 	$(foreach DIR,. $(REPOS),(cd $(DIR); hg pull) &&) true
 
+.PHONY: update
 update: pull
 	$(foreach DIR,. $(REPOS),(cd $(DIR); hg up) &&) true
 
-named_update: checkout
-	$(foreach DIR,. $(CORE_REPOS),(cd $(DIR); hg up -C $(BRANCH));)
+.PHONY: named_update
+named_update: pull
+	$(foreach DIR,. $(REPOS),(cd $(DIR); hg up -C $(BRANCH));)
 
+.PHONY: tag
 tag: checkout
-	$(foreach DIR,. $(PLUGIN_REPOS),(cd $(DIR); hg tag $(TAG));)
+	$(foreach DIR,. $(PACKAGE_REPOS),(cd $(DIR); hg tag $(TAG));)
 
+.PHONY: push
 push: checkout
-	$(foreach DIR,. $(PLUGIN_REPOS),(cd $(DIR); hg push -f);)
+	$(foreach DIR,. $(REPOS),(cd $(DIR); hg push -f);)
 
-#----------------------------------
-# Plugin management
-attach_plugins:
-	mkdir -p rabbitmq-server/plugins
-	rm -f rabbitmq-server/plugins/*
-	$(foreach DIR, $(PLUGINS), (cd rabbitmq-server/plugins; ln -sf ../../$(DIR)) &&) true
-	$(foreach DIR, $(PLUGINS), $(foreach DEP, $(shell make -s -C $(DIR) list-deps), (cd rabbitmq-server/plugins; ln -sf ../../$(DIR)/$(DEP)) &&)) true
-	rabbitmq-server/scripts/rabbitmq-activate-plugins
-
-plugins-dist: package
-	rm -rf $(PLUGINS_DIST_DIR)
-	mkdir -p $(PLUGINS_DIST_DIR)
-	find . -name '*.ez' -exec cp -f {} $(PLUGINS_DIST_DIR) \;
-	for file in $(PLUGINS_DIST_DIR)/*.ez ; \
-	  do mv $${file} \
-	    $$(dirname $${file})/$$(basename $${file} .ez)-$(VERSION).ez ; \
-	  done
+.PHONY: checkin
+checkin: checkout
+	$(foreach DIR,. $(REPOS),(cd $(DIR); hg ci);)
