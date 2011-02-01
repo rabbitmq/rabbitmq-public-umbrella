@@ -280,18 +280,22 @@ endef
 # Commands to run the package's test suite
 #
 # $(1): Extra .ezs to copy into the plugins dir
-define run_tests
+define run_in_broker_tests
+$(if $(IN_BROKER_TEST_COMMANDS)$(IN_BROKER_TEST_SCRIPTS),$(call run_in_broker_tests_aux,$1))
+endef
+
+define run_in_broker_tests_aux
 	$(call run_broker,'-pa $(TEST_EBIN_DIR) -coverage directories ["$(EBIN_DIR)"$(COMMA)"$(TEST_EBIN_DIR)"]',,$(1)) &
 	sleep 5
 	echo > $(TEST_TMPDIR)/rabbit-test-output && \
-	if $(foreach CMD,$(TEST_COMMANDS), \
+	if $(foreach CMD,$(IN_BROKER_TEST_COMMANDS), \
 	     echo >> $(TEST_TMPDIR)/rabbit-test-output && \
 	     echo "$(CMD)." \
                | tee -a $(TEST_TMPDIR)/rabbit-test-output \
                | $(ERL_CALL) $(ERL_CALL_OPTS) \
                | tee -a $(TEST_TMPDIR)/rabbit-test-output \
-               | egrep "{ok, " >/dev/null && ) \
-	    $(foreach SCRIPT,$(TEST_SCRIPTS),$(SCRIPT) && ) : ; then \
+               | egrep "{ok, " >/dev/null &&) \
+	    $(foreach SCRIPT,$(IN_BROKER_TEST_SCRIPTS),$(SCRIPT) &&) : ; then \
 	  echo "\nPASSED\n" ; \
 	else \
 	  cat $(TEST_TMPDIR)/rabbit-test-output ; \
@@ -314,17 +318,30 @@ run_in_broker: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS)
 
 # A hook to allow packages to verify that prerequisites are satisfied
 # before running tests.
-.PHONY: $(PACKAGE_DIR)+pre-test-checks
-$(PACKAGE_DIR)+pre-test-checks::
+.PHONY: $(PACKAGE_DIR)+pre-test
+$(PACKAGE_DIR)+pre-test::
 
-.PHONY: $(PACKAGE_DIR)+test
-$(PACKAGE_DIR)+test: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test-checks
-	$(call run_tests)
+# Runs the package's tests that operate within (or in conjuction with)
+# a running broker.
+.PHONY: $(PACKAGE_DIR)+in-broker-test
+$(PACKAGE_DIR)+in-broker-test: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test
+	$(call run_in_broker_tests)
 
-# Running the coverage tests required Erlang/OTP R14
+# Running the coverage tests requires Erlang/OTP R14. Note that
+# coverage only covers the in-broker tests.
 .PHONY: $(PACKAGE_DIR)+coverage
-$(PACKAGE_DIR)+coverage: $(PACKAGE_DIR)/dist/.done $(COVERAGE_PATH)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test-checks assert-erlang-r14
-	$(call run_tests,$(COVERAGE_PATH)/dist/*.ez)
+$(PACKAGE_DIR)+coverage: $(PACKAGE_DIR)/dist/.done $(COVERAGE_PATH)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test assert-erlang-r14
+	$(call run_in_broker_tests,$(COVERAGE_PATH)/dist/*.ez)
+
+# Runs the package's tests that don't need a running broker
+.PHONY: $(PACKAGE_DIR)+standalone-test
+$(PACKAGE_DIR)+standalone-test: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test
+	$$(if $(STANDALONE_TEST_COMMANDS),$$(foreach CMD,$(STANDALONE_TEST_COMMANDS),ERL_LIBS=$(PACKAGE_DIR)/dist $(ERL) -pa $(TEST_EBIN_DIR) -eval "$$(CMD)" -eval 'init:stop()' &&) :)
+	$$(if $(STANDALONE_TEST_SCRIPTS),$$(foreach SCRIPT,$(STANDALONE_TEST_SCRIPTS),$$(SCRIPT) &&) :)
+
+# Run all the package's tests
+.PHONY: $(PACKAGE_DIR)+test
+$(PACKAGE_DIR)+test:: $(PACKAGE_DIR)+standalone-test $(PACKAGE_DIR)+in-broker-test
 
 endef
 $(eval $(package_targets))

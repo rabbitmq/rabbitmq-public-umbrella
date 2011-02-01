@@ -20,11 +20,12 @@ clean: $(PACKAGE_DIR)+clean-with-deps
 .PHONY: clean-local
 clean-local: $(PACKAGE_DIR)+clean
 
-# Test the package
+# Runs the package's tests
 .PHONY: test
 test: $(PACKAGE_DIR)+test
 
-# Test the package with code coverage recording on
+# Test the package with code coverage recording on.  Note that
+# coverage only covers the in-broker tests.
 .PHONY: coverage
 coverage: $(PACKAGE_DIR)+coverage
 
