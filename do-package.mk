@@ -321,8 +321,9 @@ $(PACKAGE_DIR)+pre-test-checks::
 $(PACKAGE_DIR)+test: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test-checks
 	$(call run_tests)
 
+# Running the coverage tests required Erlang/OTP R14
 .PHONY: $(PACKAGE_DIR)+coverage
-$(PACKAGE_DIR)+coverage: $(PACKAGE_DIR)/dist/.done $(COVERAGE_PATH)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test-checks
+$(PACKAGE_DIR)+coverage: $(PACKAGE_DIR)/dist/.done $(COVERAGE_PATH)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test-checks assert-erlang-r14
 	$(call run_tests,$(COVERAGE_PATH)/dist/*.ez)
 
 endef
