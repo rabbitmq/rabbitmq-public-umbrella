@@ -124,11 +124,3 @@ endef
 all-releasable::
 all-packages::
 clean-all-packages::
-
-# A target to assert that we have erlang R14A or later
-.PHONY: assert-erlang-r14
-assert-erlang-r14:
-	if [ "`erl -noshell -eval 'io:format(lists:map(fun erlang:list_to_integer/1, string:tokens(erlang:system_info(version), ".")) >= [5,8]),halt().'`" != true ] ; then \
-	  echo "Need Erlang/OTP R14A or higher" ; \
-	  exit 1 ; \
-	fi

@@ -328,7 +328,7 @@ $(PACKAGE_DIR)+in-broker-test: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS) $(PA
 # Running the coverage tests requires Erlang/OTP R14. Note that
 # coverage only covers the in-broker tests.
 .PHONY: $(PACKAGE_DIR)+coverage
-$(PACKAGE_DIR)+coverage: $(PACKAGE_DIR)/dist/.done $(COVERAGE_PATH)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test assert-erlang-r14
+$(PACKAGE_DIR)+coverage: $(PACKAGE_DIR)/dist/.done $(COVERAGE_PATH)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test
 	$(call run_in_broker_tests,$(COVERAGE_PATH)/dist/*.ez)
 
 # Runs the package's tests that don't need a running broker
