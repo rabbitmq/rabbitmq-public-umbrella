@@ -39,6 +39,7 @@ APP_NAME=$(call package_to_app_name,$(PACKAGE_NAME))
 DEPS_FILE=$(PACKAGE_DIR)/build/deps.mk
 PACKAGE_VERSION=$(VERSION)
 
+ORIGINAL_APP_FILE:=
 APP_FILE=$(EBIN_DIR)/$(APP_NAME).app
 
 EXTRA_PACKAGE_DIRS:=
@@ -82,9 +83,6 @@ CLONE_DIR=$(PACKAGE_DIR)/$(patsubst %-wrapper,%,$(PACKAGE_NAME))-$(UPSTREAM_TYPE
 UPSTREAM_SOURCE_DIRS=$(CLONE_DIR)/src
 UPSTREAM_INCLUDE_DIRS=$(CLONE_DIR)/include
 
-# The upstream's original app file, before we tweak it
-UPSTREAM_APP_FILE:=
-
 package_targets=
 
 # Now let the package makefile fragment do its stuff
@@ -111,6 +109,12 @@ ifdef package_targets
 $(eval $(package_targets))
 endif
 
+# If ORIGINAL_APP_FILE hasn't been set, and there's a ebin/*_app.in
+# file, use it as the basis for the app file.
+ifndef ORIGINAL_APP_FILE
+ORIGINAL_APP_FILE:=$(wildcard $(EBIN_DIR)/$(APP_NAME)_app.in)
+endif
+
 # Handle wrapper packages
 ifneq ($(UPSTREAM_TYPE),)
 
@@ -129,9 +133,11 @@ PACKAGE_VERSION:=$(if $(RETAIN_UPSTREAM_VERSION),$(UPSTREAM_VERSION)-)rmq$(VERSI
 
 define package_targets
 
-$(UPSTREAM_APP_FILE): $(CLONE_DIR)/.done
+$(ORIGINAL_APP_FILE): $(CLONE_DIR)/.done
 
-$(PACKAGE_DIR)/version.mk: $(UPSTREAM_APP_FILE) $(CLONE_DIR)/.done
+$(APP_FILE): $(PACKAGE_DIR)/version.mk
+
+$(PACKAGE_DIR)/version.mk: $(ORIGINAL_APP_FILE) $(CLONE_DIR)/.done
 ifdef UPSTREAM_GIT
 	echo UPSTREAM_SHORT_HASH:=`git --git-dir=$(CLONE_DIR)/.git log -n 1 --format=format:"%h" HEAD` >$$@
 endif
@@ -157,12 +163,8 @@ $(CLONE_DIR)/.done:
 	touch $$@
 endif # UPSTREAM_HG
 
-$(APP_FILE): $(UPSTREAM_APP_FILE) $(PACKAGE_DIR)/version.mk
-	@mkdir -p $$(@D)
-	sed -e 's|{vsn, *\"[^\"]*\"|{vsn,\"$(PACKAGE_VERSION)\"|' <$$< >$$@
-
 $(PACKAGE_DIR)+clean::
-	rm -rf $(CLONE_DIR) $(APP_FILE) $(PACKAGE_DIR)/version.mk
+	rm -rf $(CLONE_DIR) $(PACKAGE_DIR)/version.mk
 endef # package_targets
 $(eval $(package_targets))
 
@@ -219,14 +221,10 @@ $(PACKAGE_DIR)/build/app/.done: $(EBIN_BEAMS) $(INCLUDE_HRLS) $(APP_FILE) $(EXTR
 	$(call copy,$(EXTRA_PACKAGE_DIRS),$(APP_DIR))
 	touch $$@
 
-# Produce the .app file from an _app.in file, if present.
-ifneq "$(wildcard $(EBIN_DIR)/$(APP_NAME)_app.in)" ""
-$(EBIN_DIR)/$(APP_NAME).app: $(EBIN_DIR)/$(APP_NAME)_app.in
-	sed -e 's:%%VSN%%:$(PACKAGE_VERSION):g' <$$< >$$@
-
-$(PACKAGE_DIR)+clean::
-	rm -f $(APP_FILE)
-endif
+# Produce the .app file
+$(APP_FILE): $(ORIGINAL_APP_FILE)
+	@mkdir -p $$(@D)
+	sed -e 's|{vsn, *\"[^\"]*\"|{vsn,\"$(PACKAGE_VERSION)\"|' <$$< >$$@
 
 # Unpack the ezs from dependency packages, so that their contents are
 # accessible to erlc
@@ -237,7 +235,7 @@ $(PACKAGE_DIR)/build/dep-apps/.done: $(PACKAGE_DIR)/build/dep-ezs/.done
 	touch $$@
 
 $(PACKAGE_DIR)+clean::
-	rm -rf $(EBIN_DIR)/*.beam $(TEST_EBIN_DIR)/*.beam $(PACKAGE_DIR)/dist $(PACKAGE_DIR)/build
+	rm -rf $(EBIN_DIR)/*.beam $(TEST_EBIN_DIR)/*.beam $(PACKAGE_DIR)/dist $(PACKAGE_DIR)/build $(APP_FILE)
 
 $(PACKAGE_DIR)+clean-with-deps:: $(foreach P,$(DEP_PATHS),$(P)+clean-with-deps)
 
