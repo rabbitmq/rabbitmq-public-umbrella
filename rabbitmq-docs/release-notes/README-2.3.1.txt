@@ -14,7 +14,7 @@ bug fixes
 java client
 -----------
 bug fixes
-- publish to non-existent exchange can hang
+- fix race condition closing a channel
 
 
 Upgrading
