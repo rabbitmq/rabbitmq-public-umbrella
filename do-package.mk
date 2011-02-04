@@ -196,7 +196,17 @@ define package_targets
 
 # Put all relevant ezs into the dist dir for this package, including
 # the main ez file produced by this package
-$(PACKAGE_DIR)/dist/.done: $(PACKAGE_DIR)/build/dep-ezs/.done $(APP_DONE)
+#
+# When the package version changes, our .ez filename will change, and
+# we need to regenerate the dist directory.  So the dependency needs
+# to go via a stamp file that incorporates the version in its name.
+# But we need a target with a fixed name for other packages to depend
+# on.  And it can't be a phony, as a phony will always get rebuilt.
+# Hence the need for two stamp files here.
+$(PACKAGE_DIR)/dist/.done: $(PACKAGE_DIR)/dist/.done.$(PACKAGE_VERSION)
+	touch $$@
+
+$(PACKAGE_DIR)/dist/.done.$(PACKAGE_VERSION): $(PACKAGE_DIR)/build/dep-ezs/.done $(APP_DONE)
 	rm -rf $$(@D)
 	mkdir -p $$(@D)
 	cd $(dir $(APP_DIR)) && zip -r $$(abspath $(EZ_FILE)) $(notdir $(APP_DIR))
@@ -362,14 +372,24 @@ else # NON_INTEGRATED_$(PACKAGE_DIR)
 
 define package_targets
 
-$(PACKAGE_DIR)/dist/.done:
+# When the package version changes, our .ez filename will change, and
+# we need to regenerate the dist directory.  So the dependency needs
+# to go via a stamp file that incorporates the version in its name.
+# But we need a target with a fixed name for other packages to depend
+# on.  And it can't be a phony, as a phony will always get rebuilt.
+# Hence the need for two stamp files here.
+$(PACKAGE_DIR)/dist/.done: $(PACKAGE_DIR)/dist/.done.$(VERSION)
+	touch $$@
+
+$(PACKAGE_DIR)/dist/.done.$(VERSION):
+	rm -rf $$(@D)
 	$$(MAKE) -C $(PACKAGE_DIR) VERSION=$(VERSION)
 	mkdir -p $$(@D)
 	touch $$@
 
 $(PACKAGE_DIR)+clean::
-	rm -f $(PACKAGE_DIR)/dist/.done
 	$$(MAKE) -C $(PACKAGE_DIR) clean
+	rm -rf $(PACKAGE_DIR)/dist
 
 endef
 $(eval $(package_targets))
