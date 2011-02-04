@@ -40,7 +40,6 @@ DEPS_FILE=$(PACKAGE_DIR)/build/deps.mk
 PACKAGE_VERSION=$(VERSION)
 
 ORIGINAL_APP_FILE:=
-APP_FILE=$(EBIN_DIR)/$(APP_NAME).app
 
 EXTRA_PACKAGE_DIRS:=
 EXTRA_TARGETS:=
@@ -114,6 +113,10 @@ endif
 ifndef ORIGINAL_APP_FILE
 ORIGINAL_APP_FILE:=$(wildcard $(EBIN_DIR)/$(APP_NAME)_app.in)
 endif
+
+# Some variables used for brevity below.  Package's can't set these.
+APP_FILE=$(PACKAGE_DIR)/build/$(APP_NAME).app.$(PACKAGE_VERSION)
+APP_DONE=$(PACKAGE_DIR)/build/app/.done.$(PACKAGE_VERSION)
 
 # Handle wrapper packages
 ifneq ($(UPSTREAM_TYPE),)
@@ -197,7 +200,7 @@ define package_targets
 
 # Put all relevant ezs into the dist dir for this package, including
 # the main ez file produced by this package
-$(PACKAGE_DIR)/dist/.done: $(PACKAGE_DIR)/build/dep-ezs/.done $(PACKAGE_DIR)/build/app/.done
+$(PACKAGE_DIR)/dist/.done: $(PACKAGE_DIR)/build/dep-ezs/.done $(APP_DONE)
 	rm -rf $$(@D)
 	mkdir -p $$(@D)
 	cd $(dir $(APP_DIR)) && zip -r $$(abspath $(EZ_FILE)) $(notdir $(APP_DIR))
@@ -212,7 +215,7 @@ $(PACKAGE_DIR)/build/dep-ezs/.done: $(foreach P,$(DEP_PATHS),$(P)/dist/.done)
 	touch $$@
 
 # Put together the main app tree for this package
-$(PACKAGE_DIR)/build/app/.done: $(EBIN_BEAMS) $(INCLUDE_HRLS) $(APP_FILE) $(EXTRA_TARGETS)
+$(APP_DONE): $(EBIN_BEAMS) $(INCLUDE_HRLS) $(APP_FILE) $(EXTRA_TARGETS)
 	rm -rf $$(@D)
 	mkdir -p $(APP_DIR)/ebin $(APP_DIR)/include
 	$(call copy,$(EBIN_BEAMS),$(APP_DIR)/ebin)
@@ -235,7 +238,7 @@ $(PACKAGE_DIR)/build/dep-apps/.done: $(PACKAGE_DIR)/build/dep-ezs/.done
 	touch $$@
 
 $(PACKAGE_DIR)+clean::
-	rm -rf $(EBIN_DIR)/*.beam $(TEST_EBIN_DIR)/*.beam $(PACKAGE_DIR)/dist $(PACKAGE_DIR)/build $(APP_FILE)
+	rm -rf $(EBIN_DIR)/*.beam $(TEST_EBIN_DIR)/*.beam $(PACKAGE_DIR)/dist $(PACKAGE_DIR)/build
 
 $(PACKAGE_DIR)+clean-with-deps:: $(foreach P,$(DEP_PATHS),$(P)+clean-with-deps)
 
