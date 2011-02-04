@@ -191,6 +191,54 @@ endef
 $(eval $(foreach D,$(SOURCE_DIRS),$(call package_source_dir_targets,$(D),$(EBIN_DIR),)))
 $(eval $(foreach D,$(TEST_SOURCE_DIRS),$(call package_source_dir_targets,$(D),$(TEST_EBIN_DIR),-pa $(EBIN_DIR))))
 
+# Commands to run the broker for tests
+#
+# $(1): The value for RABBITMQ_SERVER_START_ARGS
+# $(2): Extra env var settings when invoking the rabbitmq-server script
+# $(3): Extra .ezs to copy into the plugins dir
+define run_broker
+	rm -rf $(TEST_TMPDIR)
+	mkdir -p $(foreach D,log plugins $(NODENAME),$(TEST_TMPDIR)/$(D))
+	cp -a $(PACKAGE_DIR)/dist/*.ez $(TEST_TMPDIR)/plugins
+	$(call copy,$(3),$(TEST_TMPDIR)/plugins)
+	rm -f $(TEST_TMPDIR)/plugins/rabbit_common*.ez
+	RABBITMQ_PLUGINS_DIR=$(TEST_TMPDIR)/plugins \
+	  RABBITMQ_LOG_BASE=$(TEST_TMPDIR)/log \
+	  RABBITMQ_MNESIA_BASE=$(TEST_TMPDIR)/$(NODENAME) \
+	  RABBITMQ_NODENAME=$(NODENAME) \
+	  RABBITMQ_SERVER_START_ARGS=$(1) \
+	  $(2) $(UMBRELLA_BASE_DIR)/rabbitmq-server/scripts/rabbitmq-server
+endef
+
+# Commands to run the package's test suite
+#
+# $(1): Extra .ezs to copy into the plugins dir
+define run_in_broker_tests
+$(if $(IN_BROKER_TEST_COMMANDS)$(IN_BROKER_TEST_SCRIPTS),$(call run_in_broker_tests_aux,$1))
+endef
+
+define run_in_broker_tests_aux
+	$(call run_broker,'-pa $(TEST_EBIN_DIR) -coverage directories ["$(EBIN_DIR)"$(COMMA)"$(TEST_EBIN_DIR)"]',,$(1)) &
+	sleep 5
+	echo > $(TEST_TMPDIR)/rabbit-test-output && \
+	if $(foreach CMD,$(IN_BROKER_TEST_COMMANDS), \
+	     echo >> $(TEST_TMPDIR)/rabbit-test-output && \
+	     echo "$(CMD)." \
+               | tee -a $(TEST_TMPDIR)/rabbit-test-output \
+               | $(ERL_CALL) $(ERL_CALL_OPTS) \
+               | tee -a $(TEST_TMPDIR)/rabbit-test-output \
+               | egrep "{ok, " >/dev/null &&) \
+	    $(foreach SCRIPT,$(IN_BROKER_TEST_SCRIPTS),$(SCRIPT) &&) : ; then \
+	  echo "\nPASSED\n" ; \
+	else \
+	  cat $(TEST_TMPDIR)/rabbit-test-output ; \
+	  echo "\n\nFAILED\n" ; \
+	fi
+	sleep 1
+	echo "init:stop()." | $(ERL_CALL) $(ERL_CALL_OPTS)
+	sleep 1
+endef
+
 # The targets common to all integrated packages
 define package_targets
 
@@ -264,70 +312,16 @@ copy-releasable:: $(PACKAGE_DIR)/dist/.done
 	cp $(PACKAGE_DIR)/dist/*.ez $(PLUGINS_DIST_DIR)
 endif
 
-endef
-$(eval $(package_targets))
-
-# The initial package is special, because we can run the tests from
-# it.  Here we have the relevant targets
-ifndef DONE_INITIAL_PACKAGE
-DONE_INITIAL_PACKAGE:=true
-
-# Commands to run the broker for tests
-#
-# $(1): The value for RABBITMQ_SERVER_START_ARGS
-# $(2): Extra env var settings when invoking the rabbitmq-server script
-# $(3): Extra .ezs to copy into the plugins dir
-define run_broker
-	rm -rf $(TEST_TMPDIR)
-	mkdir -p $(foreach D,log plugins $(NODENAME),$(TEST_TMPDIR)/$(D))
-	cp -a $(PACKAGE_DIR)/dist/*.ez $(TEST_TMPDIR)/plugins
-	$(call copy,$(3),$(TEST_TMPDIR)/plugins)
-	rm -f $(TEST_TMPDIR)/plugins/rabbit_common*.ez
-	RABBITMQ_PLUGINS_DIR=$(TEST_TMPDIR)/plugins \
-	  RABBITMQ_LOG_BASE=$(TEST_TMPDIR)/log \
-	  RABBITMQ_MNESIA_BASE=$(TEST_TMPDIR)/$(NODENAME) \
-	  RABBITMQ_NODENAME=$(NODENAME) \
-	  RABBITMQ_SERVER_START_ARGS=$(1) \
-	  $(2) $(UMBRELLA_BASE_DIR)/rabbitmq-server/scripts/rabbitmq-server
-endef
-
-# Commands to run the package's test suite
-#
-# $(1): Extra .ezs to copy into the plugins dir
-define run_in_broker_tests
-$(if $(IN_BROKER_TEST_COMMANDS)$(IN_BROKER_TEST_SCRIPTS),$(call run_in_broker_tests_aux,$1))
-endef
-
-define run_in_broker_tests_aux
-	$(call run_broker,'-pa $(TEST_EBIN_DIR) -coverage directories ["$(EBIN_DIR)"$(COMMA)"$(TEST_EBIN_DIR)"]',,$(1)) &
-	sleep 5
-	echo > $(TEST_TMPDIR)/rabbit-test-output && \
-	if $(foreach CMD,$(IN_BROKER_TEST_COMMANDS), \
-	     echo >> $(TEST_TMPDIR)/rabbit-test-output && \
-	     echo "$(CMD)." \
-               | tee -a $(TEST_TMPDIR)/rabbit-test-output \
-               | $(ERL_CALL) $(ERL_CALL_OPTS) \
-               | tee -a $(TEST_TMPDIR)/rabbit-test-output \
-               | egrep "{ok, " >/dev/null &&) \
-	    $(foreach SCRIPT,$(IN_BROKER_TEST_SCRIPTS),$(SCRIPT) &&) : ; then \
-	  echo "\nPASSED\n" ; \
-	else \
-	  cat $(TEST_TMPDIR)/rabbit-test-output ; \
-	  echo "\n\nFAILED\n" ; \
-	fi
-	sleep 1
-	echo "init:stop()." | $(ERL_CALL) $(ERL_CALL_OPTS)
-	sleep 1
-endef
-
-define package_targets
-
-.PHONY: run
-run: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS)
+# Run erlang with the package, its tests, and all its dependencies
+# available.
+.PHONY: $(PACKAGE_DIR)+run
+$(PACKAGE_DIR)+run: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS)
 	ERL_LIBS=$(PACKAGE_DIR)/dist $(ERL) -pa $(TEST_EBIN_DIR)
 
-.PHONY: run_in_broker
-run_in_broker: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS)
+# Run the broker with the package, its tests, and all its dependencies
+# available.
+.PHONY: $(PACKAGE_DIR)+run-in-broker
+$(PACKAGE_DIR)+run-in-broker: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS)
 	$(call run_broker,'-pa $(TEST_EBIN_DIR)',RABBITMQ_ALLOW_INPUT=true)
 
 # A hook to allow packages to verify that prerequisites are satisfied
@@ -359,8 +353,6 @@ $(PACKAGE_DIR)+test:: $(PACKAGE_DIR)+standalone-test $(PACKAGE_DIR)+in-broker-te
 
 endef
 $(eval $(package_targets))
-
-endif # initial package
 
 # Recursing into dependency packages has to be the last thing we do
 # because it will trample all over the per-package variables.

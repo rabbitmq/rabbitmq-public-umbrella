@@ -20,6 +20,16 @@ clean: $(PACKAGE_DIR)+clean-with-deps
 .PHONY: clean-local
 clean-local: $(PACKAGE_DIR)+clean
 
+# Run erlang with the package, its tests, and all its dependencies
+# available.
+.PHONY: run
+run: $(PACKAGE_DIR)+run
+
+# Run the broker with the package, its tests, and all its dependencies
+# available.
+.PHONY: run-in-broker
+run-in-broker: $(PACKAGE_DIR)+run-in-broker
+
 # Runs the package's tests
 .PHONY: test
 test: $(PACKAGE_DIR)+test
