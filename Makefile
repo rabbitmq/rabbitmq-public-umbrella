@@ -54,7 +54,7 @@ clean:
 plugins-dist: release
 	rm -rf $(PLUGINS_DIST_DIR)
 	mkdir -p $(PLUGINS_DIST_DIR)
-	find . -name '*.ez' -exec cp -f {} $(PLUGINS_DIST_DIR) \;
+	make -f all-packages.mk copy-releasable VERSION=$(VERSION) $(PLUGINS_DIST_DIR)=$(PLUGINS_DIST_DIR)
 
 #----------------------------------
 # Convenience aliases

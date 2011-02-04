@@ -120,7 +120,8 @@ endef
 .DELETE_ON_ERROR:
 
 # Declarations for global targets
-.PHONY: all-releasable all-packages clean-all-packages
+.PHONY: all-releasable copy-releasable all-packages clean-all-packages
 all-releasable::
+copy-releasable::
 all-packages::
 clean-all-packages::

@@ -173,10 +173,6 @@ $(eval $(package_targets))
 
 endif # UPSTREAM_TYPE
 
-ifdef RELEASABLE
-all-releasable:: $(PACKAGE_DIR)+all
-endif
-
 # Convert the DEPS package names to canonical paths
 DEP_PATHS:=$(foreach DEP,$(DEPS),$(call package_to_path,$(DEP)))
 
@@ -237,11 +233,6 @@ $(PACKAGE_DIR)/build/dep-apps/.done: $(PACKAGE_DIR)/build/dep-ezs/.done
 	cd $$(@D) && $$(foreach EZ,$$(wildcard $(PACKAGE_DIR)/build/dep-ezs/*.ez),unzip $$(abspath $$(EZ)) &&) :
 	touch $$@
 
-$(PACKAGE_DIR)+clean::
-	rm -rf $(EBIN_DIR)/*.beam $(TEST_EBIN_DIR)/*.beam $(PACKAGE_DIR)/dist $(PACKAGE_DIR)/build
-
-$(PACKAGE_DIR)+clean-with-deps:: $(foreach P,$(DEP_PATHS),$(P)+clean-with-deps)
-
 # Dependency autogeneration.  This is complicated slightly by the need
 # to generate a dependency file which is path-independent.
 $(DEPS_FILE): $(SOURCE_ERLS) $(INCLUDE_HRLS)
@@ -250,6 +241,18 @@ $(DEPS_FILE): $(SOURCE_ERLS) $(INCLUDE_HRLS)
 	sed -i -e 's|$$@|$$$$(DEPS_FILE)|' $$@
 
 $(eval $(call safe_include,$(DEPS_FILE)))
+
+$(PACKAGE_DIR)+clean::
+	rm -rf $(EBIN_DIR)/*.beam $(TEST_EBIN_DIR)/*.beam $(PACKAGE_DIR)/dist $(PACKAGE_DIR)/build
+
+$(PACKAGE_DIR)+clean-with-deps:: $(foreach P,$(DEP_PATHS),$(P)+clean-with-deps)
+
+ifdef RELEASABLE
+all-releasable:: $(PACKAGE_DIR)+all
+
+copy-releasable:: $(PACKAGE_DIR)/dist/.done
+	cp $(PACKAGE_DIR)/dist/*.ez $(PLUGINS_DIST_DIR)
+endif
 
 endef
 $(eval $(package_targets))
