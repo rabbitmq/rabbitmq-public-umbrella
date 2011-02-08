@@ -10,7 +10,7 @@ DONE_$(PACKAGE_DIR):=true
 # Declare the standard per-package targets
 .PHONY: $(PACKAGE_DIR)+all $(PACKAGE_DIR)+clean $(PACKAGE_DIR)+clean-recursive
 
-$(PACKAGE_DIR)+all:: $(PACKAGE_DIR)/dist/.done
+$(PACKAGE_DIR)+dist:: $(PACKAGE_DIR)/dist/.done
 
 $(PACKAGE_DIR)+clean::
 
@@ -18,7 +18,7 @@ $(PACKAGE_DIR)+clean-with-deps:: $(PACKAGE_DIR)+clean
 
 # Hook into the "all package" targets used by the main public-umbrella
 # makefile
-all-packages:: $(PACKAGE_DIR)+all
+all-packages:: $(PACKAGE_DIR)/dist/.done
 clean-all-packages:: $(PACKAGE_DIR)+clean
 
 ifndef NON_INTEGRATED_$(PACKAGE_DIR)
@@ -306,7 +306,7 @@ $(PACKAGE_DIR)+clean::
 $(PACKAGE_DIR)+clean-with-deps:: $(foreach P,$(DEP_PATHS),$(P)+clean-with-deps)
 
 ifdef RELEASABLE
-all-releasable:: $(PACKAGE_DIR)+all
+all-releasable:: $(PACKAGE_DIR)/dist/.done
 
 copy-releasable:: $(PACKAGE_DIR)/dist/.done
 	cp $(PACKAGE_DIR)/dist/*.ez $(PLUGINS_DIST_DIR)

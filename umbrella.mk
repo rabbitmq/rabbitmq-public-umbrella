@@ -9,8 +9,8 @@ include $(UMBRELLA_BASE_DIR)/common.mk
 PACKAGE_DIR:=$(call canonical_path,.)
 
 # Produce all of the releasable artifacts of this package
-.PHONY: all
-all: $(PACKAGE_DIR)+all
+.PHONY: dist
+dist: $(PACKAGE_DIR)+dist
 
 # Clean the package and all its dependencies
 .PHONY: clean
