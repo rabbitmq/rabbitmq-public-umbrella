@@ -130,7 +130,7 @@ UPSTREAM_VERSION:=
 # Include the version information.  This is generated based on the
 # upstream revision id, and so ensures that we remake after doing the
 # clone.
-$(eval $(call safe_include,$(PACKAGE_DIR)/version.mk))
+$(eval $(call safe_include,$(PACKAGE_DIR)/build/version.mk))
 
 PACKAGE_VERSION:=$(if $(RETAIN_UPSTREAM_VERSION),$(UPSTREAM_VERSION)-)rmq$(VERSION)-$(UPSTREAM_TYPE)$(UPSTREAM_SHORT_HASH)
 
@@ -138,9 +138,9 @@ define package_targets
 
 $(ORIGINAL_APP_FILE): $(CLONE_DIR)/.done
 
-$(APP_FILE): $(PACKAGE_DIR)/version.mk
+$(APP_FILE): $(PACKAGE_DIR)/build/version.mk
 
-$(PACKAGE_DIR)/version.mk: $(ORIGINAL_APP_FILE) $(CLONE_DIR)/.done
+$(PACKAGE_DIR)/build/version.mk: $(ORIGINAL_APP_FILE) $(CLONE_DIR)/.done
 ifdef UPSTREAM_GIT
 	echo UPSTREAM_SHORT_HASH:=`git --git-dir=$(CLONE_DIR)/.git log -n 1 --format=format:"%h" HEAD` >$$@
 endif
@@ -167,7 +167,7 @@ $(CLONE_DIR)/.done:
 endif # UPSTREAM_HG
 
 $(PACKAGE_DIR)+clean::
-	rm -rf $(CLONE_DIR) $(PACKAGE_DIR)/version.mk
+	rm -rf $(CLONE_DIR)
 endef # package_targets
 $(eval $(package_targets))
 
