@@ -1,12 +1,4 @@
-syntax: glob
-*~
-erl_crash.dump
-.pb.preset
-
-syntax: regexp
-^dist/
-^coverage/.*\.beam
-deps\.mk$
-\.app$
-/dist/
-^erlang-rfc4627/
+~$
+\.beam$
+^coverage/build/
+^coverage/dist/
