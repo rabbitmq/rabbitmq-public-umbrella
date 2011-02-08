@@ -1,5 +1,5 @@
 # The default goal
-all:
+dist:
 
 UMBRELLA_BASE_DIR:=..
 

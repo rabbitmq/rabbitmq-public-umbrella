@@ -8,7 +8,7 @@
 DONE_$(PACKAGE_DIR):=true
 
 # Declare the standard per-package targets
-.PHONY: $(PACKAGE_DIR)+all $(PACKAGE_DIR)+clean $(PACKAGE_DIR)+clean-recursive
+.PHONY: $(PACKAGE_DIR)+dist $(PACKAGE_DIR)+clean $(PACKAGE_DIR)+clean-recursive
 
 $(PACKAGE_DIR)+dist:: $(PACKAGE_DIR)/dist/.done
 
