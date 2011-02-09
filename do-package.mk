@@ -344,7 +344,11 @@ $(PACKAGE_DIR)+coverage: $(PACKAGE_DIR)/dist/.done $(COVERAGE_PATH)/dist/.done $
 # Runs the package's tests that don't need a running broker
 .PHONY: $(PACKAGE_DIR)+standalone-test
 $(PACKAGE_DIR)+standalone-test: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test
-	$$(if $(STANDALONE_TEST_COMMANDS),$$(foreach CMD,$(STANDALONE_TEST_COMMANDS),ERL_LIBS=$(PACKAGE_DIR)/dist $(ERL) -pa $(TEST_EBIN_DIR) -eval "$$(CMD)" -eval 'init:stop()' &&) :)
+	$$(if $(STANDALONE_TEST_COMMANDS),\
+	  $$(foreach CMD,$(STANDALONE_TEST_COMMANDS),\
+	    ERL_LIBS=$(PACKAGE_DIR)/dist $(ERL) -pa $(TEST_EBIN_DIR) -eval "init:stop(case $$(CMD) of ok -> 0; _Else -> 1 end)" &&\
+	  )\
+	:)
 	$$(if $(STANDALONE_TEST_SCRIPTS),$$(foreach SCRIPT,$(STANDALONE_TEST_SCRIPTS),$$(SCRIPT) &&) :)
 
 # Run all the package's tests
