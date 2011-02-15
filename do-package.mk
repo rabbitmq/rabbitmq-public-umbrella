@@ -321,7 +321,7 @@ $(PACKAGE_DIR)+run: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS)
 # Run the broker with the package, its tests, and all its dependencies
 # available.
 .PHONY: $(PACKAGE_DIR)+run-in-broker
-$(PACKAGE_DIR)+run-in-broker: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS)
+$(PACKAGE_DIR)+run-in-broker: $(PACKAGE_DIR)/dist/.done $(RABBITMQ_SERVER_PATH)/dist/.done $(TEST_EBIN_BEAMS)
 	$(call run_broker,'-pa $(TEST_EBIN_DIR)',RABBITMQ_ALLOW_INPUT=true)
 
 # A hook to allow packages to verify that prerequisites are satisfied
@@ -332,7 +332,7 @@ $(PACKAGE_DIR)+pre-test::
 # Runs the package's tests that operate within (or in conjuction with)
 # a running broker.
 .PHONY: $(PACKAGE_DIR)+in-broker-test
-$(PACKAGE_DIR)+in-broker-test: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test
+$(PACKAGE_DIR)+in-broker-test: $(PACKAGE_DIR)/dist/.done $(RABBITMQ_SERVER_PATH)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test
 	$(call run_in_broker_tests)
 
 # Running the coverage tests requires Erlang/OTP R14. Note that

@@ -82,6 +82,9 @@ NON_INTEGRATED_$(call package_to_path,rabbitmq-erlang-client):=true
 # Where the coverage package lives
 COVERAGE_PATH:=$(call package_to_path,coverage)
 
+# Where the rabbitmq-server package lives
+RABBITMQ_SERVER_PATH=$(call package_to_path,rabbitmq-server)
+
 # Cleaning support
 ifndef MAKECMDGOALS
 TESTABLEGOALS:=$(.DEFAULT_GOAL)
