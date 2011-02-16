@@ -133,9 +133,12 @@ ssh $SSH_OPTS $ROOT_USERHOST '
         exit 1
     esac
 
-    # Pull NSIS 2.46 from squeeze
-    wget http://ftp.uk.debian.org/debian/pool/main/n/nsis/nsis_2.46-2_${ARCH}.deb
-    dpkg -i nsis_2.46-2_${ARCH}.deb
+    if [ "$(dpkg-query --showformat="\${Version} \${Status}\n" -W nsis)" != "2.46-2 install ok installed" ];
+        then
+            # Pull NSIS 2.46 from squeeze
+            wget http://ftp.uk.debian.org/debian/pool/main/n/nsis/nsis_2.46-2_${ARCH}.deb
+            dpkg -i nsis_2.46-2_${ARCH}.deb
+        fi
 
     DEBIAN_FRONTEND=noninteractive ; export DEBIAN_FRONTEND
     apt-get -y update
