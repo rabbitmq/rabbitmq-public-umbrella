@@ -111,7 +111,7 @@ endif
 # If ORIGINAL_APP_FILE hasn't been set, and there's a ebin/*_app.in
 # file, use it as the basis for the app file.
 ifndef ORIGINAL_APP_FILE
-ORIGINAL_APP_FILE:=$(wildcard $(EBIN_DIR)/$(APP_NAME)_app.in)
+ORIGINAL_APP_FILE:=$(wildcard $(EBIN_DIR)/$(APP_NAME).app)
 endif
 
 # Some variables used for brevity below.  Package's can't set these.
