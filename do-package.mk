@@ -73,7 +73,8 @@ UPSTREAM_REVISION:=
 WRAPPER_PATCHES:=
 
 # Should the app version retain the version from the original .app file?
-RETAIN_UPSTREAM_VERSION:=
+RETAIN_ORIGINAL_VERSION:=
+ORIGINAL_VERSION:=
 
 # Where to clone the upstream to.
 CLONE_DIR=$(PACKAGE_DIR)/$(patsubst %-wrapper,%,$(PACKAGE_NAME))-$(UPSTREAM_TYPE)
@@ -114,9 +115,29 @@ ifndef ORIGINAL_APP_FILE
 ORIGINAL_APP_FILE:=$(wildcard $(EBIN_DIR)/$(APP_NAME).app)
 endif
 
-# Some variables used for brevity below.  Package's can't set these.
+# Some variables used for brevity below.  Packages can't set these.
 APP_FILE=$(PACKAGE_DIR)/build/$(APP_NAME).app.$(PACKAGE_VERSION)
 APP_DONE=$(PACKAGE_DIR)/build/app/.done.$(PACKAGE_VERSION)
+
+# Handle RETAIN_ORIGINAL_VERSION / ORIGINAL_VERSION
+ifdef RETAIN_ORIGINAL_VERSION
+
+# Automatically acquire ORIGINAL_VERSION from ORIGINAL_APP_FILE
+ifndef ORIGINAL_VERSION
+
+# The generated ORIGINAL_VERSION setting goes in build/version.mk
+$(eval $(call safe_include,$(PACKAGE_DIR)/build/version.mk))
+
+$(PACKAGE_DIR)/build/version.mk: $(ORIGINAL_APP_FILE)
+	sed -n -e 's|^.*{vsn, *"\([^"]*\)".*$$|ORIGINAL_VERSION:=\1|p' <$< >$@
+
+$(APP_FILE): $(PACKAGE_DIR)/build/version.mk
+
+endif # ifndef ORIGINAL_VERSION
+
+PACKAGE_VERSION:=$(ORIGINAL_VERSION)-rmq$(VERSION)
+
+endif # ifdef RETAIN_ORIGINAL_VERSION
 
 # Handle wrapper packages
 ifneq ($(UPSTREAM_TYPE),)
@@ -124,30 +145,7 @@ ifneq ($(UPSTREAM_TYPE),)
 SOURCE_DIRS+=$(UPSTREAM_SOURCE_DIRS)
 INCLUDE_DIRS+=$(UPSTREAM_INCLUDE_DIRS)
 
-UPSTREAM_SHORT_HASH:=
-UPSTREAM_VERSION:=
-
-# Include the version information.  This is generated based on the
-# upstream revision id, and so ensures that we remake after doing the
-# clone.
-$(eval $(call safe_include,$(PACKAGE_DIR)/build/version.mk))
-
-PACKAGE_VERSION:=$(if $(RETAIN_UPSTREAM_VERSION),$(UPSTREAM_VERSION)-)rmq$(VERSION)-$(UPSTREAM_TYPE)$(UPSTREAM_SHORT_HASH)
-
 define package_targets
-
-$(ORIGINAL_APP_FILE): $(CLONE_DIR)/.done
-
-$(APP_FILE): $(PACKAGE_DIR)/build/version.mk
-
-$(PACKAGE_DIR)/build/version.mk: $(ORIGINAL_APP_FILE) $(CLONE_DIR)/.done
-ifdef UPSTREAM_GIT
-	echo UPSTREAM_SHORT_HASH:=`git --git-dir=$(CLONE_DIR)/.git log -n 1 --format=format:"%h" HEAD` >$$@
-endif
-ifdef UPSTREAM_HG
-	echo UPSTREAM_SHORT_HASH:=`hg id -R $(CLONE_DIR) -i | cut -c -7` >$$@
-endif
-	sed -n -e 's|^.*{vsn, *"\([^"]*\)".*$$$$|UPSTREAM_VERSION:=\1|p' <$$< >>$$@
 
 ifdef UPSTREAM_GIT
 $(CLONE_DIR)/.done:
@@ -165,6 +163,27 @@ $(CLONE_DIR)/.done:
 	$(if $(WRAPPER_PATCHES),$(foreach F,$(WRAPPER_PATCHES),patch -d $(CLONE_DIR) -p1 <$(PACKAGE_DIR)/$(F) &&) :)
 	touch $$@
 endif # UPSTREAM_HG
+
+# When we clone, we need to remake anything derived from the app file
+# (e.g. build/version.mk).
+$(ORIGINAL_APP_FILE): $(CLONE_DIR)/.done
+
+# We include the commit hash into the package version, via
+# build/hash.mk
+$(eval $(call safe_include,$(PACKAGE_DIR)/build/hash.mk))
+
+$(PACKAGE_DIR)/build/hash.mk: $(CLONE_DIR)/.done
+	@mkdir -p $$(@D)
+ifdef UPSTREAM_GIT
+	echo UPSTREAM_SHORT_HASH:=`git --git-dir=$(CLONE_DIR)/.git log -n 1 --format=format:"%h" HEAD` >$$@
+endif
+ifdef UPSTREAM_HG
+	echo UPSTREAM_SHORT_HASH:=`hg id -R $(CLONE_DIR) -i | cut -c -7` >$$@
+endif
+
+$(APP_FILE): $(PACKAGE_DIR)/build/hash.mk
+
+PACKAGE_VERSION:=$(PACKAGE_VERSION)-$(UPSTREAM_TYPE)$(UPSTREAM_SHORT_HASH)
 
 $(PACKAGE_DIR)+clean::
 	rm -rf $(CLONE_DIR)
