@@ -11,7 +11,7 @@
 PLUGIN_REPOS=rabbitmq-erlang-client \
            rabbitmq-jsonrpc rabbitmq-mochiweb \
            rabbitmq-jsonrpc-channel rabbitmq-management-agent \
-           rabbitmq-management rabbitmq-stomp rabbitmq-smtp rabbitmq-shovel \
+           rabbitmq-management rabbitmq-stomp rabbitmq-shovel \
            rabbitmq-auth-backend-ldap rabbitmq-auth-mechanism-ssl
 
 CORE_REPOS=rabbitmq-server rabbitmq-codegen $(PLUGIN_REPOS)
@@ -19,7 +19,7 @@ CORE_REPOS=rabbitmq-server rabbitmq-codegen $(PLUGIN_REPOS)
 REPOS=$(CORE_REPOS) erlang-rfc4627
 BRANCH=default
 PLUGINS=rabbitmq-erlang-client rabbitmq-jsonrpc rabbitmq-mochiweb \
-	rabbitmq-jsonrpc-channel erlang-rfc4627 rabbitmq-smtp \
+	rabbitmq-jsonrpc-channel erlang-rfc4627 \
 	rabbitmq-stomp rabbitmq-shovel rabbitmq-management-agent \
 	rabbitmq-management rabbitmq-auth-backend-ldap \
 	rabbitmq-auth-mechanism-ssl
