@@ -105,7 +105,7 @@ endif
 # Note that this includes using "-include", and thus make will proceed
 # even if an error occurs while the fragment is being re-made (we
 # don't use "include" becuase it will produce a superfluous error
-# message when the fragement is re-made because it doesn't exist).
+# message when the fragment is re-made because it doesn't exist).
 # Thus you should also list the fragment as a dependency of any rules
 # that will refer to the contents of the fragment.
 define safe_include
