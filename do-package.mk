@@ -39,7 +39,7 @@ APP_NAME=$(call package_to_app_name,$(PACKAGE_NAME))
 DEPS_FILE=$(PACKAGE_DIR)/build/deps.mk
 PACKAGE_VERSION=$(VERSION)
 
-ORIGINAL_APP_FILE:=
+ORIGINAL_APP_FILE=$(EBIN_DIR)/$(APP_NAME).app
 
 EXTRA_PACKAGE_DIRS:=
 EXTRA_TARGETS:=
@@ -107,12 +107,6 @@ include $(PACKAGE_DIR)/package.mk
 # We use the same trick again below.
 ifdef package_targets
 $(eval $(package_targets))
-endif
-
-# If ORIGINAL_APP_FILE hasn't been set, and there's a ebin/*_app.in
-# file, use it as the basis for the app file.
-ifndef ORIGINAL_APP_FILE
-ORIGINAL_APP_FILE:=$(wildcard $(EBIN_DIR)/$(APP_NAME).app)
 endif
 
 # Some variables used for brevity below.  Packages can't set these.
