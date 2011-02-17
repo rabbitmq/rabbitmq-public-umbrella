@@ -58,6 +58,10 @@ TEST_EBIN_BEAMS=$(patsubst %,$(TEST_EBIN_DIR)/%.beam,$(notdir $(basename $(TEST_
 TEST_COMMANDS:=
 TEST_SCRIPTS:=
 
+# Should the app version retain the version from the original .app file?
+RETAIN_ORIGINAL_VERSION:=
+ORIGINAL_VERSION:=
+
 # Wrapper package vars
 
 # Set one of these to say where the upstream repo lives
@@ -71,10 +75,6 @@ UPSTREAM_REVISION:=
 
 # Patches to apply to the upstream codebase, if any
 WRAPPER_PATCHES:=
-
-# Should the app version retain the version from the original .app file?
-RETAIN_ORIGINAL_VERSION:=
-ORIGINAL_VERSION:=
 
 # Where to clone the upstream to.
 CLONE_DIR=$(PACKAGE_DIR)/$(patsubst %-wrapper,%,$(PACKAGE_NAME))-$(UPSTREAM_TYPE)
@@ -112,6 +112,11 @@ endif
 # Some variables used for brevity below.  Packages can't set these.
 APP_FILE=$(PACKAGE_DIR)/build/$(APP_NAME).app.$(PACKAGE_VERSION)
 APP_DONE=$(PACKAGE_DIR)/build/app/.done.$(PACKAGE_VERSION)
+APP_DIR=$(PACKAGE_DIR)/build/app/$(APP_NAME)-$(PACKAGE_VERSION)
+EZ_FILE=$(PACKAGE_DIR)/dist/$(APP_NAME)-$(PACKAGE_VERSION).ez
+
+# Convert the DEPS package names to canonical paths
+DEP_PATHS:=$(foreach DEP,$(DEPS),$(call package_to_path,$(DEP)))
 
 # Handle RETAIN_ORIGINAL_VERSION / ORIGINAL_VERSION
 ifdef RETAIN_ORIGINAL_VERSION
@@ -185,12 +190,6 @@ endef # package_targets
 $(eval $(package_targets))
 
 endif # UPSTREAM_TYPE
-
-# Convert the DEPS package names to canonical paths
-DEP_PATHS:=$(foreach DEP,$(DEPS),$(call package_to_path,$(DEP)))
-
-APP_DIR:=$(PACKAGE_DIR)/build/app/$(APP_NAME)-$(PACKAGE_VERSION)
-EZ_FILE:=$(PACKAGE_DIR)/dist/$(APP_NAME)-$(PACKAGE_VERSION).ez
 
 # Generate a rule to compile .erl files from the directory $(1) into
 # directory $(2), taking extra erlc options from $(3)
