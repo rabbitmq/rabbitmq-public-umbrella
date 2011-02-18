@@ -83,30 +83,30 @@ CLONE_DIR=$(PACKAGE_DIR)/$(patsubst %-wrapper,%,$(PACKAGE_NAME))-$(UPSTREAM_TYPE
 UPSTREAM_SOURCE_DIRS=$(CLONE_DIR)/src
 UPSTREAM_INCLUDE_DIRS=$(CLONE_DIR)/include
 
-package_targets=
+package_rules=
 
 # Now let the package makefile fragment do its stuff
 include $(PACKAGE_DIR)/package.mk
 
-# package_targets provides a convenient way to force prompt expansion
+# package_rules provides a convenient way to force prompt expansion
 # of variables, including expansion in commands that would otherwise
 # be deferred.
 #
-# If package_targets is defined by the package makefile, we expand it
+# If package_rules is defined by the package makefile, we expand it
 # and eval it.  The point here is to get around the fact that make
 # defers expansion of commands.  But if we use package variables in
 # targets, as we naturally want to do, deferred expansion doesn't
 # work: They might have been trampled on by a later package.  Because
-# we expand package_targets here, references to package varialbes will
+# we expand package_rules here, references to package varialbes will
 # get expanded with the values we expect.
 #
 # The downside is that any variable references for which expansion
 # really should be deferred need to be protected by doulbing up the
-# dollar.  E.g., inside package_targets, you should write $$@, not $@.
+# dollar.  E.g., inside package_rules, you should write $$@, not $@.
 #
 # We use the same trick again below.
-ifdef package_targets
-$(eval $(package_targets))
+ifdef package_rules
+$(eval $(package_rules))
 endif
 
 # Some variables used for brevity below.  Packages can't set these.
@@ -144,7 +144,7 @@ ifneq ($(UPSTREAM_TYPE),)
 SOURCE_DIRS+=$(UPSTREAM_SOURCE_DIRS)
 INCLUDE_DIRS+=$(UPSTREAM_INCLUDE_DIRS)
 
-define package_targets
+define package_rules
 
 ifdef UPSTREAM_GIT
 $(CLONE_DIR)/.done:
@@ -186,8 +186,8 @@ PACKAGE_VERSION:=$(PACKAGE_VERSION)-$(UPSTREAM_TYPE)$(UPSTREAM_SHORT_HASH)
 
 $(PACKAGE_DIR)+clean::
 	rm -rf $(CLONE_DIR)
-endef # package_targets
-$(eval $(package_targets))
+endef # package_rules
+$(eval $(package_rules))
 
 endif # UPSTREAM_TYPE
 
@@ -252,7 +252,7 @@ define run_in_broker_tests_aux
 endef
 
 # The targets common to all integrated packages
-define package_targets
+define package_rules
 
 # Put all relevant ezs into the dist dir for this package, including
 # the main ez file produced by this package
@@ -368,7 +368,7 @@ $(PACKAGE_DIR)+standalone-test: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS) $(P
 $(PACKAGE_DIR)+test:: $(PACKAGE_DIR)+standalone-test $(PACKAGE_DIR)+in-broker-test
 
 endef
-$(eval $(package_targets))
+$(eval $(package_rules))
 
 # Recursing into dependency packages has to be the last thing we do
 # because it will trample all over the per-package variables.
@@ -378,7 +378,7 @@ $(foreach DEP_PATH,$(DEP_PATHS),$(eval $(call do_package,$(DEP_PATH))))
 
 else # NON_INTEGRATED_$(PACKAGE_DIR)
 
-define package_targets
+define package_rules
 
 # When the package version changes, our .ez filename will change, and
 # we need to regenerate the dist directory.  So the dependency needs
@@ -400,6 +400,6 @@ $(PACKAGE_DIR)+clean::
 	rm -rf $(PACKAGE_DIR)/dist
 
 endef
-$(eval $(package_targets))
+$(eval $(package_rules))
 
 endif # NON_INTEGRATED_$(PACKAGE_DIR)
