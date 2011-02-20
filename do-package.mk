@@ -313,7 +313,7 @@ $(DEPS_FILE): $(SOURCE_ERLS) $(INCLUDE_HRLS)
 $(eval $(call safe_include,$(DEPS_FILE)))
 
 $(PACKAGE_DIR)+clean::
-	rm -rf $(EBIN_DIR)/*.beam $(TEST_EBIN_DIR)/*.beam $(PACKAGE_DIR)/dist $(PACKAGE_DIR)/build
+	rm -rf $(EBIN_DIR)/*.beam $(TEST_EBIN_DIR)/*.beam $(PACKAGE_DIR)/dist $(PACKAGE_DIR)/build $(PACKAGE_DIR)/erl_crash.dump
 
 $(PACKAGE_DIR)+clean-with-deps:: $(foreach P,$(DEP_PATHS),$(P)+clean-with-deps)
 
