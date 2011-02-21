@@ -226,21 +226,22 @@ endef
 #
 # $(1): Extra .ezs to copy into the plugins dir
 define run_in_broker_tests
-$(if $(IN_BROKER_TEST_COMMANDS)$(IN_BROKER_TEST_SCRIPTS),$(call run_in_broker_tests_aux,$1))
+$(if $(WITH_BROKER_TEST_COMMANDS)$(WITH_BROKER_TEST_SCRIPTS),$(call run_in_broker_tests_aux,$1))
 endef
 
 define run_in_broker_tests_aux
 	$(call run_broker,'-pa $(TEST_EBIN_DIR) -coverage directories ["$(EBIN_DIR)"$(COMMA)"$(TEST_EBIN_DIR)"]',,$(1)) &
 	sleep 5
 	echo > $(TEST_TMPDIR)/rabbit-test-output && \
-	if $(foreach CMD,$(IN_BROKER_TEST_COMMANDS), \
+	if $(foreach CMD,$(WITH_BROKER_TEST_COMMANDS), \
 	     echo >> $(TEST_TMPDIR)/rabbit-test-output && \
 	     echo "$(CMD)." \
                | tee -a $(TEST_TMPDIR)/rabbit-test-output \
                | $(ERL_CALL) $(ERL_CALL_OPTS) \
                | tee -a $(TEST_TMPDIR)/rabbit-test-output \
                | egrep "{ok, " >/dev/null &&) \
-	    $(foreach SCRIPT,$(IN_BROKER_TEST_SCRIPTS),$(SCRIPT) &&) : ; then \
+	    $(foreach SCRIPT,$(WITH_BROKER_TEST_SCRIPTS),$(SCRIPT) &&) : ; \
+        then \
 	  echo "\nPASSED\n" ; \
 	else \
 	  cat $(TEST_TMPDIR)/rabbit-test-output ; \
