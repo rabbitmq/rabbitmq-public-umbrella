@@ -209,8 +209,9 @@ APP_NAME
   call rabbitmq-foo, APP_NAME will default to rabbit_foo.
 
 ORIGINAL_APP_FILE
-  The location of the .app file which is used to produce the .app file
-  which goes into the .ez (see the section "Version Numbers" below).
+  The location of the .app file which is used as the basis for the
+  .app file which goes into the .ez (see the section "Version Numbers"
+  below).
 
   Default: $(EBIN_DIR)/$(APP_NAME).app
 
@@ -264,7 +265,7 @@ SOURCE_ERLS
   Default: All *.erl files in SOURCE_DIRS
 
 INCLUDE_DIRS
-  The directories containing Erlang *.hrl file to include in the
+  The directories containing Erlang *.hrl files to include in the
   package .ez file.
 
   Default: $(PACKAGE_DIR)/include
@@ -286,6 +287,80 @@ EBIN_BEAMS
 
   Default: The filenames from SOURCE_ERLS with the suffix changed to
   .beam and relocated to EBIN_DIR.
+
+
+Test support
+============
+
+rabbitmq-public-umbrella include support to make it easy to run a
+package's tests (which might need to run in the context of a running
+broker).  package.mk should describe how to run the test variables in
+the following section.
+
+To run the tests, go into the package directory and do:
+
+    make test
+
+
+Test variables
+==============
+
+These first five variables control the locations of any Erlang tests
+for the package.
+
+STANDALONE_TEST_COMMANDS
+  A space-separated list of erlang expressions which will be invoked
+  during testing (not in the broker).  Each expression should yield
+  the atom 'ok' if the tests succeed.
+
+  Default: empty
+
+WITH_BROKER_TEST_COMMANDS
+  A space-separated list of erlang expressions which will be invoked
+  within the broker during testing.  Each expression should yield
+  the atom 'ok' if the tests succeed.
+
+  Default: empty
+
+STANDALONE_TEST_SCRIPTS
+  A space-separated list of test scripts which should be invoked
+  during testing.  The exit status of each script should indicate
+  whether the tests succeeded.
+
+  Default: empty
+
+WITH_BROKER_TEST_SCRIPTS
+  A space-separated list of test scripts which should be invoked
+  alongside a running broker during testing.  The exit status of each
+  script should indicate whether the tests succeeded.
+
+  Default: empty
+
+TEST_DIR
+  The directory within the package that contains tests
+
+  Default: $(PACKAGE_DIR)/test
+
+TEST_SOURCE_DIRS
+  The directories containing .erl files for tests
+
+  Default: $(TEST_DIR)/src
+
+TEST_SOURCE_ERLS
+  The .erl files for tests
+
+  Default: All *.erl files in TEST_SOURCE_DIRS
+
+TEST_EBIN_DIR
+  Where to put .beam files produced by compiling TEST_SOURCE_ERLS
+
+  Default: $(TEST_DIR)/ebin
+
+TEST_EBIN_BEAMS
+  The .beam files produced by compiling TEST_SOURCE_ERLS
+
+  Default: The filenames from TEST_SOURCE_ERLS with the suffix changes
+  to .beam and relocated to TEST_EBIN_DIR
 
 
 Wrapper packages
@@ -429,7 +504,6 @@ PACKAGE_VERSION
   Default: $(VERSION)
 
 RETAIN_ORGINAL_VERSION
-
   If this is non-empty, then the version number from ORIGINAL_APP_FILE
   will not be simply discarded, but will instead be incorporated into
   the final value of PACKAGE_VERSION (see above).
@@ -482,79 +556,3 @@ $(ORIGINAL_APP_FILE): $(PACKAGE_DIR)/src/$(APP_NAME).app.src $(SOURCE_ERLS)
 
 
 endef
-
-
-Test support
-============
-
-rabbitmq-public-umbrella include support to make it easy to run a
-package's tests (which might need to run in the context of a running
-broker).  package.mk should describe how to run the test variables in
-the following section.
-
-To run the tests, go into the package directory and do:
-
-    make test
-
-
-Test variables
-==============
-
-These first five variables control the locations of any Erlang tests
-for the package.
-
-STANDALONE_TEST_COMMANDS
-  A space-separated list of erlang expressions which will be invoked
-  during testing (not in the broker).  Each expression should yield
-  the atom 'ok' if the tests succeed.
-
-  Default: empty
-
-WITH_BROKER_TEST_COMMANDS
-  A space-separated list of erlang expressions which will be invoked
-  within the broker during testing.  Each expression should yield
-  the atom 'ok' if the tests succeed.
-
-  Default: empty
-
-STANDALONE_TEST_SCRIPTS
-  A space-separated list of test scripts which should be invoked
-  during testing.  The exit status of each script should indicate
-  whether the tests succeeded.
-
-  Default: empty
-
-WITH_BROKER_TEST_SCRIPTS
-  A space-separated list of test scripts which should be invoked
-  alongside a running broker during testing.  The exit status of each
-  script should indicate whether the tests succeeded.
-
-  Default: empty
-
-TEST_DIR
-  The directory within the package that contains tests
-
-  Default: $(PACKAGE_DIR)/test
-
-TEST_SOURCE_DIRS
-  The directories containing .erl files for tests
-
-  Default: $(TEST_DIR)/src
-
-TEST_SOURCE_ERLS
-  The .erl files for tests
-
-  Default: All *.erl files in TEST_SOURCE_DIRS
-
-TEST_EBIN_DIR
-  Where to put .beam files produced by compiling TEST_SOURCE_ERLS
-
-  Default: $(TEST_DIR)/ebin
-
-TEST_EBIN_BEAMS
-  The .beam filesd produce by compiling TEST_SOURCE_ERLS
-
-  Default: The filenames from TEST_SOURCE_ERLS with the suffix changes
-  to .beam and relocated to TEST_EBIN_DIR
-
-
