@@ -44,7 +44,7 @@ ORIGINAL_APP_FILE=$(EBIN_DIR)/$(APP_NAME).app
 EXTRA_PACKAGE_DIRS:=
 EXTRA_TARGETS:=
 
-ERLC_OPTS:=
+PACKAGE_ERLC_OPTS=$(ERLC_OPTS)
 
 RELEASABLE:=
 
@@ -196,7 +196,7 @@ endif # UPSTREAM_TYPE
 define package_source_dir_targets
 $(2)/%.beam: $(1)/%.erl $(PACKAGE_DIR)/build/dep-apps/.done | $(DEPS_FILE)
 	@mkdir -p $$(@D)
-	ERL_LIBS=$(PACKAGE_DIR)/build/dep-apps $(ERLC) $(ERLC_OPTS) $(GLOBAL_ERLC_OPTS) $(foreach D,$(INCLUDE_DIRS),-I $(D) )-pa $$(@D) -o $$(@D) $(3) $$<
+	ERL_LIBS=$(PACKAGE_DIR)/build/dep-apps $(ERLC) $(PACKAGE_ERLC_OPTS) $(foreach D,$(INCLUDE_DIRS),-I $(D))-pa $$(@D) -o $$(@D) $(3) $$<
 
 endef
 

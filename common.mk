@@ -20,7 +20,7 @@ export ERLC ?= erlc
 export ERL ?= erl
 export TMPDIR ?= /tmp
 
-export GLOBAL_ERLC_OPTS ?= -Wall +debug_info
+export ERLC_OPTS ?= -Wall +debug_info
 
 export ERL_CALL ?= erl_call
 export NODENAME:=rabbit-test
