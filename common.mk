@@ -78,6 +78,7 @@ endef
 # Mark the non-integrated repos
 NON_INTEGRATED_$(call package_to_path,rabbitmq-server):=true
 NON_INTEGRATED_$(call package_to_path,rabbitmq-erlang-client):=true
+NON_INTEGRATED_DEPS_$(call package_to_path,rabbitmq-erlang-client):=rabbitmq-server
 
 # Where the coverage package lives
 COVERAGE_PATH:=$(call package_to_path,coverage)

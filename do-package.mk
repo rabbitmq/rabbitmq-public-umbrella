@@ -389,7 +389,16 @@ define package_rules
 $(PACKAGE_DIR)/dist/.done: $(PACKAGE_DIR)/dist/.done.$(VERSION)
 	touch $$@
 
-$(PACKAGE_DIR)/dist/.done.$(VERSION):
+# Non-integrated packages (rabbitmq-server and rabbitmq-erlang-client)
+# present a dilemma.  We could re-make the package every time we need
+# it.  But that will cause a huge amount of unnecessary rebuilding.
+# Or we could not worry about rebuilding non-integrated packages.
+# That's good for those developing plugins, but not for those who want
+# to work on the broker and erlang client in the context of the
+# plugins.  So instead, we use a conservative approximation to the
+# dependency structure within the package, to tell when to re-run the
+# makefile.
+$(PACKAGE_DIR)/dist/.done.$(VERSION): $(PACKAGE_DIR)/Makefile $(wildcard $(PACKAGE_DIR)/*.mk) $(wildcard $(PACKAGE_DIR)/src/*.erl) $(wildcard $(PACKAGE_DIR)/include/*.hrl) $(wildcard $(PACKAGE_DIR)/*.py) $(foreach DEP,$(NON_INTEGRATED_DEPS_$(PACKAGE_DIR)),$(call package_to_path,$(DEP))/dist/.done)
 	rm -rf $$(@D)
 	$$(MAKE) -C $(PACKAGE_DIR) VERSION=$(VERSION)
 	mkdir -p $$(@D)
