@@ -1,6 +1,7 @@
-# This file produces the makefile fragment associated with a package,
-# and the dependencies of that package that have not already been
-# visited.
+# This file produces the makefile fragment associated with a package.
+# It includes the package's package.mk, interprets all of the
+# variables that package.mk might have set, and then visits any
+# dependencies of the package that have not already been visited.
 #
 # PACKAGE_DIR should be set to the canonical path of the package.
 

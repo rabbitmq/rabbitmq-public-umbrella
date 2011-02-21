@@ -1,7 +1,7 @@
 Rabbit Public Umbrella
 ----------------------
 
-To build all of the packages, run make package.
+To build all of the packages, run 'make all'.
 
 
 Dealing with sub repos
