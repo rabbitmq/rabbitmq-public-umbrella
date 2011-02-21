@@ -402,7 +402,7 @@ $(PACKAGE_DIR)/dist/.done: $(PACKAGE_DIR)/dist/.done.$(VERSION)
 # makefile.
 $(PACKAGE_DIR)/dist/.done.$(VERSION): $(PACKAGE_DIR)/Makefile $(wildcard $(PACKAGE_DIR)/*.mk) $(wildcard $(PACKAGE_DIR)/src/*.erl) $(wildcard $(PACKAGE_DIR)/include/*.hrl) $(wildcard $(PACKAGE_DIR)/*.py) $(foreach DEP,$(NON_INTEGRATED_DEPS_$(PACKAGE_DIR)),$(call package_to_path,$(DEP))/dist/.done)
 	rm -rf $$(@D)
-	$$(MAKE) -C $(PACKAGE_DIR) VERSION=$(VERSION)
+	$$(MAKE) -C $(PACKAGE_DIR)
 	mkdir -p $$(@D)
 	touch $$@
 

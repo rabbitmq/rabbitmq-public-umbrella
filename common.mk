@@ -13,18 +13,19 @@ endif
 # (amongst others) when the replacement needs to include a comma.
 COMMA:=,
 
+# Global settings that can be overridden on the command line
+
+# These ones are expected to be passed down to the sub-makes invoked
+# for non-integrated packages
 VERSION:=0.0.0
+ERL:=erl
+ERLC:=erlc
+ERLC_OPTS:=-Wall +debug_info
+TMPDIR:=/tmp
 
-# TODO: do all of these really need exporting?
-export ERLC ?= erlc
-export ERL ?= erl
-export TMPDIR ?= /tmp
-
-export ERLC_OPTS ?= -Wall +debug_info
-
-export ERL_CALL ?= erl_call
-export NODENAME:=rabbit-test
-export ERL_CALL_OPTS:=-sname $(NODENAME) -e
+NODENAME:=rabbit-test
+ERL_CALL:=erl_call
+ERL_CALL_OPTS:=-sname $(NODENAME) -e
 
 # Where we put all the files produced when running tests.
 TEST_TMPDIR=$(TMPDIR)/rabbitmq-test
