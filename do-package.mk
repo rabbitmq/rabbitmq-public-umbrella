@@ -225,11 +225,11 @@ endef
 # Commands to run the package's test suite
 #
 # $(1): Extra .ezs to copy into the plugins dir
-define run_in_broker_tests
-$(if $(WITH_BROKER_TEST_COMMANDS)$(WITH_BROKER_TEST_SCRIPTS),$(call run_in_broker_tests_aux,$1))
+define run_with_broker_tests
+$(if $(WITH_BROKER_TEST_COMMANDS)$(WITH_BROKER_TEST_SCRIPTS),$(call run_with_broker_tests_aux,$1))
 endef
 
-define run_in_broker_tests_aux
+define run_with_broker_tests_aux
 	$(call run_broker,'-pa $(TEST_EBIN_DIR) -coverage directories ["$(EBIN_DIR)"$(COMMA)"$(TEST_EBIN_DIR)"]',,$(1)) &
 	sleep 5
 	echo > $(TEST_TMPDIR)/rabbit-test-output && \
@@ -239,7 +239,7 @@ define run_in_broker_tests_aux
                | tee -a $(TEST_TMPDIR)/rabbit-test-output \
                | $(ERL_CALL) $(ERL_CALL_OPTS) \
                | tee -a $(TEST_TMPDIR)/rabbit-test-output \
-               | egrep "{ok, " >/dev/null &&) \
+               | egrep "{ok, ok}" >/dev/null &&) \
 	    $(foreach SCRIPT,$(WITH_BROKER_TEST_SCRIPTS),$(SCRIPT) &&) : ; \
         then \
 	  echo "\nPASSED\n" ; \
@@ -248,7 +248,7 @@ define run_in_broker_tests_aux
 	  echo "\n\nFAILED\n" ; \
 	fi
 	sleep 1
-	echo "init:stop()." | $(ERL_CALL) $(ERL_CALL_OPTS)
+	echo "init:stop()." | $(ERL_CALL) $(ERL_CALL_OPTS) >/dev/null
 	sleep 1
 endef
 
@@ -346,13 +346,13 @@ $(PACKAGE_DIR)+pre-test::
 # a running broker.
 .PHONY: $(PACKAGE_DIR)+in-broker-test
 $(PACKAGE_DIR)+in-broker-test: $(PACKAGE_DIR)/dist/.done $(RABBITMQ_SERVER_PATH)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test
-	$(call run_in_broker_tests)
+	$(call run_with_broker_tests)
 
 # Running the coverage tests requires Erlang/OTP R14. Note that
 # coverage only covers the in-broker tests.
 .PHONY: $(PACKAGE_DIR)+coverage
 $(PACKAGE_DIR)+coverage: $(PACKAGE_DIR)/dist/.done $(COVERAGE_PATH)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test
-	$(call run_in_broker_tests,$(COVERAGE_PATH)/dist/*.ez)
+	$(call run_with_broker_tests,$(COVERAGE_PATH)/dist/*.ez)
 
 # Runs the package's tests that don't need a running broker
 .PHONY: $(PACKAGE_DIR)+standalone-test
