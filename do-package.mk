@@ -26,10 +26,10 @@ ifndef NON_INTEGRATED_$(PACKAGE_DIR)
 # Set all the per-package vars to their default values
 
 SOURCE_DIRS:=$(PACKAGE_DIR)/src
-SOURCE_ERLS=$(foreach D,$(SOURCE_DIRS),$(wildcard $(D)/*.erl))
+SOURCE_ERLS=$(strip $(foreach D,$(SOURCE_DIRS),$(wildcard $(D)/*.erl)))
 
 INCLUDE_DIRS:=$(PACKAGE_DIR)/include
-INCLUDE_HRLS=$(foreach D,$(INCLUDE_DIRS),$(wildcard $(D)/*.hrl))
+INCLUDE_HRLS=$(strip $(foreach D,$(INCLUDE_DIRS),$(wildcard $(D)/*.hrl)))
 
 EBIN_DIR:=$(PACKAGE_DIR)/ebin
 EBIN_BEAMS=$(patsubst %,$(EBIN_DIR)/%.beam,$(notdir $(basename $(SOURCE_ERLS))))
@@ -52,7 +52,7 @@ DEPS:=
 
 TEST_DIR=$(PACKAGE_DIR)/test
 TEST_SOURCE_DIRS=$(TEST_DIR)/src
-TEST_SOURCE_ERLS=$(foreach D,$(TEST_SOURCE_DIRS),$(wildcard $(D)/*.erl))
+TEST_SOURCE_ERLS=$(strip $(foreach D,$(TEST_SOURCE_DIRS),$(wildcard $(D)/*.erl)))
 TEST_EBIN_DIR=$(TEST_DIR)/ebin
 TEST_EBIN_BEAMS=$(patsubst %,$(TEST_EBIN_DIR)/%.beam,$(notdir $(basename $(TEST_SOURCE_ERLS))))
 TEST_COMMANDS:=
