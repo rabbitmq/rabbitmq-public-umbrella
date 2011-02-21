@@ -56,8 +56,11 @@ TEST_SOURCE_DIRS=$(TEST_DIR)/src
 TEST_SOURCE_ERLS=$(strip $(foreach D,$(TEST_SOURCE_DIRS),$(wildcard $(D)/*.erl)))
 TEST_EBIN_DIR=$(TEST_DIR)/ebin
 TEST_EBIN_BEAMS=$(patsubst %,$(TEST_EBIN_DIR)/%.beam,$(notdir $(basename $(TEST_SOURCE_ERLS))))
-TEST_COMMANDS:=
-TEST_SCRIPTS:=
+
+WITH_BROKER_TEST_COMMANDS:=
+WITH_BROKER_TEST_SCRIPTS:=
+STANDALONE_TEST_COMMANDS:=
+STANDALONE_TEST_SCRIPTS:=
 
 # Should the app version retain the version from the original .app file?
 RETAIN_ORIGINAL_VERSION:=
