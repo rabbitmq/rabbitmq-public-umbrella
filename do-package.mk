@@ -24,68 +24,123 @@ clean-all-packages:: $(PACKAGE_DIR)+clean
 
 ifndef NON_INTEGRATED_$(PACKAGE_DIR)
 
+PACKAGE_NAME=$(notdir $(abspath $(PACKAGE_DIR)))
+
 # Set all the per-package vars to their default values
 
-SOURCE_DIRS:=$(PACKAGE_DIR)/src
-SOURCE_ERLS=$(strip $(foreach D,$(SOURCE_DIRS),$(wildcard $(D)/*.erl)))
+# The packages upon which this package depends
+DEPS:=
 
-INCLUDE_DIRS:=$(PACKAGE_DIR)/include
-INCLUDE_HRLS=$(strip $(foreach D,$(INCLUDE_DIRS),$(wildcard $(D)/*.hrl)))
-
-EBIN_DIR:=$(PACKAGE_DIR)/ebin
-EBIN_BEAMS=$(patsubst %,$(EBIN_DIR)/%.beam,$(notdir $(basename $(SOURCE_ERLS))))
-
-PACKAGE_NAME=$(notdir $(abspath $(PACKAGE_DIR)))
+# The name of the erlang application produced by the package
 APP_NAME=$(call package_to_app_name,$(PACKAGE_NAME))
-DEPS_FILE=$(PACKAGE_DIR)/build/deps.mk
-PACKAGE_VERSION=$(VERSION)
 
+# The location of the .app file which is used as the basis for the
+# .app file which goes into the .ez
 ORIGINAL_APP_FILE=$(EBIN_DIR)/$(APP_NAME).app
 
+# Should the .ez files for this package and its dependencies be
+# included in RabbitMQ releases?
+RELEASABLE:=
+
+# The options to pass to erlc when compiling .erl files in this
+# package
+PACKAGE_ERLC_OPTS=$(ERLC_OPTS)
+
+# The directories containing Erlang source files
+SOURCE_DIRS:=$(PACKAGE_DIR)/src
+
+# The Erlang source files to compile and include in the package .ez file
+SOURCE_ERLS=$(strip $(foreach D,$(SOURCE_DIRS),$(wildcard $(D)/*.erl)))
+
+# The directories containing Erlang *.hrl files to include in the
+# package .ez file.
+INCLUDE_DIRS:=$(PACKAGE_DIR)/include
+
+# The Erlang .hrl files to include in the package .ez file.
+INCLUDE_HRLS=$(strip $(foreach D,$(INCLUDE_DIRS),$(wildcard $(D)/*.hrl)))
+
+# The location of the directory containing the .app file.  This is
+# also where the .beam files produced by compiling SOURCE_ERLS will
+# go.
+EBIN_DIR:=$(PACKAGE_DIR)/ebin
+
+# The .beam files for the application.
+EBIN_BEAMS=$(patsubst %,$(EBIN_DIR)/%.beam,$(notdir $(basename $(SOURCE_ERLS))))
+
+# XXX
 EXTRA_PACKAGE_DIRS:=
 EXTRA_TARGETS:=
 
-PACKAGE_ERLC_OPTS=$(ERLC_OPTS)
-
-RELEASABLE:=
-
-DEPS:=
-
-TEST_DIR=$(PACKAGE_DIR)/test
-TEST_SOURCE_DIRS=$(TEST_DIR)/src
-TEST_SOURCE_ERLS=$(strip $(foreach D,$(TEST_SOURCE_DIRS),$(wildcard $(D)/*.erl)))
-TEST_EBIN_DIR=$(TEST_DIR)/ebin
-TEST_EBIN_BEAMS=$(patsubst %,$(TEST_EBIN_DIR)/%.beam,$(notdir $(basename $(TEST_SOURCE_ERLS))))
-
-WITH_BROKER_TEST_COMMANDS:=
-WITH_BROKER_TEST_SCRIPTS:=
+# Erlang expressions which will be invoked during testing (not in the
+# broker).
 STANDALONE_TEST_COMMANDS:=
+
+# Erlang expressions which will be invoked within the broker during
+# testing.
+WITH_BROKER_TEST_COMMANDS:=
+
+# Test scripts which should be invokedduring testing
 STANDALONE_TEST_SCRIPTS:=
 
-# Should the app version retain the version from the original .app file?
-RETAIN_ORIGINAL_VERSION:=
-ORIGINAL_VERSION:=
+# Test scripts which should be invoked alongside a running broker
+# during testing
+WITH_BROKER_TEST_SCRIPTS:=
 
-# Wrapper package vars
+# The directory within the package that contains tests
+TEST_DIR=$(PACKAGE_DIR)/test
 
-# Set one of these to say where the upstream repo lives
+# The directories containing .erl files for tests
+TEST_SOURCE_DIRS=$(TEST_DIR)/src
+
+# The .erl files for tests
+TEST_SOURCE_ERLS=$(strip $(foreach D,$(TEST_SOURCE_DIRS),$(wildcard $(D)/*.erl)))
+
+# Where to put .beam files produced by compiling TEST_SOURCE_ERLS
+TEST_EBIN_DIR=$(TEST_DIR)/ebin
+
+# The .beam files produced by compiling TEST_SOURCE_ERLS
+TEST_EBIN_BEAMS=$(patsubst %,$(TEST_EBIN_DIR)/%.beam,$(notdir $(basename $(TEST_SOURCE_ERLS))))
+
+# Wrapper package variables
+
+# The git URL to clone from.  Setting this variable marks the package
+# as a wrapper package.
 UPSTREAM_GIT:=
+
+# The Mercurial URL to clone from.  Setting this variable marks the
+# package as a wrapper package.
 UPSTREAM_HG:=
 
 UPSTREAM_TYPE=$(if $(UPSTREAM_GIT),git)$(if $(UPSTREAM_HG),hg)
 
-# The upstream revision to use.  Leave empty for default or master
+# The upstream revision to clone.  Leave empty for default or master
 UPSTREAM_REVISION:=
 
-# Patches to apply to the upstream codebase, if any
-WRAPPER_PATCHES:=
-
-# Where to clone the upstream to.
+# Where to clone the upstream repository to
 CLONE_DIR=$(PACKAGE_DIR)/$(patsubst %-wrapper,%,$(PACKAGE_NAME))-$(UPSTREAM_TYPE)
 
-# Where the upstream's usual directories are
+# The source directories contained in the cloned repositories.  These
+# are appended to SOURCE_DIRS.
 UPSTREAM_SOURCE_DIRS=$(CLONE_DIR)/src
+
+# The include directories contained in the cloned repositories.  These
+# are appended to INCLUDE_DIRS.
 UPSTREAM_INCLUDE_DIRS=$(CLONE_DIR)/include
+
+# Patches to apply to the upstream codebase after cloning, if any
+WRAPPER_PATCHES:=
+
+# The version number to assign to the build artifacts
+PACKAGE_VERSION=$(VERSION)
+
+# Should the app version incorporate the version from the original
+# .app file?
+RETAIN_ORIGINAL_VERSION:=
+
+ORIGINAL_VERSION:=
+
+DEPS_FILE=$(PACKAGE_DIR)/build/deps.mk
+
 
 package_rules=
 
