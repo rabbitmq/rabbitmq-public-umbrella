@@ -363,6 +363,88 @@ TEST_EBIN_BEAMS
   to .beam and relocated to TEST_EBIN_DIR
 
 
+Using make rules in package.mk
+==============================
+
+It is possible to declare normal make rules in package.mk.  But if you
+do so, you need to be aware of a pitfall, and of the facility provided
+by rabbitmq-public-umbrella to avoid that pitfall.
+
+The issue is that make defers expansion of variable references in the
+commands for a rule until those commands are executed.  So for
+example, a package might seek to automate the generation of the .app
+file by doing something like:
+
+$(ORIGINAL_APP_FILE): $(PACKAGE_DIR)/src/$(APP_NAME).app.src $(SOURCE_ERLS)
+	$(PACKAGE_DIR)/generate_app.escript $< $(SOURCE_ERLS) >$@
+
+This will not work correctly, because the reference to SOURCE_ERLS in
+the command will be evaluated when the command runs, which may to
+happen after the SOURCE_ERLS value for that package has been
+overwritten by another package.
+
+So, the rule of thumb is: If the commands of a rule refer to
+per-package variables, the rule must be protected by using
+package_rules.
+
+package_rules is actually a variable that you set using make's "define
+... endef" construct.  If package.mk sets this variable, it will be
+evaluated, forcing immediate expansion of its value, and so working
+around the deferred expansion for rule commands.
+
+The downside of this is that there are some variables for which
+expansion really should be deferred until command execution.  This
+tends to be for automatic variables, such as $@, $<, $^, etc.  In
+order to prevent these being active during the expansion of
+package_rules, the dollar sign should be escaped by doubling it,
+giving $$@, $$<, $$^, etc.
+
+So, to work correctly, the rule above should be written as:
+
+define package_rules
+
+$(ORIGINAL_APP_FILE): $(PACKAGE_DIR)/src/$(APP_NAME).app.src $(SOURCE_ERLS)
+	$(PACKAGE_DIR)/generate_app.escript $$< $(SOURCE_ERLS) >$$@
+
+
+endef
+
+
+Adding extra files into the built Erlang application
+====================================================
+
+The .ez file for an erlang application is a zip archive.  In order to
+produce this .ez file, the rabbitmq-public-umbrella makefiles first
+construct the application directory, and then zip it.  This
+application directory contains subdirectories, according to erlang
+conventions, which contain copies of the .beam files, the .hrl files
+and the .app file (see the section "Layout Variables").
+
+Sometimes is it necessary to put extra files into the built
+application directory before it gets zipped up into an .ez file.  This
+can be done using the construct_app_commands variable.
+
+construct_app_commands is intended to be set using define/endef.  It
+contains commands with get incorporated into the make rule that
+produces the application directory.  The definition of
+construct_app_commands should refer to the variable APP_DIR which
+contains the location on the application directory under construction.
+
+For example, if a package wanted to put a file into a priv/
+subdirectory within the built application, it could say in its
+package.mk:
+
+define construct_app_commands
+       mkdir -p $(APP_DIR)/priv
+       echo "Hello, world!" >$(APP_DIR)/priv/hello.txt
+endef
+
+Sometimes the contents of construct_app_commands will require that
+certain prerequisites have been built before the commands are
+executed.  The variable CONSTRUCT_APP_PREREQS can be set to add extra
+prerequisites to the make rule that construct_app_commands goes into.
+
+
 Wrapper packages
 ================
 
@@ -503,56 +585,9 @@ PACKAGE_VERSION
 
   Default: $(VERSION)
 
-RETAIN_ORGINAL_VERSION
+RETAIN_ORIGINAL_VERSION
   If this is non-empty, then the version number from ORIGINAL_APP_FILE
   will not be simply discarded, but will instead be incorporated into
   the final value of PACKAGE_VERSION (see above).
 
   Default: empty
-
-
-Using make rules in package.mk
-==============================
-
-It is possible to declare normal make rules in package.mk.  But if you
-do so, you need to be aware of a pitfall, and of the facility provided
-by rabbitmq-public-umbrella to avoid that pitfall.
-
-The issue is that make defers expansion of variable references in the
-commands for a rule until those commands are executed.  So for
-example, a package might seek to automate the generation of the .app
-file by doing something like:
-
-$(ORIGINAL_APP_FILE): $(PACKAGE_DIR)/src/$(APP_NAME).app.src $(SOURCE_ERLS)
-	$(PACKAGE_DIR)/generate_app.escript $< $(SOURCE_ERLS) >$@
-
-This will not work correctly, because the reference to SOURCE_ERLS in
-the command will be evaluated when the command runs, which may to
-happen after the SOURCE_ERLS value for that package has been
-overwritten by another package.
-
-So, the rule of thumb is: If the commands of a rule refer to
-per-package variables, the rule must be protected by using
-package_rules.
-
-package_rules is actually a variable that you set using make's "define
-... endef" construct.  If package.mk sets this variable, it will be
-evaluated, forcing immediate expansion of its value, and so working
-around the deferred expansion for rule commands.
-
-The downside of this is that there are some variables for which
-expansion really should be deferred until command execution.  This
-tends to be for automatic variables, such as $@, $<, $^, etc.  In
-order to prevent these being active during the expansion of
-package_rules, the dollar sign should be escaped by doubling it,
-giving $$@, $$<, $$^, etc.
-
-So, to work correctly, the rule above should be written as:
-
-define package_rules
-
-$(ORIGINAL_APP_FILE): $(PACKAGE_DIR)/src/$(APP_NAME).app.src $(SOURCE_ERLS)
-	$(PACKAGE_DIR)/generate_app.escript $$< $(SOURCE_ERLS) >$$@
-
-
-endef

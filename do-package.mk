@@ -67,10 +67,6 @@ EBIN_DIR:=$(PACKAGE_DIR)/ebin
 # The .beam files for the application.
 EBIN_BEAMS=$(patsubst %,$(EBIN_DIR)/%.beam,$(notdir $(basename $(SOURCE_ERLS))))
 
-# XXX
-EXTRA_PACKAGE_DIRS:=
-EXTRA_TARGETS:=
-
 # Erlang expressions which will be invoked during testing (not in the
 # broker).
 STANDALONE_TEST_COMMANDS:=
@@ -137,10 +133,14 @@ PACKAGE_VERSION=$(VERSION)
 # .app file?
 RETAIN_ORIGINAL_VERSION:=
 
+# The original version that should be incorporated into the package
+# version if RETAIN_ORIGINAL_VERSION is set.  If empty, the original
+# version will be extracted from ORIGINAL_APP_FILE.
 ORIGINAL_VERSION:=
 
-DEPS_FILE=$(PACKAGE_DIR)/build/deps.mk
-
+# For customising construction of the build application directory.
+CONSTRUCT_APP_PREREQS:=
+construct_app_commands=
 
 package_rules=
 
@@ -173,6 +173,8 @@ APP_FILE=$(PACKAGE_DIR)/build/$(APP_NAME).app.$(PACKAGE_VERSION)
 APP_DONE=$(PACKAGE_DIR)/build/app/.done.$(PACKAGE_VERSION)
 APP_DIR=$(PACKAGE_DIR)/build/app/$(APP_NAME)-$(PACKAGE_VERSION)
 EZ_FILE=$(PACKAGE_DIR)/dist/$(APP_NAME)-$(PACKAGE_VERSION).ez
+DEPS_FILE=$(PACKAGE_DIR)/build/deps.mk
+
 
 # Convert the DEPS package names to canonical paths
 DEP_PATHS:=$(foreach DEP,$(DEPS),$(call package_to_path,$(DEP)))
@@ -341,13 +343,13 @@ $(PACKAGE_DIR)/build/dep-ezs/.done: $(foreach P,$(DEP_PATHS),$(P)/dist/.done)
 	touch $$@
 
 # Put together the main app tree for this package
-$(APP_DONE): $(EBIN_BEAMS) $(INCLUDE_HRLS) $(APP_FILE) $(EXTRA_TARGETS)
+$(APP_DONE): $(EBIN_BEAMS) $(INCLUDE_HRLS) $(APP_FILE) $(CONSTRUCT_APP_PREREQS)
 	rm -rf $$(@D)
 	mkdir -p $(APP_DIR)/ebin $(APP_DIR)/include
 	$(call copy,$(EBIN_BEAMS),$(APP_DIR)/ebin)
 	cp -a $(APP_FILE) $(APP_DIR)/ebin/$(APP_NAME).app
 	$(call copy,$(INCLUDE_HRLS),$(APP_DIR)/include)
-	$(call copy,$(EXTRA_PACKAGE_DIRS),$(APP_DIR))
+	$(construct_app_commands)
 	touch $$@
 
 # Produce the .app file
