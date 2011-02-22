@@ -62,7 +62,7 @@ endef
 # The optional $(3) gives a suffix to append to the command, if a
 # command is produced.
 define copy
-$(if $(1),cp -a $(1) $(2)$(if $(3), $(3)))
+$(if $(1),cp -r $(1) $(2)$(if $(3), $(3)))
 endef
 
 # Produce the makefile fragment for the package with path in $(1), if
