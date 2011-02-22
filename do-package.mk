@@ -303,6 +303,7 @@ define run_with_broker_tests_aux
                | egrep "{ok, ok}" >/dev/null &&) \
 	    $(foreach SCRIPT,$(WITH_BROKER_TEST_SCRIPTS),$(SCRIPT) &&) : ; \
         then \
+	  touch $(TEST_TMPDIR)/.passed ; \
 	  echo "\nPASSED\n" ; \
 	else \
 	  cat $(TEST_TMPDIR)/rabbit-test-output ; \
@@ -311,6 +312,7 @@ define run_with_broker_tests_aux
 	sleep 1
 	echo "init:stop()." | $(ERL_CALL) $(ERL_CALL_OPTS) >/dev/null
 	sleep 1
+	test -f $(TEST_TMPDIR)/.passed
 endef
 
 # The targets common to all integrated packages
@@ -406,7 +408,7 @@ $(PACKAGE_DIR)+pre-test::
 # Runs the package's tests that operate within (or in conjuction with)
 # a running broker.
 .PHONY: $(PACKAGE_DIR)+in-broker-test
-$(PACKAGE_DIR)+in-broker-test: $(PACKAGE_DIR)/dist/.done $(RABBITMQ_SERVER_PATH)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test
+$(PACKAGE_DIR)+in-broker-test: $(PACKAGE_DIR)/dist/.done $(RABBITMQ_SERVER_PATH)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test $(call chain_test,$(PACKAGE_DIR)+in-broker-test)
 	$(call run_with_broker_tests)
 
 # Running the coverage tests requires Erlang/OTP R14. Note that
@@ -417,7 +419,7 @@ $(PACKAGE_DIR)+coverage: $(PACKAGE_DIR)/dist/.done $(COVERAGE_PATH)/dist/.done $
 
 # Runs the package's tests that don't need a running broker
 .PHONY: $(PACKAGE_DIR)+standalone-test
-$(PACKAGE_DIR)+standalone-test: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test
+$(PACKAGE_DIR)+standalone-test: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test $(call chain_test,$(PACKAGE_DIR)+standalone-test)
 	$$(if $(STANDALONE_TEST_COMMANDS),\
 	  $$(foreach CMD,$(STANDALONE_TEST_COMMANDS),\
 	    ERL_LIBS=$(PACKAGE_DIR)/dist $(ERL) -pa $(TEST_EBIN_DIR) -eval "init:stop(case $$(CMD) of ok -> 0; _Else -> 1 end)" &&\

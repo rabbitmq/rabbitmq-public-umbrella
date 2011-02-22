@@ -76,6 +76,12 @@ include $(UMBRELLA_BASE_DIR)/do-package.mk
 endif
 endef
 
+# This is used to chain test rules, so that test-all-packages works in
+# the presence of 'make -j'
+define chain_test
+$(if $(CHAIN_TESTS),$(CHAINED_TESTS)$(eval CHAINED_TESTS+=$(1)))
+endef
+
 # Mark the non-integrated repos
 NON_INTEGRATED_$(call package_to_path,rabbitmq-server):=true
 NON_INTEGRATED_$(call package_to_path,rabbitmq-erlang-client):=true

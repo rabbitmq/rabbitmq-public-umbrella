@@ -11,6 +11,10 @@ From the rabbitmq-public-umbrella directory:
 
     make all
 
+- To run all tests in all the packages from the RabbitMQ team:
+
+    make test
+
 - To remove all generated files:
 
     make clean
@@ -298,6 +302,11 @@ broker).  package.mk should describe how to run the test variables in
 the following section.
 
 To run the tests, go into the package directory and do:
+
+    make test
+
+Or to run the tests in all packages from the rabbitmq-public-umbrella
+directory, do:
 
     make test
 
