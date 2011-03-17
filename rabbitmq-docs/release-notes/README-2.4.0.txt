@@ -118,11 +118,6 @@ enhancements
 - add the "cond-restart" and "try-restart" options to the init script
 
 
-shovel plugin
--------------
-bug fixes
-- do not leak queues on startup
-
 
 Upgrading
 =========
