@@ -85,9 +85,8 @@ enhancements
 - show memory alarm states for nodes
 - show statistics for basic.returns
 - better memory usage reporting for hibernating queues
-- better support for configuration import/export
 - implement publish/receive messages via HTTP; this is intended for
-  testing/learning, *not* for HTTP messaging
+  testing / learning / debugging, not as a general solution for HTTP messaging
 - better support for serving the web interface through a proxy
 
 
