@@ -111,6 +111,13 @@ enhancements
   preventing the STOMP from overloading the server
 
 
+SSL authentication mechanism plugin
+-----------------------------------
+
+enhancements
+- only offer this mechanism on SSL connections
+
+
 build and packaging
 -------------------
 enhancements
