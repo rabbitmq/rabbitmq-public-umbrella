@@ -116,6 +116,13 @@ ssh $SSH_OPTS $ROOT_USERHOST '
         apt-get -y update
         apt-get -y -t lenny-backports install mercurial
         ;;
+    6.0*)
+        java_package=openjdk-6-jdk
+        uja_command="update-java-alternatives -s java-6-openjdk"
+        echo "deb http://backports.debian.org/debian-backports squeeze-backports main" > /etc/apt/sources.list.d/backports-for-mercurial-for-rabbit-build.list
+        #apt-get -y update
+        #apt-get -y -t squeeze-backports install mercurial
+        ;;
     *)
         echo "Not sure which JDK package to install"
         exit 1
@@ -146,6 +153,7 @@ ssh $SSH_OPTS $ROOT_USERHOST '
     [ -n "$uja_command" ] && eval $uja_command
 '
 
+rm -rf $TOPDIR
 mkdir -p $TOPDIR
 cp -a $SCRIPTDIR/install-otp.sh $TOPDIR
 cd $TOPDIR
@@ -164,7 +172,7 @@ make clean
 if [[ -n "$CHANGELOG_EMAIL" ]] ; then
     # Tweak changelogs
     ( cd rabbitmq-server/packaging/debs/Debian/debian ; DEBEMAIL="$CHANGELOG_EMAIL" dch -v ${VERSION}-1 --check-dirname-level 0 "$CHANGELOG_COMMENT" )
-    
+
     spec=rabbitmq-server/packaging/RPMS/Fedora/rabbitmq-server.spec
     mv $spec $spec~
     sed -ne '0,/^%changelog/p' <$spec~ >$spec
@@ -204,7 +212,7 @@ if [ -n "$WIN_USERHOST" ] ; then
 
     dotnetdir=$topdir/rabbitmq-umbrella/rabbitmq-dotnet-client
     local_dotnetdir=$TOPDIR/rabbitmq-umbrella/rabbitmq-dotnet-client
-    
+
     ssh $SSH_OPTS "$WIN_USERHOST" "mkdir -p $dotnetdir"
     rsync -a $local_dotnetdir/ "$WIN_USERHOST:$dotnetdir"
 
@@ -250,12 +258,12 @@ else
     vars="SKIP_DOTNET_CLIENT=1"
 fi
 
-vars="$vars VERSION=$VERSION WEB_URL=\"$WEB_URL\" UNOFFICIAL_RELEASE=$UNOFFICIAL_RELEASE"
+new_vars="$vars VERSION=$VERSION WEB_URL=\"$WEB_URL\" UNOFFICIAL_RELEASE=$UNOFFICIAL_RELEASE"
 
 if [ -n "$KEYSDIR" ] ; then
     # Set things up for signing
     rsync -rv $KEYSDIR/keyring/ $BUILD_USERHOST:$topdir/keyring/
-    vars="$vars GNUPG_PATH=$topdir/keyring $SIGNING_PARAMS"
+    vars="$new_vars GNUPG_PATH=$topdir/keyring $SIGNING_PARAMS"
 fi
 
 ssh $SSH_OPTS $BUILD_USERHOST '

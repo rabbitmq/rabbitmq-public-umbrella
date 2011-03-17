@@ -6,26 +6,25 @@ Release Highlights
 server
 ------
 bug fixes
-- correct handling for nodedown and node shutdown
-- fix bug erroneously reporting queues on shutdown nodes as deleted
+- do not report queues on down nodes as deleted
 - remove the rabbitmq-multi script
-- fix a bug preventing non-durable queues from being re-declared in a
-  cluster after their nodes had gone down
+- [cluster] allow non-durable queues to be re-declared if their node
+  has gone down
 - fix IPv6 support on Windows
 - cleanup some spurious errors in logs caused by client or server
   termination
 - do not ignore the RABBITMQ_LOG_BASE variable on Windows
 - fix a bug causing SSL connections to die on Erlang prior to R14
   when using "rabbitmqctl list_connections" with the SSL options
+- various other fixes
 
 enhancements
-- add sender-selected distribution (i.e. add support for the CC and
-  BCC headers).  See
+- sender-selected distribution (i.e. add support for the CC and BCC
+  headers).  See
     http://www.rabbitmq.com/extensions.html#sender-selected-distribution
   for more information.
 - greatly speed up routing for topic exchanges
-- add support for server-side consumer cancellation notifications.
-  See
+- server-side consumer cancellation notifications.  See
     http://www.rabbitmq.com/extensions.html#consumer-cancel-notify
   for more information.
 - have the server present its AMQP extensions in a "capabilities"
@@ -36,14 +35,13 @@ enhancements
   cluster, allowing the cluster to re-act better to insufficient
   memory on any of its nodes
 - rename rabbitmq.conf to rabbitmq-env.conf
-- add the frame_max configuration variable
+- expose the frame_max configuration variable
 - expose TCP configuration options.  See rabbit.app for examples.
 - make rabbitmqctl give clearer errors
 - improve performance for publisher confirms by increasing the
   message store timeout; note that this may degrade tx performance in
   certain cases
 - various other performance improvements
-- add the "cond-restart" and "try-restart" options to the init script
 - empty database files are deleted on startup
 - allow SASL mechanisms to veto themselves based on socket type
 - specify runlevels in the rabbitmq-server.init script
@@ -57,7 +55,7 @@ bug fixes
 - rename ReturnListener.handleBasicReturn to handleReturn
 
 enhancements
-- add support for server-side consumer cancellation notifications
+- support for server-side consumer cancellation notifications
 - have the client present its AMQP extensions in a "capabilities"
   field in client-properties
 - make the client jar an OSGi bundle
@@ -69,10 +67,10 @@ enhancements
 .net client
 -----------
 enhancements
-- add support for server-side consumer cancellation notifications
+- support for server-side consumer cancellation notifications
 - have the client present its AMQP extensions in a "capabilities"
   field in client-properties
-- add support for IPv6
+- support for IPv6
 
 
 management plugin
@@ -85,7 +83,7 @@ enhancements
 - allow users to choose which node a queue is declared on
 - present the managed socket and open file counts and respective limits
 - show memory alarm states for nodes
-- add statistics for basic.returns
+- show statistics for basic.returns
 - better memory usage reporting for hibernating queues
 - better support for configuration import/export
 - implement publish/receive messages via HTTP; this is intended for
@@ -96,12 +94,13 @@ enhancements
 STOMP plugin
 ------------
 bug fixes
-- fix bug when publishing from STOMP, but subscribing from non-STOMP
-- fix crash when publishing with undefined headers
-- fix bug when publishing messages with bodies spanning packets
+- do not crash when publishing from STOMP, but subscribing from
+  non-STOMP
+- do not crash when publishing with undefined headers
+- do not crash when publishing messages with bodies spanning packets
 - receipts for SEND frames wait on confirms
-- fix bug that would cause a DISCONNECT with receipt to be issued
-  even when a clean shutdown had not occurred
+- do not issue a DISCONNECT with receipt when a clean shutdown has
+  *not* occurred
 
 enhancements
 - add documentation.  See
@@ -117,12 +116,13 @@ build and packaging
 -------------------
 enhancements
 - Windows installer
+- add the "cond-restart" and "try-restart" options to the init script
 
 
 shovel plugin
 -------------
 bug fixes
-- fix bug that would cause the shovel to leak queues on startup
+- do not leak queues on startup
 
 
 Upgrading
