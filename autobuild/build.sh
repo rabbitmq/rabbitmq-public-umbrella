@@ -23,6 +23,10 @@ WIN_USERHOST=
 # using a special ssh key.
 SSH_OPTS=
 
+# Optional custom hg url base.  Useful if you're builiding remotely
+# and tunneling into rabbit-hg.
+HGREPOBASE=
+
 # Where the keys live.  If not set, we will do an "unofficial release"
 KEYSDIR=
 
@@ -92,6 +96,9 @@ absolutify_scriptdir
 topdir=/var/tmp/rabbit-build.$$
 [[ -z "$TOPDIR" ]] && TOPDIR="$topdir"
 
+[[ -n "$HGREPOBASE" ]] || HGREPOBASE="ssh://hg@rabbit-hg"
+
+
 check_vars
 
 set -e -x
@@ -120,8 +127,8 @@ ssh $SSH_OPTS $ROOT_USERHOST '
         java_package=openjdk-6-jdk
         uja_command="update-java-alternatives -s java-6-openjdk"
         echo "deb http://backports.debian.org/debian-backports squeeze-backports main" > /etc/apt/sources.list.d/backports-for-mercurial-for-rabbit-build.list
-        #apt-get -y update
-        #apt-get -y -t squeeze-backports install mercurial
+        apt-get -y update
+        apt-get -y -t squeeze-backports install mercurial
         ;;
     *)
         echo "Not sure which JDK package to install"
@@ -153,6 +160,7 @@ ssh $SSH_OPTS $ROOT_USERHOST '
     [ -n "$uja_command" ] && eval $uja_command
 '
 
+
 rm -rf $TOPDIR
 mkdir -p $TOPDIR
 cp -a $SCRIPTDIR/install-otp.sh $TOPDIR
@@ -166,7 +174,7 @@ for repo in $REPOS ; do
     cp -a $repo .
 done
 
-make checkout HG_OPTS="-e 'ssh $SSH_OPTS'"
+make checkout HG_OPTS="-e 'ssh $SSH_OPTS'" HGREPOBASE="$HGREPOBASE"
 make clean
 
 if [[ -n "$CHANGELOG_EMAIL" ]] ; then
@@ -195,7 +203,7 @@ if [ -z "$WEB_URL" ] ; then
         cd $WEBSITE_REPO
     else
         cd $TOPDIR
-        hg clone -e "ssh $SSH_OPTS" -r next ssh://hg@rabbit-hg/rabbitmq-website
+        hg clone -e "ssh $SSH_OPTS" -r next "$HGREPOBASE/rabbitmq-website"
         cd rabbitmq-website
     fi
 
