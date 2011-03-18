@@ -61,6 +61,9 @@ enhancements
 
 .net client
 -----------
+bug fixes
+- WCF bindings specified in configuration files are no longer ignored
+
 enhancements
 - support for server-side consumer cancellation notifications
 - have the client present its AMQP extensions in a "capabilities"
