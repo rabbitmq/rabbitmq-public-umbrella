@@ -1,0 +1,12 @@
+This will check that merged branches are VERIFIED FIXED and unmerged
+branches are not.
+
+Usage: ./check-release-hygiene <tag of previous release> <bugzilla username>
+
+You will need to edit the script if new modules have been added to the release.
+
+You may need:
+
+# apt-get install libsoap-lite-perl libterm-readpassword-perl
+
+If it breaks you get to keep both pieces.

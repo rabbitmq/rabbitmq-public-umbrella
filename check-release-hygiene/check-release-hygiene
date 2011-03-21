@@ -1,0 +1,51 @@
+#!/bin/sh
+HG=ssh://hg@rabbit-hg.eng.vmware.com
+
+if [ "x$1" = "x" -o "x$2" = "x" ]; then
+    echo "Usage: $0 <tag of previous release> <bugzilla username>"
+    exit 1
+fi
+
+# C+P this from rabbitmq-public-umbrella Makefile
+PLUGIN_REPOS="rabbitmq-erlang-client \
+           rabbitmq-jsonrpc rabbitmq-mochiweb \
+           rabbitmq-jsonrpc-channel rabbitmq-management-agent \
+           rabbitmq-management rabbitmq-stomp rabbitmq-smtp rabbitmq-shovel \
+           rabbitmq-auth-backend-ldap rabbitmq-auth-mechanism-ssl"
+REPOS="rabbitmq-public-umbrella rabbitmq-umbrella rabbitmq-java-client \
+    rabbitmq-dotnet-client rabbitmq-server $PLUGIN_REPOS"
+
+echo Pulling from Mercurial...
+
+for repo in $REPOS ; do
+    hg clone $HG/$repo > /dev/null
+    cd $repo
+    hg log -r "p2(children($1):: and merge() and ancestors(heads(default))) - branch(default)" | grep branch: | cut -c 17- | grep '^[0-9]\{5\}$' > ../$repo.bugs-merged
+    if [ "x`hg log -r 'present(junk)'`" = x ]; then
+        hg log -r "head() and not ancestors(heads(default))" | grep branch: | cut -c 17- | grep '^[0-9]\{5\}$' > ../$repo.bugs-unmerged
+    else
+        hg log -r "head() and not ancestors(heads(default)) and not ancestors(heads(junk))" | grep branch: | cut -c 17- | grep '^[0-9]\{5\}$' > ../$repo.bugs-unmerged
+    fi
+    cd ..
+    rm -rf $repo
+    echo -n .
+done
+
+echo
+
+cat *.bugs-merged | sort | uniq > all-bugs-merged
+rm *.bugs-merged
+
+cat *.bugs-unmerged | sort | uniq > all-bugs-unmerged
+rm *.bugs-unmerged
+
+echo Pulling from bugzilla...
+
+./bz.pl --login $2 --rememberlogin --bug_id "`cat all-bugs-merged | tr '\n' ' '`" > bz-merged
+
+# Dodgy bugs that break XML-RPC or exist in hg but not bz.
+cat all-bugs-unmerged | grep -v 21899 | grep -v 22019 > all-bugs-unmerged0 && mv all-bugs-unmerged0 all-bugs-unmerged
+
+./bz.pl --login $2 --rememberlogin --bug_id "`cat all-bugs-unmerged | tr '\n' ' '`" > bz-unmerged
+
+./check-release-hygiene0

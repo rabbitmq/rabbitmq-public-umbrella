@@ -26,8 +26,10 @@ BUNDLES_PACKAGES_DIR=$(PACKAGES_DIR)/bundles/$(VDIR)
 PLUGINS_DIR=$(PACKAGES_DIR)/plugins/$(VDIR)
 ABSOLUTE_PLUGINS_DIR=$(CURDIR)/$(PLUGINS_DIR)
 
-REQUIRED_EMULATOR_VERSION=5.6.3
+REQUIRED_EMULATOR_VERSION=5.6.5
 ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
+
+BUNDLE_ERLANG_VERSION=R14B01
 
 REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-erlang-client rabbitmq-public-umbrella
 
@@ -98,7 +100,7 @@ prepare: checkout
 		echo "Alternatively, set the makefile variable REQUIRED_EMULATOR_VERSION=$(ACTUAL_EMULATOR_VERSION) ."; \
 		[ -n "$(UNOFFICIAL_RELEASE)" ] )
 	@echo Checking the presence of the tools necessary to build a release on a Debian based OS.
-	dpkg -L cdbs elinks fakeroot findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip python-pexpect openssl xmlto xsltproc git-core > /dev/null
+	dpkg -L cdbs elinks fakeroot findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip python-pexpect openssl xmlto xsltproc git-core nsis > /dev/null
 	@echo All required tools are installed, great!
 
 
@@ -118,6 +120,7 @@ rabbitmq-server-clean:
 	$(MAKE) -C rabbitmq-server distclean
 	$(MAKE) -C rabbitmq-server/packaging/generic-unix clean
 	$(MAKE) -C rabbitmq-server/packaging/windows clean
+	$(MAKE) -C rabbitmq-server/packaging/windows-exe clean
 	$(MAKE) -C rabbitmq-server/packaging/debs/Debian clean
 	$(MAKE) -C rabbitmq-server/packaging/debs/apt-repository clean
 	$(MAKE) -C rabbitmq-server/packaging/RPMS/Fedora clean
@@ -128,6 +131,7 @@ rabbitmq-server-artifacts: rabbitmq-server-srcdist
 rabbitmq-server-artifacts: rabbitmq-server-website-manpages
 rabbitmq-server-artifacts: rabbitmq-server-generic-unix-packaging
 rabbitmq-server-artifacts: rabbitmq-server-windows-packaging
+rabbitmq-server-artifacts: rabbitmq-server-windows-exe-packaging
 rabbitmq-server-artifacts: rabbitmq-server-debian-packaging
 rabbitmq-server-artifacts: rabbitmq-server-rpm-packaging
 
@@ -152,6 +156,11 @@ rabbitmq-server-generic-unix-packaging: rabbitmq-server-srcdist
 rabbitmq-server-windows-packaging: rabbitmq-server-srcdist
 	$(MAKE) -C rabbitmq-server/packaging/windows dist VERSION=$(VERSION)
 	cp rabbitmq-server/packaging/windows/rabbitmq-server-windows-*.zip $(SERVER_PACKAGES_DIR)
+
+.PHONY: rabbitmq-server-windows-exe-packaging
+rabbitmq-server-windows-exe-packaging: rabbitmq-server-windows-packaging
+	$(MAKE) -C rabbitmq-server/packaging/windows-exe dist VERSION=$(VERSION)
+	cp rabbitmq-server/packaging/windows-exe/rabbitmq-server-*.exe $(SERVER_PACKAGES_DIR)
 
 .PHONY: rabbitmq-server-debian-packaging
 rabbitmq-server-debian-packaging: rabbitmq-server-srcdist
@@ -206,14 +215,15 @@ rabbitmq-dotnet-artifacts: prepare
 
 WINDOWS_BUNDLE_TMP_DIR=$(PACKAGES_DIR)/complete-rabbitmq-bundle-$(VERSION)
 .PHONY: rabbitmq-windows-bundle
-rabbitmq-windows-bundle: rabbitmq-server-windows-packaging rabbitmq-dotnet-artifacts
+rabbitmq-windows-bundle: rabbitmq-server-windows-exe-packaging rabbitmq-dotnet-artifacts
 	rm -rf $(WINDOWS_BUNDLE_TMP_DIR)
 	mkdir -p $(WINDOWS_BUNDLE_TMP_DIR)
-	[ -f /tmp/otp_win32_R13B03.exe ] || \
-		wget -P /tmp http://erlang.org/download/otp_win32_R13B03.exe
-	cp /tmp/otp_win32_R13B03.exe $(WINDOWS_BUNDLE_TMP_DIR)
+	[ -f /tmp/otp_win32_$(BUNDLE_ERLANG_VERSION).exe ] || \
+		wget -P /tmp http://erlang.org/download/otp_win32_$(BUNDLE_ERLANG_VERSION).exe
+	cp /tmp/otp_win32_$(BUNDLE_ERLANG_VERSION).exe $(WINDOWS_BUNDLE_TMP_DIR)
 	cp \
 		$(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip \
+		$(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).exe \
 		$(JAVA_CLIENT_PACKAGES_DIR)/rabbitmq-java-client-bin-$(VERSION).zip \
 		$(DOTNET_CLIENT_PACKAGES_DIR)/rabbitmq-dotnet-client-$(VERSION).msi \
 		$(WINDOWS_BUNDLE_TMP_DIR)
