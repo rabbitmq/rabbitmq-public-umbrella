@@ -122,6 +122,7 @@ enhancements
 - add the "cond-restart" and "try-restart" options to the init script
 - specify runlevels in the rabbitmq-server.init script
 - make the java client jar an OSGi bundle
+- Debian package now depends on erlang-nox instead of erlang
 
 Upgrading
 =========
