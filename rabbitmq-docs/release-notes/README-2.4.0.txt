@@ -11,7 +11,6 @@ bug fixes
 - in a cluster, report a not-found error instead of internal-error
   when attempting to re-declare a durable queue whose node is
   unavailable
-- fix IPv6 support on Windows
 - do not ignore the RABBITMQ_LOG_BASE variable on Windows
 - fix a bug causing SSL connections to die on Erlang prior to R14
   when using "rabbitmqctl list_connections" with the SSL options
@@ -63,6 +62,7 @@ enhancements
 -----------
 bug fixes
 - WCF bindings specified in configuration files are no longer ignored
+- fix IPv6 support on Windows
 
 enhancements
 - support for server-side consumer cancellation notifications
