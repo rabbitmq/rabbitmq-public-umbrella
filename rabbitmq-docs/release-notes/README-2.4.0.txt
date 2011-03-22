@@ -62,7 +62,6 @@ enhancements
 -----------
 bug fixes
 - WCF bindings specified in configuration files are no longer ignored
-- fix IPv6 support on Windows
 
 enhancements
 - support for server-side consumer cancellation notifications
