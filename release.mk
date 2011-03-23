@@ -303,7 +303,7 @@ DEPLOY_RSYNC_CMDS=\
 deploy: verify-signatures fixup-permissions-for-deploy
 	$(DEPLOY_RSYNC_CMDS)
 
-deploy-live: verify-signatures deploy deploy-maven
+deploy-live: verify-signatures deploy-maven deploy
 
 fixup-permissions-for-deploy:
 	chmod -R g+w $(PACKAGES_DIR)
