@@ -31,7 +31,7 @@ ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:syste
 
 BUNDLE_ERLANG_VERSION=R14B01
 
-REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-erlang-client rabbitmq-public-umbrella
+REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-erlang-client rabbitmq-public-umbrella erlando
 
 HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
