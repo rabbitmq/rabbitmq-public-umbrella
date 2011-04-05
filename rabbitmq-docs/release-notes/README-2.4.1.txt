@@ -19,6 +19,7 @@ enhancements
 - add timestamps to events published to the amq.rabbit.log exchange
 - improve memory usage when dealing with persistent messages waiting
   on acks from consumers
+- improve UTF-8 support for SSL certificate fields
 
 
 java client
