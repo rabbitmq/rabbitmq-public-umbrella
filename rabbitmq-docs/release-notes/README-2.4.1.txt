@@ -6,7 +6,7 @@ Release Highlights
 server
 ------
 bug fixes
-- fix issue when upgrading following an unclean broker shutdown
+- fix breakage of upgrades when durable queues are present
 - prevent "rabbitmqctl wait" from waiting forever in certain
   circumstances
 - the broker can be run on Erlang R12B-3 again
@@ -15,10 +15,10 @@ bug fixes
 enhancements
 - upgrades in clusters. See
     http://www.rabbitmq.com/clustering.html#upgrading
+- better error reporting for some startup problems
+- add timestamps to events published to the amq.rabbit.log exchange
 - improve memory usage when dealing with persistent messages waiting
   on acks from consumers
-- a warning is emitted about the old config location only if the new
-  one does not exist
 
 
 java client
