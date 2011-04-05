@@ -11,6 +11,7 @@ bug fixes
   circumstances
 - the broker can be run on Erlang R12B-3 again
 - various other fixes
+- fix for non-ASCII characters in SSL certificate fields
 
 enhancements
 - upgrades in clusters. See
@@ -19,7 +20,6 @@ enhancements
 - add timestamps to events published to the amq.rabbit.log exchange
 - improve memory usage when dealing with persistent messages waiting
   on acks from consumers
-- improve UTF-8 support for SSL certificate fields
 
 
 java client
@@ -46,6 +46,13 @@ STOMP plugin
 ------------
 bug fixes
 - the plugin works on Erlang R12 again
+
+
+SSL authentication mechanism plugin
+-----------------------------------
+bug fixes
+- fix issue with common names containing characters outside ASN.1
+  PrintableString (e.g. underscores)
 
 
 build and packaging
