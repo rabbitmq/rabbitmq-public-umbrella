@@ -10,16 +10,15 @@ bug fixes
 - prevent "rabbitmqctl wait" from waiting forever in certain
   circumstances
 - the broker can be run on Erlang R12B-3 again
-- various other fixes
-- fix for non-ASCII characters in SSL certificate fields
+- some other small bug fixes
 
 enhancements
 - upgrades in clusters. See
     http://www.rabbitmq.com/clustering.html#upgrading
-- better error reporting for some startup problems
-- add timestamps to events published to the amq.rabbit.log exchange
 - improve memory usage when dealing with persistent messages waiting
   on acks from consumers
+- better error reporting for some startup problems
+- add timestamp to events published to the amq.rabbit.log exchange
 
 
 java client
@@ -51,8 +50,8 @@ bug fixes
 SSL authentication mechanism plugin
 -----------------------------------
 bug fixes
-- fix issue with common names containing characters outside ASN.1
-  PrintableString (e.g. underscores)
+- accept SSL certificates with fields containing characters
+  outside ASN.1 PrintableString (e.g. underscores)
 
 
 build and packaging
