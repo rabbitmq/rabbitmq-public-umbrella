@@ -6,7 +6,8 @@ Release Highlights
 server
 ------
 bug fixes
-- fix breakage of upgrades when durable queues are present
+- fix breakage of upgrades when durable queues are present or
+  following a non-clean shutdown
 - prevent "rabbitmqctl wait" from waiting forever in certain
   circumstances
 - the broker can be run on Erlang R12B-3 again
