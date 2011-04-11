@@ -34,7 +34,7 @@ VERSION:=0.0.0
 #----------------------------------
 
 all:
-	make -f all-packages.mk all-packages VERSION=$(VERSION)
+	make -f all-packages.mk all-packages all-packages-warnings VERSION=$(VERSION)
 
 test:
 	make -f all-packages.mk test-all-packages VERSION=$(VERSION)
