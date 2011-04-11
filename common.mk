@@ -140,5 +140,5 @@ endef
 all-releasable::
 copy-releasable::
 all-packages::
-all-packages-warnings::
+all-packages-warnings:: all-packages
 clean-all-packages::
