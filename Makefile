@@ -2,13 +2,6 @@
 default:
 	@echo No default target && false
 
-# PLUGIN_REPOS = our plugins repos; what needs to be tagged at release time.
-# CORE_REPOS = PLUGIN_REPOS + server and codegen, i.e. everything we can hg
-# clone from http://hg.rabbitmq.com/.
-# REPOS = CORE_REPOS + external repos, i.e. everything we need to clone /
-# checkout in any way.
-# PLUGINS = PLUGIN_REPOS + external repos, i.e. every plugin we need to build.
-
 PACKAGE_REPOS:=\
     eldap-wrapper \
     erlang-rfc4627-wrapper \
