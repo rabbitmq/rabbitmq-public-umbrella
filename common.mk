@@ -37,6 +37,11 @@ define package_to_app_name
 $(subst __,_,$(patsubst rabbitmq%,rabbit_%,$(subst -,_,$(1))))
 endef
 
+# Convert an app name to the corresponding ez file name
+define app_to_ez_name
+$(patsubst rabbit%,rabbitmq%,$(subst _,-,$(1)))
+endef
+
 # If the variable named $(1) holds a non-empty value, return it.
 # Otherwise, set the variable to $(2) and return that value.
 define memoize
