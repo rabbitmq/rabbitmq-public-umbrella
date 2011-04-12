@@ -345,6 +345,12 @@ WITH_BROKER_TEST_SCRIPTS
 
   Default: empty
 
+WITH_BROKER_TEST_CONFIG
+  The location of a configuration file to give to the broker that will
+  run the tests.
+
+  Default: empty
+
 TEST_DIR
   The directory within the package that contains tests
 

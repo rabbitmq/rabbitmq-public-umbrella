@@ -81,6 +81,9 @@ STANDALONE_TEST_COMMANDS:=
 # testing.
 WITH_BROKER_TEST_COMMANDS:=
 
+# Config file to give to the test broker.
+WITH_BROKER_TEST_CONFIG:=
+
 # Test scripts which should be invokedduring testing
 STANDALONE_TEST_SCRIPTS:=
 
@@ -297,7 +300,7 @@ $(if $(WITH_BROKER_TEST_COMMANDS)$(WITH_BROKER_TEST_SCRIPTS),$(call run_with_bro
 endef
 
 define run_with_broker_tests_aux
-	$(call run_broker,'-pa $(TEST_EBIN_DIR) -coverage directories ["$(EBIN_DIR)"$(COMMA)"$(TEST_EBIN_DIR)"]',,$(1)) &
+	$(call run_broker,'-pa $(TEST_EBIN_DIR) -coverage directories ["$(EBIN_DIR)"$(COMMA)"$(TEST_EBIN_DIR)"]',RABBITMQ_CONFIG_FILE=$(WITH_BROKER_TEST_CONFIG),$(1)) &
 	sleep 5
 	echo > $(TEST_TMPDIR)/rabbit-test-output && \
 	if $(foreach CMD,$(WITH_BROKER_TEST_COMMANDS), \
