@@ -13,6 +13,7 @@ PACKAGE_REPOS:=\
     rabbitmq-jsonrpc-channel \
     rabbitmq-management \
     rabbitmq-management-agent \
+    rabbitmq-metronome \
     rabbitmq-mochiweb \
     rabbitmq-shovel \
     rabbitmq-stomp \
