@@ -12,6 +12,7 @@ PACKAGE_REPOS:=\
     rabbitmq-federation \
     rabbitmq-jsonrpc \
     rabbitmq-jsonrpc-channel \
+    rabbitmq-jsonrpc-channel-examples \
     rabbitmq-management \
     rabbitmq-management-agent \
     rabbitmq-metronome \
