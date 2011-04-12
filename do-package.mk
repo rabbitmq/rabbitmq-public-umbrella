@@ -244,7 +244,7 @@ $(eval $(call safe_include,$(PACKAGE_DIR)/build/hash.mk))
 $(PACKAGE_DIR)/build/hash.mk: $(CLONE_DIR)/.done
 	@mkdir -p $$(@D)
 ifdef UPSTREAM_GIT
-	echo UPSTREAM_SHORT_HASH:=`git --git-dir=$(CLONE_DIR)/.git log -n 1 --format=format:"%h" HEAD` >$$@
+	echo UPSTREAM_SHORT_HASH:=`git --git-dir=$(CLONE_DIR)/.git log -n 1 HEAD | grep commit | cut -b 8-14` >$$@
 endif
 ifdef UPSTREAM_HG
 	echo UPSTREAM_SHORT_HASH:=`hg id -R $(CLONE_DIR) -i | cut -c -7` >$$@
