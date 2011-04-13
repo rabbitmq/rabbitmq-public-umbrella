@@ -7,9 +7,9 @@ From the rabbitmq-public-umbrella directory:
 
     make co
 
-- To build all the packages from the RabbitMQ team:
+- To build all the releasable packages from the RabbitMQ team:
 
-    make all
+    make release
 
 - To run all tests in all the packages from the RabbitMQ team:
 
@@ -100,14 +100,9 @@ package contains a RabbitMQ plugin, that complete set of .ez files can
 be copied into the plugins directory for the RabbitMQ broker.  The
 broker will then load the plugin when it starts up.
 
-To make it easy to build all the packages provided by the RabbitMQ
-team, the top-level rabbitmq-public-umbrella Makefile has a target to
-build them all:
-
-    make all
-
-Alternatively, to build all the packages that are marked as releasable,
-do:
+To make it easy to build all the packages that are marked as
+releasable, the top-level rabbitmq-public-umbrella Makefile has a
+target to build them all:
 
     make release
 
