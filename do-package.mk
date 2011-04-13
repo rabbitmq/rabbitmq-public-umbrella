@@ -34,11 +34,6 @@ DEPS:=
 # The name of the erlang application produced by the package
 APP_NAME=$(call package_to_app_name,$(PACKAGE_NAME))
 
-# The base name (before -[version].ez is appended) of the ez produced
-# by the package. We base it off the app name since that's what gets
-# overridden.
-EZ_NAME=$(call app_to_ez_name,$(APP_NAME))
-
 # The location of the .app file which is used as the basis for the
 # .app file which goes into the .ez
 ORIGINAL_APP_FILE=$(EBIN_DIR)/$(APP_NAME).app
@@ -179,8 +174,8 @@ endif
 # Some variables used for brevity below.  Packages can't set these.
 APP_FILE=$(PACKAGE_DIR)/build/$(APP_NAME).app.$(PACKAGE_VERSION)
 APP_DONE=$(PACKAGE_DIR)/build/app/.done.$(PACKAGE_VERSION)
-APP_DIR=$(PACKAGE_DIR)/build/app/$(EZ_NAME)-$(PACKAGE_VERSION)
-EZ_FILE=$(PACKAGE_DIR)/dist/$(EZ_NAME)-$(PACKAGE_VERSION).ez
+APP_DIR=$(PACKAGE_DIR)/build/app/$(APP_NAME)-$(PACKAGE_VERSION)
+EZ_FILE=$(PACKAGE_DIR)/dist/$(APP_NAME)-$(PACKAGE_VERSION).ez
 DEPS_FILE=$(PACKAGE_DIR)/build/deps.mk
 
 
