@@ -37,21 +37,21 @@ VERSION:=0.0.0
 #----------------------------------
 
 all:
-	make -f all-packages.mk all-packages VERSION=$(VERSION)
+	$(MAKE) -f all-packages.mk all-packages VERSION=$(VERSION)
 
 test:
-	make -f all-packages.mk test-all-packages VERSION=$(VERSION)
+	$(MAKE) -f all-packages.mk test-all-packages VERSION=$(VERSION)
 
 release:
-	make -f all-packages.mk all-releasable VERSION=$(VERSION)
+	$(MAKE) -f all-packages.mk all-releasable VERSION=$(VERSION)
 
 clean:
-	make -f all-packages.mk clean-all-packages
+	$(MAKE) -f all-packages.mk clean-all-packages
 
 plugins-dist: release
 	rm -rf $(PLUGINS_DIST_DIR)
 	mkdir -p $(PLUGINS_DIST_DIR)
-	make -f all-packages.mk copy-releasable VERSION=$(VERSION) $(PLUGINS_DIST_DIR)=$(PLUGINS_DIST_DIR)
+	$(MAKE) -f all-packages.mk copy-releasable VERSION=$(VERSION) $(PLUGINS_DIST_DIR)=$(PLUGINS_DIST_DIR)
 
 #----------------------------------
 # Convenience aliases
