@@ -17,6 +17,9 @@ $(PACKAGE_DIR)+clean::
 
 $(PACKAGE_DIR)+clean-with-deps:: $(PACKAGE_DIR)+clean
 
+# Hook into the "all package" targets used by the main public-umbrella
+# makefile
+all-packages:: $(PACKAGE_DIR)/dist/.done
 clean-all-packages:: $(PACKAGE_DIR)+clean
 
 ifndef NON_INTEGRATED_$(PACKAGE_DIR)
@@ -43,10 +46,6 @@ ORIGINAL_APP_FILE=$(EBIN_DIR)/$(APP_NAME).app
 # Should the .ez files for this package and its dependencies be
 # included in RabbitMQ releases?
 RELEASABLE:=
-
-# Is this package incapable of being built on this system? (And if so, why?)
-# (e.g. dependencies on C libraries etc)
-NOT_BUILDABLE:=
 
 # The options to pass to erlc when compiling .erl files in this
 # package
@@ -390,26 +389,12 @@ $(PACKAGE_DIR)+clean::
 
 $(PACKAGE_DIR)+clean-with-deps:: $(foreach P,$(DEP_PATHS),$(P)+clean-with-deps)
 
-# Hook into the "all package" targets used by the main public-umbrella
-# makefile
-ifdef NOT_BUILDABLE
-all-packages-warnings::
-	@echo -e \\n$(PACKAGE_DIR) was not built:\\n'    '$(NOT_BUILDABLE)\\n
-else
-all-packages:: $(PACKAGE_DIR)/dist/.done
-endif
-
 ifdef RELEASABLE
-ifdef NOT_BUILDABLE
-all-releasable::
-	@echo -e \\n$(PACKAGE_DIR) should be released but cannot be built:\\n $(NOT_BUILDABLE)\\n
-	exit 1
-endif # NOT_BUILDABLE
 all-releasable:: $(PACKAGE_DIR)/dist/.done
 
 copy-releasable:: $(PACKAGE_DIR)/dist/.done
 	cp $(PACKAGE_DIR)/dist/*.ez $(PLUGINS_DIST_DIR)
-endif # RELEASABLE
+endif
 
 # Run erlang with the package, its tests, and all its dependencies
 # available.
