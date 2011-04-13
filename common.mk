@@ -17,15 +17,15 @@ COMMA:=,
 
 # These ones are expected to be passed down to the sub-makes invoked
 # for non-integrated packages
-VERSION:=0.0.0
-ERL:=erl
-ERLC:=erlc
-ERLC_OPTS:=-Wall +debug_info
-TMPDIR:=/tmp
+VERSION ?= 0.0.0
+ERL ?= erl
+ERLC ?= erlc
+ERLC_OPTS ?= -Wall +debug_info
+TMPDIR ?= /tmp
 
-NODENAME:=rabbit-test
-ERL_CALL:=erl_call
-ERL_CALL_OPTS:=-sname $(NODENAME) -e
+NODENAME ?= rabbit-test
+ERL_CALL ?= erl_call
+ERL_CALL_OPTS ?= -sname $(NODENAME) -e
 
 # Where we put all the files produced when running tests.
 TEST_TMPDIR=$(TMPDIR)/rabbitmq-test
