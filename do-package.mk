@@ -374,7 +374,7 @@ $(PACKAGE_DIR)/build/dep-apps/.done: $(PACKAGE_DIR)/build/dep-ezs/.done
 # to generate a dependency file which is path-independent.
 $(DEPS_FILE): $(SOURCE_ERLS) $(INCLUDE_HRLS)
 	@mkdir -p $$(@D)
-	$$(if $$^,escript $(abspath $(UMBRELLA_BASE_DIR)/generate_deps) $$@ '$$$$(EBIN_DIR)' $$(foreach F,$$^,$$(abspath $$(F))),echo >$$@)
+	$$(if $$^,echo $$(subst : ,:,$$(foreach F,$$^,$$(abspath $$(F)):)) | escript $(abspath $(UMBRELLA_BASE_DIR)/generate_deps) $$@ '$$$$(EBIN_DIR)')
 	sed -i -e 's|$$@|$$$$(DEPS_FILE)|' $$@
 
 $(eval $(call safe_include,$(DEPS_FILE)))
