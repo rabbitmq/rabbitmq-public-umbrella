@@ -9,7 +9,6 @@ PACKAGE_REPOS:=\
     rabbitmq-auth-backend-ldap \
     rabbitmq-auth-mechanism-ssl \
     rabbitmq-external-exchange \
-    rabbitmq-federation \
     rabbitmq-jsonrpc \
     rabbitmq-jsonrpc-channel \
     rabbitmq-jsonrpc-channel-examples \
