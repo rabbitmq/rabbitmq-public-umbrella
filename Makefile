@@ -4,6 +4,7 @@ default:
 
 PACKAGE_REPOS:=\
     eldap-wrapper \
+    erlando \
     erlang-rfc4627-wrapper \
     mochiweb-wrapper \
     rabbitmq-auth-backend-ldap \
