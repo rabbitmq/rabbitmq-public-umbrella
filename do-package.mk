@@ -303,7 +303,7 @@ define run_with_broker_tests_aux
                | tee -a $(TEST_TMPDIR)/rabbit-test-output \
                | $(ERL_CALL) $(ERL_CALL_OPTS) \
                | tee -a $(TEST_TMPDIR)/rabbit-test-output \
-               | egrep "{ok, ok}" >/dev/null &&) \
+               | egrep "{ok, (ok|passed)}" >/dev/null &&) \
 	    $(foreach SCRIPT,$(WITH_BROKER_TEST_SCRIPTS),$(SCRIPT) &&) : ; \
         then \
 	  touch $(TEST_TMPDIR)/.passed ; \
@@ -425,7 +425,7 @@ $(PACKAGE_DIR)+coverage: $(PACKAGE_DIR)/dist/.done $(COVERAGE_PATH)/dist/.done $
 $(PACKAGE_DIR)+standalone-test: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test $(call chain_test,$(PACKAGE_DIR)+standalone-test)
 	$$(if $(STANDALONE_TEST_COMMANDS),\
 	  $$(foreach CMD,$(STANDALONE_TEST_COMMANDS),\
-	    ERL_LIBS=$(PACKAGE_DIR)/dist $(ERL) -pa $(TEST_EBIN_DIR) -eval "init:stop(case $$(CMD) of ok -> 0; _Else -> 1 end)" &&\
+	    ERL_LIBS=$(PACKAGE_DIR)/dist $(ERL) -pa $(TEST_EBIN_DIR) -eval "init:stop(case $$(CMD) of ok -> 0; passed -> 0; _Else -> 1 end)" &&\
 	  )\
 	:)
 	$$(if $(STANDALONE_TEST_SCRIPTS),$$(foreach SCRIPT,$(STANDALONE_TEST_SCRIPTS),$$(SCRIPT) &&) :)
