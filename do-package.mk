@@ -375,6 +375,7 @@ $(PACKAGE_DIR)/build/dep-apps/.done: $(PACKAGE_DIR)/build/dep-ezs/.done
 $(DEPS_FILE): $(SOURCE_ERLS) $(INCLUDE_HRLS) $(TEST_SOURCE_ERLS)
 	@mkdir -p $$(@D)
 	$$(if $$^,echo $$(subst : ,:,$$(foreach F,$$^,$$(abspath $$(F)):)) | escript $(abspath $(UMBRELLA_BASE_DIR)/generate_deps) $$@ '$$$$(EBIN_DIR)',echo >$$@)
+	$$(foreach F,$(TEST_EBIN_BEAMS),sed -i -e 's|^$$$$(EBIN_DIR)/$$(notdir $$(F)):|$$$$(TEST_EBIN_DIR)/$$(notdir $$(F)):|' $$@ && ) :
 	sed -i -e 's|$$@|$$$$(DEPS_FILE)|' $$@
 
 $(eval $(call safe_include,$(DEPS_FILE)))
