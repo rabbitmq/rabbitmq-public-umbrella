@@ -392,10 +392,15 @@ copy-releasable:: $(PACKAGE_DIR)/dist/.done
 	cp $(PACKAGE_DIR)/dist/*.ez $(PLUGINS_DIST_DIR)
 endif
 
+# A hook to allow packages to verify that prerequisites are satisfied
+# before running.
+.PHONY: $(PACKAGE_DIR)+pre-run
+$(PACKAGE_DIR)+pre-run::
+
 # Run erlang with the package, its tests, and all its dependencies
 # available.
 .PHONY: $(PACKAGE_DIR)+run
-$(PACKAGE_DIR)+run: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS)
+$(PACKAGE_DIR)+run: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-run
 	ERL_LIBS=$(PACKAGE_DIR)/dist $(ERL) $(ERL_OPTS) -pa $(TEST_EBIN_DIR)
 
 # Run the broker with the package, its tests, and all its dependencies
