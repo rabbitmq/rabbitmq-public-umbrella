@@ -60,7 +60,7 @@ component of an Erlang/OTP system).  A plugin is just a particular
 case of an Erlang applications.  But plugins (and Erlang applications)
 can depend on other applications being present in order to build and
 run.  One of the main goals of rabbitmq-public-umbrella is to handle
-such dependencies in a convienient manner.
+such dependencies in a convenient manner.
 
 Packages generally follow the usual conventions for Erlang application
 source code.  But rabbitmq-public-umbrella contains a suite of
@@ -167,12 +167,12 @@ consists of a few variable settings to configure that support.  In
 fact, a minimal package.mk is empty - this is still sufficient to
 build a simple Erlang application with no dependencies.  More
 typically a package will need to set DEPS (to describe its
-dependencies) and variables to describe how to run tis automated tests
+dependencies) and variables to describe how to run its automated tests
 (See the section "Test Support").
 
 package.mk should never refer to paths relative to itself, as the
 current directory could well be some other directory where 'make' was
-invoked.  Instead, the PACKAGE_DIR varialbe should be used.  This is
+invoked.  Instead, the PACKAGE_DIR variable should be used.  This is
 set before a package's package.mk is include to give the path to that
 package.
 
