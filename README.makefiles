@@ -214,6 +214,17 @@ ORIGINAL_APP_FILE
 
   Default: $(EBIN_DIR)/$(APP_NAME).app
 
+ORIGINAL_APP_SOURCE
+  The location of the .app.in file which is used to build the .app file
+  (by auto-generating the module list).
+
+  Default: $(EBIN_DIR)/$(APP_NAME).app.in
+
+DO_NOT_GENERATE_APP_FILE
+  Set if the above step is not necessary.
+
+  Default: empty
+
 RELEASABLE
   Should the .ez files for this package and its dependencies be
   included in RabbitMQ releases?  Non-empty means true.
