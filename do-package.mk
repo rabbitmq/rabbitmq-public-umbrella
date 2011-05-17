@@ -373,8 +373,8 @@ ifndef DO_NOT_GENERATE_APP_FILE
 
 # Generate the .app file. Note that this is a separate step from above
 # so that the plugin still works correctly when symlinked as a directory
-$(ORIGINAL_APP_FILE): $(ORIGINAL_APP_SOURCE) $(SOURCE_ERLS) $(UMBRELLA_BASE_DIR)/rabbitmq-server/generate_app
-	escript $(UMBRELLA_BASE_DIR)/rabbitmq-server/generate_app $$@ $(SOURCE_DIRS) < $$<
+$(ORIGINAL_APP_FILE): $(ORIGINAL_APP_SOURCE) $(SOURCE_ERLS) $(UMBRELLA_BASE_DIR)/generate_app
+	escript $(UMBRELLA_BASE_DIR)/generate_app $$@ $(SOURCE_DIRS) < $$<
 
 endif
 
