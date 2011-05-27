@@ -374,7 +374,10 @@ ifndef DO_NOT_GENERATE_APP_FILE
 # Generate the .app file. Note that this is a separate step from above
 # so that the plugin still works correctly when symlinked as a directory
 $(ORIGINAL_APP_FILE): $(ORIGINAL_APP_SOURCE) $(SOURCE_ERLS) $(UMBRELLA_BASE_DIR)/generate_app
-	escript $(UMBRELLA_BASE_DIR)/generate_app $$@ $(SOURCE_DIRS) < $$<
+	escript $(UMBRELLA_BASE_DIR)/generate_app $$< $$@ $(SOURCE_DIRS)
+
+$(PACKAGE_DIR)+clean::
+	rm -f $(ORIGINAL_APP_FILE)
 
 endif
 
@@ -398,11 +401,6 @@ $(eval $(call safe_include,$(DEPS_FILE)))
 
 $(PACKAGE_DIR)+clean::
 	rm -rf $(EBIN_DIR)/*.beam $(TEST_EBIN_DIR)/*.beam $(PACKAGE_DIR)/dist $(PACKAGE_DIR)/build $(PACKAGE_DIR)/erl_crash.dump
-
-ifndef DO_NOT_GENERATE_APP_FILE
-$(PACKAGE_DIR)+clean::
-	rm -f $(EBIN_DIR)/*.app
-endif
 
 $(PACKAGE_DIR)+clean-with-deps:: $(foreach P,$(DEP_PATHS),$(P)+clean-with-deps)
 
