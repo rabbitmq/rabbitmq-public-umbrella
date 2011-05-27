@@ -377,7 +377,7 @@ else
 $(APP_FILE): $(ORIGINAL_APP_SOURCE) $(SOURCE_ERLS) $(UMBRELLA_BASE_DIR)/generate_app
 	@mkdir -p $$(@D)
 	escript $(UMBRELLA_BASE_DIR)/generate_app $$< $$@ $(SOURCE_DIRS)
-	sed -i 's|{vsn, *\"[^\"]*\"|{vsn,\"$(PACKAGE_VERSION)\"|' $$@
+	sed -i.saved 's|{vsn, *\"[^\"]*\"|{vsn,\"$(PACKAGE_VERSION)\"|' $$@ && rm $$@.saved
 
 endif
 
