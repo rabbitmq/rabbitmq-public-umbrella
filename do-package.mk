@@ -364,20 +364,20 @@ $(APP_DONE): $(EBIN_BEAMS) $(INCLUDE_HRLS) $(APP_FILE) $(CONSTRUCT_APP_PREREQS)
 	$(construct_app_commands)
 	touch $$@
 
+ifdef DO_NOT_GENERATE_APP_FILE
+
 # Copy the .app file into place, set its version number
 $(APP_FILE): $(ORIGINAL_APP_FILE)
 	@mkdir -p $$(@D)
-	sed -e 's|{vsn, *\"[^\"]*\"|{vsn,\"$(PACKAGE_VERSION)\"|' <$$< >$$@
+	sed 's|{vsn, *\"[^\"]*\"|{vsn,\"$(PACKAGE_VERSION)\"|' <$$< >$$@
 
-ifndef DO_NOT_GENERATE_APP_FILE
+else
 
-# Generate the .app file. Note that this is a separate step from above
-# so that the plugin still works correctly when symlinked as a directory
-$(ORIGINAL_APP_FILE): $(ORIGINAL_APP_SOURCE) $(SOURCE_ERLS) $(UMBRELLA_BASE_DIR)/generate_app
+# Generate the .app file, and then copy it into place, and set its version number
+$(APP_FILE): $(ORIGINAL_APP_SOURCE) $(SOURCE_ERLS) $(UMBRELLA_BASE_DIR)/generate_app
+	@mkdir -p $$(@D)
 	escript $(UMBRELLA_BASE_DIR)/generate_app $$< $$@ $(SOURCE_DIRS)
-
-$(PACKAGE_DIR)+clean::
-	rm -f $(ORIGINAL_APP_FILE)
+	sed -i 's|{vsn, *\"[^\"]*\"|{vsn,\"$(PACKAGE_VERSION)\"|' $$@
 
 endif
 
