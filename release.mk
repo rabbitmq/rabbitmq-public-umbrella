@@ -31,7 +31,7 @@ ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:syste
 
 BUNDLE_ERLANG_VERSION=R14B01
 
-REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-erlang-client rabbitmq-public-umbrella erlando
+REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-erlang-client rabbitmq-public-umbrella
 
 HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
@@ -55,6 +55,7 @@ checkout: $(foreach r,$(REPOS),.$(r).checkout)
 .rabbitmq-public-umbrella.checkout:
 	[ -d rabbitmq-public-umbrella ] || hg clone $(HG_OPTS) $(HGREPOBASE)/rabbitmq-public-umbrella
 	$(MAKE) -C rabbitmq-public-umbrella checkout
+	ln -s rabbitmq-public-umbrella/erlando erlando
 	touch $@
 
 .PHONY: tag
