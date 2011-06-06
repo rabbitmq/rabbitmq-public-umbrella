@@ -61,8 +61,8 @@ bug fixes
   nodes, which in some rare (but quite reproducible) circumstances
   could cause some of the brokers to crash
 - remove duplicate 'messages' entry from queue stats JSON
-- make binding arguments optional in the REST API for binding creation
-- correct error handling in the REST API for binding creation
+- make binding arguments optional in the HTTP API for binding creation
+- correct error handling in the HTTP API for binding creation
 - prevent spurious failures of aliveness test
 
 enhancements
@@ -71,7 +71,7 @@ enhancements
   higher numbers of queues, bindings, etc.
 - issue an alert when a configured user cannot access any vhost or a
   vhost has no users
-- allow choice of which stats/info items to return in the REST API
+- allow choice of which stats/info items to return in the HTTP API
 - include protocol adapter and direct connections in API and UI
 
 STOMP plugin
