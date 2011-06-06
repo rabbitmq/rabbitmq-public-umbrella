@@ -19,12 +19,17 @@ bug fixes
 - assert x-message-ttl equivalence on queue redeclaration
 
 enhancements
-- tracing facility for incoming and outgoing messages - see <url>
+- tracing facility for incoming and outgoing messages - see
+  http://www.rabbitmq.com/firehose.html
 - optionally serialise events for exchange types
 - detect available memory on OpenBSD
 - add Windows service description
 - improve inbound network performance
 - improve routing performance
+- new rabbitmqctl commands:
+  report - comprehensive report of server status for support purposes
+  environment - display application environment (such as config vars)
+  cluster_status - display cluster status (formerly part of 'status')
 
 java client
 -----------
@@ -32,8 +37,9 @@ bug fixes
 - compile under Java 1.5 (again)
 
 enhancements
-- new API, employing command objects and the builder pattern. See
-  <url>
+- experimental API employing command objects and builders. See
+  http://hg.rabbitmq.com/rabbitmq-java-client/file/default/test/src/com/rabbitmq/client/test/AMQBuilderApiTest.java
+  for some examples. Feedback welcome!
 
 .net client
 -----------
@@ -48,11 +54,30 @@ enhancements
 management plugin
 -----------------
 bug fixes
+- handle race between queue creation/deletion and stats reporting that
+  could result in errors in the latter, particularly when there are
+  large numbers of queues and/or high churn
 - handle race when starting the management plug-in on multiple cluster
   nodes, which in some rare (but quite reproducible) circumstances
   could cause some of the brokers to crash
+- remove duplicate 'messages' entry from queue stats JSON
+- make binding arguments optional in the REST API for binding creation
+- correct error handling in the REST API for binding creation
+- prevent spurious failures of aliveness test
 
 enhancements
+- performance improvements which significantly reduce the cost of
+  stats reporting, allowing the management plug-in to cope with much
+  higher numbers of queues, bindings, etc.
+- issue an alert when a configured user cannot access any vhost or a
+  vhost has no users
+- allow choice of which stats/info items to return in the REST API
+- include protocol adapter and direct connections in API and UI
+
+STOMP plugin
+------------
+bug fixes
+- correct spelling of 'heart-beat' header
 
 build and packaging
 -------------------
