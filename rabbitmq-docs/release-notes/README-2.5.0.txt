@@ -85,9 +85,12 @@ bug fixes
 - fix breakage in /etc/init.d/rabbitmq-server rotate-logs command
 
 enhancements
-- <describe highlights of new build system, particularly its effect on
-  plug-ins (naming, versions, dependencies, build, ...); don't forget
-  to mention the resulting change in plug-in names and thus config entries>
+- plug-in build system: support the declaration of inter-plugin
+  dependencies, making development of plugins much easier.
+  Inter-module dependencies are calculated automatically for all
+  plugins. Note that some plugins and applications have been
+  renamed for  consistency, which may require changes to any existing
+  `rabbitmq.config` to match.
 - do not require access to www.docbook.org when building the server
   w/o docbook installed
 - get rid of some warnings in the .net client build
