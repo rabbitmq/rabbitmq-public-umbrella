@@ -74,6 +74,15 @@ enhancements
 - allow choice of which stats/info items to return in the HTTP API
 - include protocol adapter and direct connections in API and UI
 
+rabbitmq-mochiweb
+-----------------
+
+enhancements
+- more flexible configuration permitting different services to run on
+  different ports, SSL support and interface-based restrictions. See
+  http://www.rabbitmq.com/mochiweb.html for more details. Note that by
+  default the JSON-RPC channel plugin will now listen on port 55670.
+
 STOMP plugin
 ------------
 bug fixes
