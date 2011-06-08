@@ -85,6 +85,8 @@ enhancements
 
 STOMP plugin
 ------------
+enhancements
+- STOMP gateway now supports connections over SSL
 bug fixes
 - correct spelling of 'heart-beat' header
 
