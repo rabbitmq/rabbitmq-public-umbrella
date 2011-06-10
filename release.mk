@@ -29,7 +29,7 @@ ABSOLUTE_PLUGINS_DIR=$(CURDIR)/$(PLUGINS_DIR)
 REQUIRED_EMULATOR_VERSION=5.6.5
 ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
 
-BUNDLE_ERLANG_VERSION=R14B01
+BUNDLE_ERLANG_VERSION=R14B02
 
 REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-erlang-client rabbitmq-public-umbrella
 
