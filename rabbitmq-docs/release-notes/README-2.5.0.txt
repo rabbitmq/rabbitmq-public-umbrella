@@ -50,6 +50,7 @@ bug fixes
 
 enhancements
 - allow larger than default message sizes in WCF
+- updated documentation
 
 management plugin
 -----------------
@@ -73,6 +74,7 @@ enhancements
   vhost has no users
 - allow choice of which stats/info items to return in the HTTP API
 - include protocol adapter and direct connections in API and UI
+- full STOMP SSL information displayed
 
 rabbitmq-mochiweb
 -----------------
@@ -89,6 +91,7 @@ enhancements
 - support connections over SSL
 bug fixes
 - correct spelling of 'heart-beat' header
+- don't drop messages if producer hangs up quickly
 
 build and packaging
 -------------------
