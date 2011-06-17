@@ -36,7 +36,14 @@ APP_NAME=$(call package_to_app_name,$(PACKAGE_NAME))
 
 # The location of the .app file which is used as the basis for the
 # .app file which goes into the .ez
-ORIGINAL_APP_FILE=$(PACKAGE_DIR)/src/$(APP_NAME).app.src
+ORIGINAL_APP_FILE=$(EBIN_DIR)/$(APP_NAME).app
+
+# The location of the source for that file (before the modules list is
+# generated). Ignored if DO_NOT_GENERATE_APP_FILE is set.
+ORIGINAL_APP_SOURCE=$(EBIN_DIR)/$(APP_NAME).app.in
+
+# Set to prevent generation of the app file.
+DO_NOT_GENERATE_APP_FILE:=
 
 # Should the .ez files for this package and its dependencies be
 # included in RabbitMQ releases?
@@ -360,7 +367,19 @@ $(APP_DONE): $(EBIN_BEAMS) $(INCLUDE_HRLS) $(APP_FILE) $(CONSTRUCT_APP_PREREQS)
 # Copy the .app file into place, set its version number
 $(APP_FILE): $(ORIGINAL_APP_FILE)
 	@mkdir -p $$(@D)
-	escript $(UMBRELLA_BASE_DIR)/generate_app $$< $$@ "$(PACKAGE_VERSION)" $(EBIN_BEAMS)
+	sed -e 's|{vsn, *\"[^\"]*\"|{vsn,\"$(PACKAGE_VERSION)\"|' <$$< >$$@
+
+ifndef DO_NOT_GENERATE_APP_FILE
+
+# Generate the .app file. Note that this is a separate step from above
+# so that the plugin still works correctly when symlinked as a directory
+$(ORIGINAL_APP_FILE): $(ORIGINAL_APP_SOURCE) $(SOURCE_ERLS) $(UMBRELLA_BASE_DIR)/generate_app
+	escript $(UMBRELLA_BASE_DIR)/generate_app $$< $$@ $(SOURCE_DIRS)
+
+$(PACKAGE_DIR)+clean::
+	rm -f $(ORIGINAL_APP_FILE)
+
+endif
 
 # Unpack the ezs from dependency packages, so that their contents are
 # accessible to erlc
