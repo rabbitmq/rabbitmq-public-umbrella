@@ -85,30 +85,65 @@ checkout: $(REPOS)
 #----------------------------------
 # Subrepository management
 
+
+# $(1) is the target
+# $(2) is the target dependency
+# $(3) is the target body
+define repo_target
+
+.PHONY: $(1)
+$(1): $(2)
+	$(3)
+
+endef
+
+# $(1) is the list of repos
+# $(2) is the suffix
+# $(3) is the target dependency
+# $(4) is the target body
+define repo_targets
+$(foreach REPO,$(1),$(call repo_target,$(REPO)+$(2),$(patsubst %,$(3),$(REPO)),$(4)))
+endef
+
+# Do not allow status to fork with -j otherwise output will be garbled
 .PHONY: status
 status: checkout
-	$(foreach DIR,. $(REPOS),(cd $(DIR); hg st -mad) &&) true
+	$(foreach DIR,. $(REPOS), \
+		(cd $(DIR); OUT=$$(hg st -mad); \
+		if \[ ! -z "$$OUT" \]; then echo "\n$(DIR):\n$$OUT"; fi) &&) true
 
 .PHONY: pull
-pull: checkout
-	$(foreach DIR,. $(REPOS),(cd $(DIR); hg pull) &&) true
+pull: $(foreach DIR,. $(REPOS),$(DIR)+pull)
+
+$(eval $(call repo_targets,. $(REPOS),pull,| %,\
+	(cd $$(patsubst %+pull,%,$$@) && hg pull)))
 
 .PHONY: update
-update: pull
-	$(foreach DIR,. $(REPOS),(cd $(DIR); hg up) &&) true
+update: $(foreach DIR,. $(REPOS),$(DIR)+update)
+
+$(eval $(call repo_targets,. $(REPOS),update,%+pull,\
+	(cd $$(patsubst %+update,%,$$@) && hg up)))
 
 .PHONY: named_update
-named_update: pull
-	$(foreach DIR,. $(REPOS),(cd $(DIR); hg up -C $(BRANCH));)
+named_update: $(foreach DIR,. $(REPOS),$(DIR)+named_update)
+
+$(eval $(call repo_targets,. $(REPOS),named_update,%+pull,\
+	(cd $$(patsubst %+named_update,%,$$@) && hg up -C $(BRANCH))))
 
 .PHONY: tag
-tag: checkout
-	$(foreach DIR,. $(PACKAGE_REPOS),(cd $(DIR); hg tag $(TAG));)
+tag: $(foreach DIR,. $(PACKAGE_REPOS),$(DIR)+tag)
+
+$(eval $(call repo_targets,. $(PACKAGE_REPOS),tag,| %,\
+	(cd $$(patsubst %+tag,%,$$@) && hg tag $(TAG))))
 
 .PHONY: push
-push: checkout
-	$(foreach DIR,. $(REPOS),(cd $(DIR); hg push -f);)
+push: $(foreach DIR,. $(REPOS),$(DIR)+push)
+
+$(eval $(call repo_targets,. $(REPOS),push,| %,\
+	(cd $$(patsubst %+push,%,$$@) && hg push -f)))
 
 .PHONY: checkin
-checkin: checkout
-	$(foreach DIR,. $(REPOS),(cd $(DIR); hg ci);)
+checkin: $(foreach DIR,. $(REPOS),$(DIR)+checkin)
+
+$(eval $(call repo_targets,. $(REPOS),checkin,| %,\
+	(cd $$(patsubst %+checkin,%,$$@) && hg ci)))
