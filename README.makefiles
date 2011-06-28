@@ -1,0 +1,614 @@
+Quick start
+===========
+
+From the rabbitmq-public-umbrella directory:
+
+- To get all packages provided by the RabbitMQ team from Mercurial:
+
+    make co
+
+- To build all the releasable packages from the RabbitMQ team:
+
+    make release
+
+- To run all tests in all the packages from the RabbitMQ team:
+
+    make test
+
+- To remove all generated files:
+
+    make clean
+
+
+From an individual package directory:
+
+- To build a package, along with all its dependencies:
+
+    make
+
+  The .ez files for the package and its dependencies will be placed in
+  the dist/ directory.
+
+- To run a test broker with the .ez files from the package and its
+  dependencies loaded:
+
+    make run-in-broker
+
+- To run a package's tests:
+
+    make test
+
+- To remove all generated files in a package:
+
+    make clean-local
+
+- To remove all generated files in a package and its dependencies:
+
+    make clean
+
+
+Introduction
+============
+
+rabbitmq-public-umbrella provides an environment for developing and
+building plugins for the RabbitMQ broker.  The source code for plugins
+is organized into packages.  packages reside in subdirectories of
+rabbitmq-public-umbrella.
+
+In fact, a package can be any Erlang application (i.e. a packaged
+component of an Erlang/OTP system).  A plugin is just a particular
+case of an Erlang applications.  But plugins (and Erlang applications)
+can depend on other applications being present in order to build and
+run.  One of the main goals of rabbitmq-public-umbrella is to handle
+such dependencies in a convenient manner.
+
+Packages generally follow the usual conventions for Erlang application
+source code.  But rabbitmq-public-umbrella contains a suite of
+makefiles (for GNU make) that make it easy to express how a package
+should be built and tested. The Makefile infrastructure handles
+dependencies between packages properly: If you make a change in a
+package, dependent packages will be rebuilt when necessary.  And
+because it avoids recursive Makefiles, builds are fast when there is
+little work to be done, and can be parallelized with the -j option to
+make.
+
+
+Building packages
+=================
+
+In order to build a package, you place its source directory under
+rabbitmq-public-umbrella.  Any other packages that it depends on
+should also go there.
+
+Packages that are maintained by the RabbitMQ team live in their own
+Mercurial repositories on hg.rabbitmq.com.  You can obtain them
+invidually by cloning the relevant repositories. Or, to make it easy
+to obtain all the packages and their depencies, the top-level
+rabbitmq-public-umbrella Makefile has a target to obtain them all:
+
+    make co
+
+Once you have the source for a package in the appropriate directory,
+you build it by going into the package directory and doing
+
+    make
+
+This will build the package and any packages it depends on (and any
+packages that those dependencies depnd on, etc.), and place all the
+resulting .ez files in the dist/ subdirectory.  Assuming that the
+package contains a RabbitMQ plugin, that complete set of .ez files can
+be copied into the plugins directory for the RabbitMQ broker.  The
+broker will then load the plugin when it starts up.
+
+To make it easy to build all the packages that are marked as
+releasable, the top-level rabbitmq-public-umbrella Makefile has a
+target to build them all:
+
+    make release
+
+
+Global variables that can be set when building
+==============================================
+
+The following variables can be passed on the 'make' command line in
+order to configure builds.
+
+ERL
+  The Erlang 'erl' command to use
+
+  Default: erl
+
+ERLC
+  The Erlang 'erlc' command to use
+
+  Default: erlc
+
+ERLC_OPTS
+  The options to pass to erlc when compiling .erl files
+
+  Default: -Wall +debug_info
+
+TMPDIR
+  Temporary directory
+
+  Default: /tmp
+
+VERSION
+  The RabbitMQ version number
+
+  Default: 0.0.0
+
+
+Creating a new package
+======================
+
+A package contains the source code for an Erlang application.
+Typically it will reside in a subdirectory of
+rabbitmq-public-umbrella.  The directory should conform to the usual
+conventions for the source code of an Erlang application (i.e. .erl
+files in src/, .hrl files in include/, and a .app file in ebin/).
+
+Your package directory should contain two makefiles: Makefile, and
+package.mk.  The Makefile is boilerplate.  It should contain this
+single line:
+
+include ../umbrella.mk
+
+If the package directory is not an immediate subdirectory of
+rabbitmq-public-directory, adjust the path to umbrella.mk accordingly.
+The purpose of this Makefile is so that when in the package directory,
+you can simply type 'make <target>'.
+
+package.mk is the file that actually describes how to build the
+package.  The makefile infrastructure in rabbitmq-public-umbrella
+knows about the conventions of typical plugins and Erlang
+applications, so most packages will have a package.mk file that just
+consists of a few variable settings to configure that support.  In
+fact, a minimal package.mk is empty - this is still sufficient to
+build a simple Erlang application with no dependencies.  More
+typically a package will need to set DEPS (to describe its
+dependencies) and variables to describe how to run its automated tests
+(See the section "Test Support").
+
+package.mk should never refer to paths relative to itself, as the
+current directory could well be some other directory where 'make' was
+invoked.  Instead, the PACKAGE_DIR variable should be used.  This is
+set before a package's package.mk is include to give the path to that
+package.
+
+After including the package.mk file for a package,
+rabbitmq-public-umbrella will then produce appropriate make rules to
+build and test the package based on variables set in package.mk.
+Packages with special requirements can also declare make rules in
+package.mk (see the section "Using make rules in package.mk" below).
+
+The following sections describe the various features of the
+rabbitmq-public-umbrella makefiles, along with the variables that can
+be set in a package's package.mk to customize those features.
+
+
+Misc. package variables
+=======================
+
+The following variables can be set in package.mk to specify general
+features of the package.
+
+DEPS
+  The packages upon which this package depends.  This is a
+  space-separated list of package names (i.e. package directory
+  names).
+
+  Default: empty
+
+APP_NAME
+  The name of the erlang application produced by the package.
+
+  Default: Produced from the package directory name, transformed it
+  according to conventions.  For example, for a package in a directory
+  call rabbitmq-foo, APP_NAME will default to rabbit_foo.
+
+ORIGINAL_APP_FILE
+  The location of the .app file which is used as the basis for the
+  .app file which goes into the .ez (see the section "Version Numbers"
+  below).
+
+  Default: $(EBIN_DIR)/$(APP_NAME).app
+
+ORIGINAL_APP_SOURCE
+  The location of the .app.in file which is used to build the .app file
+  (by auto-generating the module list).
+
+  Default: $(EBIN_DIR)/$(APP_NAME).app.in
+
+DO_NOT_GENERATE_APP_FILE
+  Set if the above step is not necessary.
+
+  Default: empty
+
+RELEASABLE
+  Should the .ez files for this package and its dependencies be
+  included in RabbitMQ releases?  Non-empty means true.
+
+  Default: empty
+
+PACKAGE_ERLC_OPTS
+  The options to pass to erlc when compiling .erl files in this package.
+
+  Default: $(ERLC_OPTS)
+
+
+Layout of a typical package
+===========================
+
+A typical straightforward package will contain the following
+subdirectories:
+
+src/
+  Erlang source code
+
+ebin/
+  Should just contain the .app file for the package.  (Compiled
+  .beam files will also be placed in this directory during the
+  build.)
+
+include/
+  Erlang .hrl files
+
+test/src/
+  Erlang source code for tests
+
+
+Layout variables
+================
+
+The following variables can be set in package.mk to override the
+default package layout.
+
+SOURCE_DIRS
+  The directories containing Erlang source files.
+
+  Default: $(PACKAGE_DIR)/src
+
+SOURCE_ERLS
+  The Erlang source files to compile and include in the package .ez file.
+
+  Default: All *.erl files in SOURCE_DIRS
+
+INCLUDE_DIRS
+  The directories containing Erlang *.hrl files to include in the
+  package .ez file.
+
+  Default: $(PACKAGE_DIR)/include
+
+INCLUDE_HRLS
+  The Erlang .hrl files to include in the package .ez file.
+
+  Default: All *.hrl files in INCLUDE_DIRS.
+
+EBIN_DIR
+  The location of the directory containing the .app file.  This is
+  also where the .beam files produced by compiling SOURCE_ERLS will
+  go.
+
+  Default: $(PACKAGE_DIR)/ebin
+
+EBIN_BEAMS
+  The .beam files for the application.
+
+  Default: The filenames from SOURCE_ERLS with the suffix changed to
+  .beam and relocated to EBIN_DIR.
+
+
+Test support
+============
+
+rabbitmq-public-umbrella include support to make it easy to run a
+package's tests (which might need to run in the context of a running
+broker).  package.mk should describe how to run the test variables in
+the following section.
+
+To run the tests, go into the package directory and do:
+
+    make test
+
+Or to run the tests in all packages from the rabbitmq-public-umbrella
+directory, do:
+
+    make test
+
+
+Test variables
+==============
+
+These first five variables control the locations of any Erlang tests
+for the package.
+
+STANDALONE_TEST_COMMANDS
+  A space-separated list of erlang expressions which will be invoked
+  during testing (not in the broker).  Each expression should yield
+  the atom 'ok' if the tests succeed.
+
+  Default: empty
+
+WITH_BROKER_TEST_COMMANDS
+  A space-separated list of erlang expressions which will be invoked
+  within the broker during testing.  Each expression should yield
+  the atom 'ok' if the tests succeed.
+
+  Default: empty
+
+STANDALONE_TEST_SCRIPTS
+  A space-separated list of test scripts which should be invoked
+  during testing.  The exit status of each script should indicate
+  whether the tests succeeded.
+
+  Default: empty
+
+WITH_BROKER_TEST_SCRIPTS
+  A space-separated list of test scripts which should be invoked
+  alongside a running broker during testing.  The exit status of each
+  script should indicate whether the tests succeeded.
+
+  Default: empty
+
+WITH_BROKER_TEST_CONFIG
+  The location of a configuration file to give to the broker that will
+  run the tests.
+
+  Default: empty
+
+TEST_DIR
+  The directory within the package that contains tests
+
+  Default: $(PACKAGE_DIR)/test
+
+TEST_SOURCE_DIRS
+  The directories containing .erl files for tests
+
+  Default: $(TEST_DIR)/src
+
+TEST_SOURCE_ERLS
+  The .erl files for tests
+
+  Default: All *.erl files in TEST_SOURCE_DIRS
+
+TEST_EBIN_DIR
+  Where to put .beam files produced by compiling TEST_SOURCE_ERLS
+
+  Default: $(TEST_DIR)/ebin
+
+TEST_EBIN_BEAMS
+  The .beam files produced by compiling TEST_SOURCE_ERLS
+
+  Default: The filenames from TEST_SOURCE_ERLS with the suffix changes
+  to .beam and relocated to TEST_EBIN_DIR
+
+
+Using make rules in package.mk
+==============================
+
+It is possible to declare normal make rules in package.mk.  But if you
+do so, you need to be aware of a pitfall, and of the facility provided
+by rabbitmq-public-umbrella to avoid that pitfall.
+
+The issue is that make defers expansion of variable references in the
+commands for a rule until those commands are executed.  So for
+example, a package might seek to automate the generation of the .app
+file by doing something like:
+
+$(ORIGINAL_APP_FILE): $(PACKAGE_DIR)/src/$(APP_NAME).app.src $(SOURCE_ERLS)
+	$(PACKAGE_DIR)/generate_app.escript $< $(SOURCE_ERLS) >$@
+
+This will not work correctly, because the reference to SOURCE_ERLS in
+the command will be evaluated when the command runs, which may to
+happen after the SOURCE_ERLS value for that package has been
+overwritten by another package.
+
+So, the rule of thumb is: If the commands of a rule refer to
+per-package variables, the rule must be protected by using
+package_rules.
+
+package_rules is actually a variable that you set using make's "define
+... endef" construct.  If package.mk sets this variable, it will be
+evaluated, forcing immediate expansion of its value, and so working
+around the deferred expansion for rule commands.
+
+The downside of this is that there are some variables for which
+expansion really should be deferred until command execution.  This
+tends to be for automatic variables, such as $@, $<, $^, etc.  In
+order to prevent these being active during the expansion of
+package_rules, the dollar sign should be escaped by doubling it,
+giving $$@, $$<, $$^, etc.
+
+So, to work correctly, the rule above should be written as:
+
+define package_rules
+
+$(ORIGINAL_APP_FILE): $(PACKAGE_DIR)/src/$(APP_NAME).app.src $(SOURCE_ERLS)
+	$(PACKAGE_DIR)/generate_app.escript $$< $(SOURCE_ERLS) >$$@
+
+
+endef
+
+
+Adding extra files into the built Erlang application
+====================================================
+
+The .ez file for an erlang application is a zip archive.  In order to
+produce this .ez file, the rabbitmq-public-umbrella makefiles first
+construct the application directory, and then zip it.  This
+application directory contains subdirectories, according to erlang
+conventions, which contain copies of the .beam files, the .hrl files
+and the .app file (see the section "Layout Variables").
+
+Sometimes is it necessary to put extra files into the built
+application directory before it gets zipped up into an .ez file.  This
+can be done using the construct_app_commands variable.
+
+construct_app_commands is intended to be set using define/endef.  It
+contains commands with get incorporated into the make rule that
+produces the application directory.  The definition of
+construct_app_commands should refer to the variable APP_DIR which
+contains the location on the application directory under construction.
+
+For example, if a package wanted to put a file into a priv/
+subdirectory within the built application, it could say in its
+package.mk:
+
+define construct_app_commands
+       mkdir -p $(APP_DIR)/priv
+       echo "Hello, world!" >$(APP_DIR)/priv/hello.txt
+endef
+
+Sometimes the contents of construct_app_commands will require that
+certain prerequisites have been built before the commands are
+executed.  The variable CONSTRUCT_APP_PREREQS can be set to add extra
+prerequisites to the make rule that construct_app_commands goes into.
+
+
+Wrapper packages
+================
+
+Some plugins developed by the RabbitMQ team depend on Erlang
+applications from other parties (e.g. mochiweb).  Wrapper packages
+provide a way to incorporate such external packages into the
+rabbitmq-public-umbrella build system.
+
+A wrapper package is similar to any other package, in that it contains
+a package.mk file to describe the package and configure its build
+process.  But rather than containing any source files, a wrapper
+package specifies in package.mk where to get the actual source files
+(either as a git or Mercurial repository URL).  Once the source files
+have been obtained, the package build proceeds in the normal way.
+
+Wrapper packages are distinguished from other packages by setting
+UPSTREAM_GIT or UPSTREAM_HG.  This activates the following features
+for the package:
+
+- The wrapped repository will be cloned from UPSTREAM_GIT or
+  UPSTREAM_HG into a subdirectory of the package directory.
+
+- SOURCE_DIRS and INCLUDE_DIRS are augmented to refer to the relevant
+  directories in the cloned repository.
+
+- A short form of commit hash from the cloned repo is appended to
+  PACKAGE_VERSION (see the section "Version Numbers" below).
+
+
+Wrapper package variables
+=========================
+
+The following variables can be set in package.mk to customize wrapper
+package builds.
+
+Note that wrapper packages should also specify ORIGINAL_APP_FILE (as
+described above) to specify where the .app file can be found (the
+wrapper package support does not attempt to set this away from its
+normal default, as there is no dominant convention for Erlang source
+code repositories).
+
+UPSTREAM_GIT
+  The git URL to clone from.  Setting this variable marks the package
+  as a wrapper package.
+
+  Default: empty
+
+UPSTREAM_HG
+  The Mercurial URL to clone from.  Setting this variable marks the
+  package as a wrapper package.
+
+  Default: empty
+
+UPSTREAM_REVISION
+  The revision to clone.  If left empty, the current revision on the
+  branch "master" (for git) or "default" (for Mercurial) will be
+  cloned.
+
+  Default: empty
+
+CLONE_DIR
+  Where to clone the repository to
+
+  Default: A suitably named subdirectory of PACKAGE_DIR
+  (e.g. $(PACKAGE_DIR)/mochiweb-git).
+
+UPSTREAM_SOURCE_DIRS
+  The source directories contained in the cloned repositories.  These
+  are appended to SOURCE_DIRS.
+
+  Default: $(CLONE_DIR)/src
+
+UPSTREAM_INCLUDE_DIRS
+  The include directories contained in the cloned repositories.  These
+  are appended to INCLUDE_DIRS.
+
+  Default: $(CLONE_DIR)/include
+
+WRAPPER_PATCHES
+  A space-separated list of patch files to be applied to the
+  repository after cloning (interpreted as filenames with PACKAGE_DIR
+  - you do not need to prefix them with '$(PACKAGE_DIR)/').  This
+  allows the upstream code to be modified to work better in the
+  context of rabbitmq-server.
+
+  Default: empty
+
+
+Version Numbers
+===============
+
+Erlang applications have a version number, which appears in the final
+.app file and the filename of the .ez file.  The main variable for
+setting the version number for a package is PACKAGE_VERSION, although
+several other variables also have an effect on the final version
+number used.
+
+The .app file included in a built application is produced by taking
+the contents of .app file located at ORIGINAL_APP_FILE, and replacing
+the value of the "vsn" property with the value from PACKAGE_VERSION.
+
+By default, PACKAGE_VERSION takes its value from VERSION.  VERSION is
+a global (not per-package) variable intended to be set when invoking
+make in order to specify the version number for the release.  So, if
+package.mk does nothing to change the default behaviour, the version
+number of a package will be the release-wide version number from
+VERSION.  By default, VERSION has the value 0.0.0.
+
+A package can set PACKAGE_VERSION to a specific fixed value.  This is
+probably only appropriate for packages developed outside of the
+RabbitMQ team.
+
+If ORIGINAL_APP_FILE is set, then then the version number from
+ORIGINAL_APP_FILE will not be simply discarded, but will instead be
+incorporated into the final value of PACKAGE_VERSION.  The resulting
+version number will be of the form N.N.N-rmqN.N.N, when the first
+version number is taken from the original .app file, and the second
+version number is taken from PACKAGE_VERSION as set by package.mk.
+This is mainly intended for wrapper packages, where we want to
+preserve the version number assigned by the upstream repo, but also
+mark the resulting build as being part of a specific RabbitMQ release.
+
+Finally, for a wrapper package (i.e. one with a package.mk that sets
+UPSTREAM_HG or UPSTREAM_GIT), an abbreviated form of the revision
+identifier is appended to PACKAGE_VERSION, to form a final version
+number such as N.N.N-gitABCDEF or N.N.N-hgABCDEF.  This enables the
+version to exactly identifies the code involved (many external
+packages do not have regular releases, so the version number from the
+original .app file fails to identify a particular revision of the code
+with sufficient precision).
+
+
+Package version numbers
+=======================
+
+PACKAGE_VERSION
+  The version number to assign to the build artifacts.
+
+  Default: $(VERSION)
+
+RETAIN_ORIGINAL_VERSION
+  If this is non-empty, then the version number from ORIGINAL_APP_FILE
+  will not be simply discarded, but will instead be incorporated into
+  the final value of PACKAGE_VERSION (see above).
+
+  Default: empty
