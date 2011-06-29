@@ -75,7 +75,6 @@ enhancements
 - allow choice of which stats/info items to return in the HTTP API
 - include protocol adapter and direct connections in API and UI
 - full STOMP SSL information displayed
-- blah blah blah
 
 rabbitmq-mochiweb
 -----------------
