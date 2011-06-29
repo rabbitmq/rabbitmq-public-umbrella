@@ -22,14 +22,11 @@ MANPAGES_DIR=$(SERVER_PACKAGES_DIR)/man
 JAVA_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-java-client/$(VDIR)
 DOTNET_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-dotnet-client/$(VDIR)
 ERLANG_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-erlang-client/$(VDIR)
-BUNDLES_PACKAGES_DIR=$(PACKAGES_DIR)/bundles/$(VDIR)
 PLUGINS_DIR=$(PACKAGES_DIR)/plugins/$(VDIR)
 ABSOLUTE_PLUGINS_DIR=$(CURDIR)/$(PLUGINS_DIR)
 
 REQUIRED_EMULATOR_VERSION=5.6.5
 ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
-
-BUNDLE_ERLANG_VERSION=R14B02
 
 REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-erlang-client rabbitmq-public-umbrella
 
@@ -109,7 +106,6 @@ artifacts: rabbitmq-server-artifacts
 artifacts: rabbitmq-java-artifacts
 ifeq ($(SKIP_DOTNET_CLIENT),)
 artifacts: rabbitmq-dotnet-artifacts
-artifacts: rabbitmq-windows-bundle
 endif
 artifacts: rabbitmq-erlang-client-artifacts
 artifacts: rabbitmq-public-umbrella-artifacts
@@ -213,32 +209,6 @@ rabbitmq-dotnet-artifacts: prepare
 	cp -a rabbitmq-dotnet-client/release/* $(DOTNET_CLIENT_PACKAGES_DIR)
 
 
-WINDOWS_BUNDLE_TMP_DIR=$(PACKAGES_DIR)/complete-rabbitmq-bundle-$(VERSION)
-.PHONY: rabbitmq-windows-bundle
-rabbitmq-windows-bundle: rabbitmq-server-windows-exe-packaging rabbitmq-dotnet-artifacts
-	rm -rf $(WINDOWS_BUNDLE_TMP_DIR)
-	mkdir -p $(WINDOWS_BUNDLE_TMP_DIR)
-	[ -f /tmp/otp_win32_$(BUNDLE_ERLANG_VERSION).exe ] || \
-		wget -P /tmp http://erlang.org/download/otp_win32_$(BUNDLE_ERLANG_VERSION).exe
-	cp /tmp/otp_win32_$(BUNDLE_ERLANG_VERSION).exe $(WINDOWS_BUNDLE_TMP_DIR)
-	cp \
-		$(SERVER_PACKAGES_DIR)/rabbitmq-server-windows-$(VERSION).zip \
-		$(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).exe \
-		$(JAVA_CLIENT_PACKAGES_DIR)/rabbitmq-java-client-bin-$(VERSION).zip \
-		$(DOTNET_CLIENT_PACKAGES_DIR)/rabbitmq-dotnet-client-$(VERSION).msi \
-		$(WINDOWS_BUNDLE_TMP_DIR)
-	cp ./README-windows-bundle $(WINDOWS_BUNDLE_TMP_DIR)/README
-	sed -i 's/%%VERSION%%/$(VERSION)/' $(WINDOWS_BUNDLE_TMP_DIR)/README
-	mv $(WINDOWS_BUNDLE_TMP_DIR)/README $(WINDOWS_BUNDLE_TMP_DIR)/README.txt
-	todos $(WINDOWS_BUNDLE_TMP_DIR)/README.txt
-	(cd $(WINDOWS_BUNDLE_TMP_DIR)/..; \
-		zip -r complete-rabbitmq-bundle-$(VERSION).zip complete-rabbitmq-bundle-$(VERSION);)
-	mkdir -p $(BUNDLES_PACKAGES_DIR)
-	mv $(WINDOWS_BUNDLE_TMP_DIR)/../complete-rabbitmq-bundle-$(VERSION).zip \
-		$(BUNDLES_PACKAGES_DIR)
-	rm -rf $(WINDOWS_BUNDLE_TMP_DIR)
-
-
 .PHONY: rabbitmq-erlang-client-artifacts
 rabbitmq-erlang-client-artifacts: prepare
 	$(MAKE) -C rabbitmq-erlang-client distribution VERSION=$(VERSION) APPEND_VERSION=true
@@ -268,7 +238,6 @@ sign-artifacts: artifacts
 	for p in \
 		$(SERVER_PACKAGES_DIR)/* \
 		$(JAVA_CLIENT_PACKAGES_DIR)/* \
-		$(BUNDLES_PACKAGES_DIR)/* \
 	; do \
 		[ -f $$p ] && \
 			HOME=$(GNUPG_PATH) gpg --default-key $(SIGNING_KEY) -abs -o $$p.asc $$p ; \
@@ -285,7 +254,7 @@ STAGE_DEPLOY_PATH=/home/rabbitmq/extras
 
 RSYNC_CMD=rsync -irvpl --delete-after
 
-DEPLOYMENT_SUBDIRECTORIES=rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-erlang-client bundles plugins
+DEPLOYMENT_SUBDIRECTORIES=rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-erlang-client plugins
 
 DEPLOY_RSYNC_CMDS=\
 	set -x -e; \
