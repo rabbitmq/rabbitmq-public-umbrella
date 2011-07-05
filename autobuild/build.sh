@@ -38,14 +38,12 @@ SIGNING_PARAMS=
 # The base URL of the rabbitmq website used to retrieve documentation.
 # If empty, we start a local python web server.  Should include a
 # trailing slash.
-#
-# Make sure your proxy configuration for elinks on BUILD_USERHOST 
-# correctly includes or excludes the hostname of this URL. Using 
-# $(hostname -f) instead of $(hostname) when running a local python 
-# webserver may help. The symptom of a misconfiguration is an 
-# INSTALL file containing a proxy error message instead of 
-# installation instructions.
 WEB_URL=
+
+# The base URL of the rabbitmq website where the results of the build
+# will actually be available.  Optional, defaults to the rabbitmq.com
+# site
+REAL_WEB_URL=
 
 # The directory in which the rabbitmq-website repo lives.  If empty,
 # we will do a fresh clone of the 'next' branch
@@ -57,6 +55,13 @@ CHANGELOG_EMAIL=
 
 # The comment for changelog entires
 CHANGELOG_COMMENT="Test release"
+
+# The Apple Mac OS host with macports installed used for generating
+# the macports artifacts
+MACPORTS_USERHOST=
+
+# RSync user/host to deploy to.  If empty, we don't deploy.
+DEPLOY_USERHOST=
 
 # The directory on the local host to use for the build.  If not set,
 # we will use a uniquely-named directory in /var/tmp.
@@ -79,17 +84,34 @@ while [[ $# -gt 0 ]] ; do
   shift
 done
 
-mandatory_vars="VERSION BUILD_USERHOST"
-optional_vars="SSH_OPTS KEYSDIR SIGNING_PARAMS WEB_URL WEBSITE_REPO CHANGELOG_EMAIL CHANGELOG_COMMENT TOPDIR topdir REPOS SCRIPTDIR UMBRELLADIR WIN_USERHOST"
+function die () {
+  echo "$@" 2>&1
+  exit 1
+}
 
-. $SCRIPTDIR/utils.sh
-absolutify_scriptdir
+# Check mandatory settings
+for v in BUILD_USERHOST WIN_USERHOST VERSION SCRIPTDIR ; do
+  [[ -n "${!v}" ]] || die "$v not set"
+done
+
+# SCRIPTDIR should be absolute
+case $SCRIPTDIR in
+/*)
+    ;;
+*)
+    SCRIPTDIR="$PWD/$SCRIPTDIR"
+    ;;
+esac
 
 [[ -n "$UMBRELLADIR" ]] || UMBRELLADIR=$SCRIPTDIR/..
 
 [[ -n "$ROOT_USERHOST" ]] || ROOT_USERHOST=$(echo "$BUILD_USERHOST" | sed 's|^[^@]*@||;s|^|root@|')
 
-[[ -z "$KEYSDIR" ]] && UNOFFICAL_RELEASE=1
+if [[ -z "$KEYSDIR" ]] ; then
+  UNOFFICIAL_RELEASE=1
+fi
+
+[[ -n "$REAL_WEB_URL" ]] || REAL_WEB_URL=http://www.rabbitmq.com/
 
 # Lower-case topdir is the directory in /var/tmp where we do the build
 # on the remote hosts.  TOPDIR may be different.
@@ -99,7 +121,7 @@ topdir=/var/tmp/rabbit-build.$$
 [[ -n "$HGREPOBASE" ]] || HGREPOBASE="ssh://hg@rabbit-hg"
 
 
-check_vars
+done
 
 set -e -x
 
@@ -111,18 +133,9 @@ ssh $SSH_OPTS $ROOT_USERHOST 'true'
 # Prepare the build host.  Debian etch needs some work to get it in shape
 ssh $SSH_OPTS $ROOT_USERHOST '
     set -e -x
-    case "$(cat /etc/debian_version)" in
-    4.0*)
+    if [ "$(cat /etc/debian_version)" = "4.0" ] ; then
         echo "deb http://ftp.uk.debian.org/debian/ etch-proposed-updates main" >/etc/apt/sources.list.d/proposed-updates.list
-        java_package=sun-java5-jdk
-        ;;
-    5.0*)
-        java_package=openjdk-6-jdk
-        uja_command="update-java-alternatives -s java-6-openjdk"
-        echo "deb http://backports.debian.org/debian-backports lenny-backports main" > /etc/apt/sources.list.d/backports-for-mercurial-for-rabbit-build.list
-        apt-get -y update
-        apt-get -y -t lenny-backports install mercurial
-        ;;
+    fi
     6.0*)
         java_package=openjdk-6-jdk
         uja_command="update-java-alternatives -s java-6-openjdk"
@@ -130,11 +143,6 @@ ssh $SSH_OPTS $ROOT_USERHOST '
         apt-get -y update
         apt-get -y -t squeeze-backports install mercurial
         ;;
-    *)
-        echo "Not sure which JDK package to install"
-        exit 1
-    esac
-
     case `uname -m` in
     i686*)
         ARCH=i386
@@ -156,9 +164,7 @@ ssh $SSH_OPTS $ROOT_USERHOST '
     DEBIAN_FRONTEND=noninteractive ; export DEBIAN_FRONTEND
     apt-get -y update
     apt-get -y dist-upgrade
-    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm reprepro tofrodos zip unzip ant $java_package htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev python-pexpect openssl s3cmd fakeroot git-core m4 xmlto mercurial xsltproc
-    [ -n "$uja_command" ] && eval $uja_command
-'
+    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm reprepro tofrodos zip unzip ant sun-java5-jdk htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev openssl python-pexpect'
 
 
 rm -rf $TOPDIR
@@ -175,7 +181,6 @@ for repo in $REPOS ; do
 done
 
 make checkout HG_OPTS="-e 'ssh $SSH_OPTS'" HGREPOBASE="$HGREPOBASE"
-make clean
 
 if [[ -n "$CHANGELOG_EMAIL" ]] ; then
     # Tweak changelogs
@@ -192,10 +197,14 @@ EOF
     sed -ne '/^%changelog/,$p' <$spec~ | tail -n +2 >>$spec
 fi
 
+# rsync should take account of SSH_OPTS
+RSYNC_RSH="ssh $SSH_OPTS"
+export RSYNC_RSH
+
 rsync -a $TOPDIR/ $BUILD_USERHOST:$topdir
 
 # Do per-user install of the required erlang/OTP versions
-ssh $SSH_OPTS $BUILD_USERHOST "$topdir/install-otp.sh R12B-5"
+ssh $SSH_OPTS $BUILD_USERHOST $topdir/install-otp.sh
 
 if [ -z "$WEB_URL" ] ; then
     # Run the website under a local python process
@@ -211,12 +220,12 @@ if [ -z "$WEB_URL" ] ; then
     trap "kill $!" EXIT
     sleep 1
     cd $TOPDIR
-    WEB_URL="http://$(hostname -f):8191/"
+    WEB_URL="http://$(hostname):8191/"
 fi
 
 # Do the windows build
 if [ -n "$WIN_USERHOST" ] ; then
-    winvars="RABBIT_VSN=$VERSION UNOFFICIAL_RELEASE=$UNOFFICIAL_RELEASE SKIP_MSIVAL2=1 WEB_URL=\"$WEB_URL\""
+    vars="RABBIT_VSN=$VERSION UNOFFICIAL_RELEASE=$UNOFFICIAL_RELEASE SKIP_MSIVAL2=1 WEB_URL=\"$WEB_URL\""
 
     dotnetdir=$topdir/rabbitmq-umbrella/rabbitmq-dotnet-client
     local_dotnetdir=$TOPDIR/rabbitmq-umbrella/rabbitmq-dotnet-client
@@ -226,14 +235,16 @@ if [ -n "$WIN_USERHOST" ] ; then
 
     if [ -n "$KEYSDIR" ] ; then
         rsync -a $KEYSDIR/dotnet/rabbit.snk "$WIN_USERHOST:$dotnetdir"
-        winvars="$winvars KEYFILE=rabbit.snk"
+        vars="$vars KEYFILE=rabbit.snk"
     fi
 
     # Do the initial nant-based build
     ssh $SSH_OPTS "$WIN_USERHOST" '
         set -e -x
+        # The PATH when you ssh in to the cygwin sshd is missing things
+        PATH="$PATH:$(cygpath -p "$SYSTEMROOT\microsoft.net\framework\v3.5;$PROGRAMFILES\msival2;$PROGRAMFILES\wix;$PROGRAMFILES\Microsoft SDKs\Windows\v6.1\Bin")"
         cd '$dotnetdir'
-        { '"$winvars"' ./dist.sh && touch dist.ok ; rm -f rabbit.snk ; } 2>&1 | tee dist.log ; test -e dist.ok
+        { '"$vars"' ./dist.sh && touch dist.ok ; rm -f rabbit.snk ; } 2>&1 | tee dist.log ; test -e dist.ok
     '
 
     # Copy things across to the linux build host
@@ -253,7 +264,7 @@ if [ -n "$WIN_USERHOST" ] ; then
         # The PATH when you ssh in to the cygwin sshd is missing things
         PATH="$PATH:$(cygpath -p "$SYSTEMROOT\microsoft.net\framework\v3.5;$PROGRAMFILES\msival2;$PROGRAMFILES\wix;$PROGRAMFILES\Microsoft SDKs\Windows\v6.1\Bin")"
         cd '$dotnetdir'
-        { '"$winvars"' ./dist-msi.sh && touch dist-msi.ok ; } 2>&1 | tee dist-msi.log ; test -e dist-msi.ok 
+        { '"$vars"' ./dist-msi.sh && touch dist-msi.ok ; } 2>&1 | tee dist-msi.log ; test -e dist-msi.ok 
     '
 
     # The cygwin rsync sometimes hangs.  This rm works around it.
@@ -262,8 +273,6 @@ if [ -n "$WIN_USERHOST" ] ; then
     rsync -av "$WIN_USERHOST:$dotnetdir/" $local_dotnetdir
     rsync -av $local_dotnetdir/ $BUILD_USERHOST:$dotnetdir
     ssh $SSH_OPTS "$WIN_USERHOST" "rm -rf $topdir"
-else
-    vars="SKIP_DOTNET_CLIENT=1"
 fi
 
 new_vars="$vars VERSION=$VERSION WEB_URL=\"$WEB_URL\" UNOFFICIAL_RELEASE=$UNOFFICIAL_RELEASE"
@@ -276,7 +285,9 @@ fi
 
 ssh $SSH_OPTS $BUILD_USERHOST '
     set -e -x
-    PATH=$HOME/otp-R12B-5/bin:$PATH
+    PATH=$HOME/otp-R11B-5/bin:$PATH
+    JAVA_HOME=/usr/lib/jvm/java-1.5.0-sun
+    export JAVA_HOME
     cd '$topdir'
     [ -d keyring ] && chmod -R a+rX,u+w keyring
     cd rabbitmq-umbrella
@@ -287,4 +298,11 @@ ssh $SSH_OPTS $BUILD_USERHOST '
 rsync -av $BUILD_USERHOST:$topdir/ $TOPDIR 
 ssh $SSH_OPTS $BUILD_USERHOST "rm -rf $topdir"
 
-echo "Build completed successfully (don't worry about the following kill)"
+# Do macports indexing
+cd $TOPDIR/rabbitmq-umbrella
+make macports_index MACPORTS_USERHOST="$MACPORTS_USERHOST" SSH_OPTS="$SSH_OPTS"
+
+# Finally, deploy
+if [[ -n "$DEPLOY_USERHOST" ]] ; then
+    make deploy-stage STAGE_DEPLOY_HOST="$DEPLOY_USERHOST" SSH_OPTS="$SSH_OPTS"
+fi
