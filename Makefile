@@ -21,6 +21,7 @@ PACKAGE_REPOS:=\
     rabbitmq-metronome \
     rabbitmq-mochiweb \
     rabbitmq-shovel \
+    rabbitmq-shovel-management \
     rabbitmq-stomp \
     rabbitmq-toke \
     toke \
