@@ -28,7 +28,7 @@ ABSOLUTE_PLUGINS_DIR=$(CURDIR)/$(PLUGINS_DIR)
 REQUIRED_EMULATOR_VERSION=5.6.5
 ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
 
-REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-erlang-client rabbitmq-public-umbrella
+REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-public-umbrella
 
 HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
@@ -211,11 +211,11 @@ rabbitmq-dotnet-artifacts: prepare
 
 .PHONY: rabbitmq-erlang-client-artifacts
 rabbitmq-erlang-client-artifacts: prepare
-	$(MAKE) -C rabbitmq-erlang-client distribution VERSION=$(VERSION) APPEND_VERSION=true
+	$(MAKE) -C rabbitmq-public-umbrella/rabbitmq-erlang-client distribution VERSION=$(VERSION)
 	mkdir -p $(ERLANG_CLIENT_PACKAGES_DIR)
-	cp rabbitmq-erlang-client/dist/*.ez $(ERLANG_CLIENT_PACKAGES_DIR)
-	cp rabbitmq-erlang-client/dist/*.tar.gz $(ERLANG_CLIENT_PACKAGES_DIR)
-	cp -r rabbitmq-erlang-client/doc/ $(ERLANG_CLIENT_PACKAGES_DIR)
+	cp rabbitmq-public-umbella/rabbitmq-erlang-client/dist/*.ez $(ERLANG_CLIENT_PACKAGES_DIR)
+	cp rabbitmq-public-umbrella/rabbitmq-erlang-client/dist/*.tar.gz $(ERLANG_CLIENT_PACKAGES_DIR)
+	cp -r rabbitmq-public-umbrella/rabbitmq-erlang-client/doc/ $(ERLANG_CLIENT_PACKAGES_DIR)
 
 
 .PHONY: rabbitmq-public-umbrella-artifacts
