@@ -12,6 +12,7 @@ PACKAGE_REPOS:=\
     rabbitmq-auth-mechanism-ssl \
     rabbitmq-external-exchange \
     rabbitmq-federation \
+    rabbitmq-federation-management \
     rabbitmq-ha-test \
     rabbitmq-jsonrpc \
     rabbitmq-jsonrpc-channel \
