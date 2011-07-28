@@ -343,7 +343,7 @@ $(PACKAGE_DIR)/dist/.done: $(PACKAGE_DIR)/dist/.done.$(PACKAGE_VERSION)
 $(PACKAGE_DIR)/dist/.done.$(PACKAGE_VERSION): $(PACKAGE_DIR)/build/dep-ezs/.done $(APP_DONE)
 	rm -rf $$(@D)
 	mkdir -p $$(@D)
-	cd $(dir $(APP_DIR)) && zip -r $$(abspath $(EZ_FILE)) $(notdir $(APP_DIR))
+	cd $(dir $(APP_DIR)) && zip -q -r $$(abspath $(EZ_FILE)) $(notdir $(APP_DIR))
 	$$(call copy,$$(wildcard $$(<D)/*.ez),$(PACKAGE_DIR)/dist)
 	touch $$@
 
@@ -386,7 +386,7 @@ endif
 $(PACKAGE_DIR)/build/dep-apps/.done: $(PACKAGE_DIR)/build/dep-ezs/.done
 	rm -rf $$(@D)
 	mkdir -p $$(@D)
-	cd $$(@D) && $$(foreach EZ,$$(wildcard $(PACKAGE_DIR)/build/dep-ezs/*.ez),unzip $$(abspath $$(EZ)) &&) :
+	cd $$(@D) && $$(foreach EZ,$$(wildcard $(PACKAGE_DIR)/build/dep-ezs/*.ez),unzip -q $$(abspath $$(EZ)) &&) :
 	touch $$@
 
 # Dependency autogeneration.  This is complicated slightly by the need
