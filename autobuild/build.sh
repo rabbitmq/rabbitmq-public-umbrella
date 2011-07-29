@@ -192,7 +192,7 @@ EOF
     sed -ne '/^%changelog/,$p' <$spec~ | tail -n +2 >>$spec
 fi
 
-rsync -aq $TOPDIR/ $BUILD_USERHOST:$topdir
+rsync -a $TOPDIR/ $BUILD_USERHOST:$topdir
 
 # Do per-user install of the required erlang/OTP versions
 ssh $SSH_OPTS $BUILD_USERHOST "$topdir/install-otp.sh R12B-5"
@@ -222,10 +222,10 @@ if [ -n "$WIN_USERHOST" ] ; then
     local_dotnetdir=$TOPDIR/rabbitmq-umbrella/rabbitmq-dotnet-client
 
     ssh $SSH_OPTS "$WIN_USERHOST" "mkdir -p $dotnetdir"
-    rsync -aq $local_dotnetdir/ "$WIN_USERHOST:$dotnetdir"
+    rsync -a $local_dotnetdir/ "$WIN_USERHOST:$dotnetdir"
 
     if [ -n "$KEYSDIR" ] ; then
-        rsync -aq $KEYSDIR/dotnet/rabbit.snk "$WIN_USERHOST:$dotnetdir"
+        rsync -a $KEYSDIR/dotnet/rabbit.snk "$WIN_USERHOST:$dotnetdir"
         winvars="$winvars KEYFILE=rabbit.snk"
     fi
 
@@ -237,8 +237,8 @@ if [ -n "$WIN_USERHOST" ] ; then
     '
 
     # Copy things across to the linux build host
-    rsync -avq "$WIN_USERHOST:$dotnetdir/" $local_dotnetdir
-    rsync -avq $local_dotnetdir/ $BUILD_USERHOST:$dotnetdir
+    rsync -a "$WIN_USERHOST:$dotnetdir/" $local_dotnetdir
+    rsync -a $local_dotnetdir/ $BUILD_USERHOST:$dotnetdir
     ssh $SSH_OPTS $BUILD_USERHOST '
         set -e -x
         cd '$dotnetdir'
@@ -246,8 +246,8 @@ if [ -n "$WIN_USERHOST" ] ; then
     '
 
     # Now we go back to windows for the installer build
-    rsync -avq $BUILD_USERHOST:$dotnetdir/ $local_dotnetdir
-    rsync -avq $local_dotnetdir/ "$WIN_USERHOST:$dotnetdir"
+    rsync -a $BUILD_USERHOST:$dotnetdir/ $local_dotnetdir
+    rsync -a $local_dotnetdir/ "$WIN_USERHOST:$dotnetdir"
     ssh $SSH_OPTS "$WIN_USERHOST" '
         set -e -x
         # The PATH when you ssh in to the cygwin sshd is missing things
@@ -259,8 +259,8 @@ if [ -n "$WIN_USERHOST" ] ; then
     # The cygwin rsync sometimes hangs.  This rm works around it.
     # It's magic.
     rm -rf $local_dotnetdir/build
-    rsync -avq "$WIN_USERHOST:$dotnetdir/" $local_dotnetdir
-    rsync -avq $local_dotnetdir/ $BUILD_USERHOST:$dotnetdir
+    rsync -a "$WIN_USERHOST:$dotnetdir/" $local_dotnetdir
+    rsync -a $local_dotnetdir/ $BUILD_USERHOST:$dotnetdir
     ssh $SSH_OPTS "$WIN_USERHOST" "rm -rf $topdir"
 else
     vars="SKIP_DOTNET_CLIENT=1"
@@ -270,7 +270,7 @@ new_vars="$vars VERSION=$VERSION WEB_URL=\"$WEB_URL\" UNOFFICIAL_RELEASE=$UNOFFI
 
 if [ -n "$KEYSDIR" ] ; then
     # Set things up for signing
-    rsync -rvq $KEYSDIR/keyring/ $BUILD_USERHOST:$topdir/keyring/
+    rsync -r $KEYSDIR/keyring/ $BUILD_USERHOST:$topdir/keyring/
     new_vars="$new_vars GNUPG_PATH=$topdir/keyring $SIGNING_PARAMS"
 fi
 
@@ -284,7 +284,7 @@ ssh $SSH_OPTS $BUILD_USERHOST '
 '
 
 # Copy everything back from the build host
-rsync -avq $BUILD_USERHOST:$topdir/ $TOPDIR 
+rsync -a $BUILD_USERHOST:$topdir/ $TOPDIR 
 ssh $SSH_OPTS $BUILD_USERHOST "rm -rf $topdir"
 
 echo "Build completed successfully (don't worry about the following kill)"
