@@ -351,14 +351,16 @@ $(PACKAGE_DIR)/dist/.done.$(PACKAGE_VERSION): $(PACKAGE_DIR)/build/dep-ezs/.done
 $(PACKAGE_DIR)/build/dep-ezs/.done: $(foreach P,$(DEP_PATHS),$(P)/dist/.done)
 	rm -rf $$(@D)
 	mkdir -p $$(@D)
-	$(if $(DEP_PATHS),$(foreach P,$(DEP_PATHS),$$(call copy,$$(wildcard $(P)/dist/*.ez),$$(@D),&&)) :)
+	@echo [elided] copy dependent ezs
+	@$(if $(DEP_PATHS),$(foreach P,$(DEP_PATHS),$$(call copy,$$(wildcard $(P)/dist/*.ez),$$(@D),&&)) :)
 	touch $$@
 
 # Put together the main app tree for this package
 $(APP_DONE): $(EBIN_BEAMS) $(INCLUDE_HRLS) $(APP_FILE) $(CONSTRUCT_APP_PREREQS)
 	rm -rf $$(@D)
 	mkdir -p $(APP_DIR)/ebin $(APP_DIR)/include
-	$(call copy,$(EBIN_BEAMS),$(APP_DIR)/ebin)
+	@echo [elided] copy beams to ebin
+	@$(call copy,$(EBIN_BEAMS),$(APP_DIR)/ebin)
 	cp -a $(APP_FILE) $(APP_DIR)/ebin/$(APP_NAME).app
 	$(call copy,$(INCLUDE_HRLS),$(APP_DIR)/include)
 	$(construct_app_commands)
@@ -386,15 +388,18 @@ endif
 $(PACKAGE_DIR)/build/dep-apps/.done: $(PACKAGE_DIR)/build/dep-ezs/.done
 	rm -rf $$(@D)
 	mkdir -p $$(@D)
-	cd $$(@D) && $$(foreach EZ,$$(wildcard $(PACKAGE_DIR)/build/dep-ezs/*.ez),unzip -q $$(abspath $$(EZ)) &&) :
+	@echo [elided] unzip ezs
+	@cd $$(@D) && $$(foreach EZ,$$(wildcard $(PACKAGE_DIR)/build/dep-ezs/*.ez),unzip -q $$(abspath $$(EZ)) &&) :
 	touch $$@
 
 # Dependency autogeneration.  This is complicated slightly by the need
 # to generate a dependency file which is path-independent.
 $(DEPS_FILE): $(SOURCE_ERLS) $(INCLUDE_HRLS) $(TEST_SOURCE_ERLS)
 	@mkdir -p $$(@D)
-	$$(if $$^,echo $$(subst : ,:,$$(foreach F,$$^,$$(abspath $$(F)):)) | escript $(abspath $(UMBRELLA_BASE_DIR)/generate_deps) $$@ '$$$$(EBIN_DIR)',echo >$$@)
-	$$(foreach F,$(TEST_EBIN_BEAMS),sed -i -e 's|^$$$$(EBIN_DIR)/$$(notdir $$(F)):|$$$$(TEST_EBIN_DIR)/$$(notdir $$(F)):|' $$@ && ) :
+	@echo [elided] generate deps
+	@$$(if $$^,echo $$(subst : ,:,$$(foreach F,$$^,$$(abspath $$(F)):)) | escript $(abspath $(UMBRELLA_BASE_DIR)/generate_deps) $$@ '$$$$(EBIN_DIR)',echo >$$@)
+	@echo [elided] fix test deps
+	@$$(foreach F,$(TEST_EBIN_BEAMS),sed -i -e 's|^$$$$(EBIN_DIR)/$$(notdir $$(F)):|$$$$(TEST_EBIN_DIR)/$$(notdir $$(F)):|' $$@ && ) :
 	sed -i -e 's|$$@|$$$$(DEPS_FILE)|' $$@
 
 $(eval $(call safe_include,$(DEPS_FILE)))
