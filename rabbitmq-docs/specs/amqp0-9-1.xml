@@ -1268,7 +1268,7 @@
         </rule>
       </field>
 
-      <field name = "auto-delete" type = "bit" label = "auto-delete when unused">
+      <field name = "auto-delete" domain = "bit" label = "auto-delete when unused">
         <doc>
           If set, the exchange is deleted when all queues have
           finished using it.
