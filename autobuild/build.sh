@@ -271,7 +271,7 @@ new_vars="$vars VERSION=$VERSION WEB_URL=\"$WEB_URL\" UNOFFICIAL_RELEASE=$UNOFFI
 if [ -n "$KEYSDIR" ] ; then
     # Set things up for signing
     rsync -r $KEYSDIR/keyring/ $BUILD_USERHOST:$topdir/keyring/
-    new_vars="$new_vars GNUPG_PATH=$topdir/keyring $SIGNING_PARAMS"
+    vars="$new_vars GNUPG_PATH=$topdir/keyring $SIGNING_PARAMS"
 fi
 
 ssh $SSH_OPTS $BUILD_USERHOST '
@@ -280,7 +280,7 @@ ssh $SSH_OPTS $BUILD_USERHOST '
     cd '$topdir'
     [ -d keyring ] && chmod -R a+rX,u+w keyring
     cd rabbitmq-umbrella
-    { make dist '"$new_vars"' ERLANG_CLIENT_OTP_HOME=$HOME/otp-R12B-5 && touch dist.ok ; rm -rf '$topdir'/keyring ; } 2>&1 | tee dist.log ; test -e dist.ok
+    { make dist '"$vars"' ERLANG_CLIENT_OTP_HOME=$HOME/otp-R12B-5 && touch dist.ok ; rm -rf '$topdir'/keyring ; } 2>&1 | tee dist.log ; test -e dist.ok
 '
 
 # Copy everything back from the build host
