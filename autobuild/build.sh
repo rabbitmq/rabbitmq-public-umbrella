@@ -121,7 +121,7 @@ ssh $SSH_OPTS $ROOT_USERHOST '
         uja_command="update-java-alternatives -s java-6-openjdk"
         echo "deb http://backports.debian.org/debian-backports lenny-backports main" > /etc/apt/sources.list.d/backports-for-mercurial-for-rabbit-build.list
         apt-get -y update
-        apt-get -y -t lenny-backports install mercurial
+        apt-get -y -t lenny-backports install mercurial git
         ;;
     6.0*)
         java_package=openjdk-6-jdk
