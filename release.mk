@@ -252,7 +252,7 @@ LIVE_DEPLOY_PATH=/home/rabbitmq/extras
 STAGE_DEPLOY_HOST=rabbit-web-stage
 STAGE_DEPLOY_PATH=/home/rabbitmq/extras
 
-RSYNC_CMD=rsync -irvpl --delete-after
+RSYNC_CMD=rsync -irvqpl --delete-after
 
 DEPLOYMENT_SUBDIRECTORIES=rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-erlang-client plugins
 
