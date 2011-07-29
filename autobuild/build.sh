@@ -211,7 +211,7 @@ if [ -z "$WEB_URL" ] ; then
     trap "kill $!" EXIT
     sleep 1
     cd $TOPDIR
-    WEB_URL="http://$(hostname):8191/"
+    WEB_URL="http://$(hostname -f):8191/"
 fi
 
 # Do the windows build
