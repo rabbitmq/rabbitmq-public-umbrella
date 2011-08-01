@@ -272,7 +272,8 @@ DEPLOY_RSYNC_CMDS=\
 deploy: verify-signatures fixup-permissions-for-deploy
 	$(DEPLOY_RSYNC_CMDS)
 
-deploy-live: verify-signatures deploy-maven deploy
+deploy-live: verify-signatures deploy-maven fix-permissions-for-deploy
+	$(DEPLOY_RSYNC_CMDS)
 
 fixup-permissions-for-deploy:
 	chmod -R g+w $(PACKAGES_DIR)
@@ -287,6 +288,6 @@ verify-signatures:
 	done ; \
 	[ -z "$$bad_signature" ]
 
-deploy-maven:
+deploy-maven: verify-signatures
 	$(MAKE) -C rabbitmq-java-client stage-maven-bundle promote-maven-bundle SIGNING_KEY=$(SIGNING_KEY) VERSION=$(VERSION) GNUPG_PATH=$(GNUPG_PATH)
 
