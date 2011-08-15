@@ -39,6 +39,10 @@ test: $(PACKAGE_DIR)+test
 .PHONY: coverage
 coverage: $(PACKAGE_DIR)+coverage
 
+# Runs the package's tests
+.PHONY: check-xref
+check-xref: $(PACKAGE_DIR)+check-xref
+
 # Do the initial package
 include $(UMBRELLA_BASE_DIR)/do-package.mk
 

@@ -464,6 +464,15 @@ $(PACKAGE_DIR)+standalone-test: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS) $(P
 .PHONY: $(PACKAGE_DIR)+test
 $(PACKAGE_DIR)+test:: $(PACKAGE_DIR)+standalone-test $(PACKAGE_DIR)+in-broker-test
 
+.PHONY: $(PACKAGE_DIR)+check-xref
+$(PACKAGE_DIR)+check-xref: $(PACKAGE_DIR)/dist/.done
+	UNPACKDIR=$$$$(mktemp -d $(TMPDIR)/tmp.XXXXXXXXXX) && \
+	for ez in $$$$(find $(PACKAGE_DIR)/dist -type f -name "*.ez"); do \
+	  unzip -q $$$${ez} -d $$$${UNPACKDIR}; \
+	done && \
+	$(UMBRELLA_BASE_DIR)/check_xref $(PACKAGE_DIR) $$$${UNPACKDIR}; \
+	rm -rf $$$${UNPACKDIR}
+
 endef
 $(eval $(package_rules))
 
