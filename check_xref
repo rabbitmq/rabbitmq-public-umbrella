@@ -15,16 +15,16 @@
 %% The Original Code is RabbitMQ.
 %%
 %% The Initial Developer of the Original Code is VMware, Inc.
-%% Copyright (c) 2007-2011 VMware, Inc.  All rights reserved.
+%% Copyright (c) 2010-2011 VMware, Inc.  All rights reserved.
 %%
 
-main([]) ->
-    main(["."]);
-main([PackageDir]) ->
+main([PackageDir, TmpDir]) ->
     {ok, _Pid} = xref:start(?MODULE),
     ok = xref:set_default(?MODULE, [{verbose,false}, {warnings,false}]),
     {ok, PackageModules} = add_dir(PackageDir, "ebin"),
-    [{ok, _} = add_dir(PackageDir, Dir) || Dir <- ["build", "deps"]],
+    %% Remove them to avoid clash when we add them via the TmpDir
+    ok = xref:remove_module(?MODULE, PackageModules),
+    {ok, _} = xref:add_directory(?MODULE, TmpDir, {recurse, true}),
     {ok, otp} = xref:add_release(?MODULE, code:lib_dir(), {name, otp}),
 
     ModulesQ =
