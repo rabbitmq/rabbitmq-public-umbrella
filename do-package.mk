@@ -20,7 +20,6 @@ $(PACKAGE_DIR)+clean-with-deps:: $(PACKAGE_DIR)+clean
 # Hook into the "all package" targets used by the main public-umbrella
 # makefile
 all-packages:: $(PACKAGE_DIR)/dist/.done
-check-xref-packages:: $(PACKAGE_DIR)+check-xref
 clean-all-packages:: $(PACKAGE_DIR)+clean
 
 ifndef NON_INTEGRATED_$(PACKAGE_DIR)
@@ -475,6 +474,8 @@ $(PACKAGE_DIR)+check-xref: $(PACKAGE_DIR)/dist/.done
 	ln -sf $$$$(pwd)/$(RABBITMQ_SERVER_PATH) $$$${UNPACKDIR} && \
 	$(UMBRELLA_BASE_DIR)/check_xref $(PACKAGE_DIR) $$$${UNPACKDIR}; \
 	rm -rf $$$${UNPACKDIR}
+
+check-xref-packages:: $(PACKAGE_DIR)+check-xref
 
 endef
 $(eval $(package_rules))
