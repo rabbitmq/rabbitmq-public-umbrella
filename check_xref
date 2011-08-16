@@ -46,10 +46,11 @@ main([PackageDir, TmpDir]) ->
     %% (i.e. callees, not callers), and see if they're unknown
 
     Q = "U * range (closure E | " ++ ModulesQ ++")",
-    case filter_noise(xref:q(?MODULE, Q)) of
-        {ok, []}       -> io:format("No undefined functions. Good job!~n");
-        {ok, Problems} -> io:format("Undefined functions: ~p~n", [Problems]),
-                          exit(undefined_functions)
+    {ok, MFAs} = xref:q(?MODULE, Q),
+    case filter_noise(MFAs) of
+        []       -> io:format("No undefined functions. Good job!~n");
+        Problems -> io:format("Undefined functions: ~p~n", [Problems]),
+                    exit(undefined_functions)
     end.
 
 add_dir(PackageDir, Dir) ->
@@ -59,8 +60,8 @@ add_dir(PackageDir, Dir) ->
         false -> {ok, []}
     end.
 
-filter_noise({ok, MFAs}) ->
-    {ok, [MFA || MFA <- MFAs, is_interesting(MFA)]}.
+filter_noise(MFAs) ->
+    [MFA || MFA <- MFAs, is_interesting(MFA)].
 
 is_interesting({'$M_EXPR', _, _}) -> false;
 is_interesting({_, '$F_EXPR', _}) -> false;

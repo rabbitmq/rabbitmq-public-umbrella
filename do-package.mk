@@ -474,8 +474,7 @@ $(PACKAGE_DIR)+check-xref: $(PACKAGE_DIR)/dist/.done
 	ln -sf $$$$(pwd)/$(RABBITMQ_SERVER_PATH) $$$${UNPACKDIR} && \
 	OK=true && \
 	{ $(UMBRELLA_BASE_DIR)/check_xref $(PACKAGE_DIR) $$$${UNPACKDIR} || OK=false; } && \
-	rm -rf $$$${UNPACKDIR} && \
-	$$$${OK}
+	rm -rf $$$${UNPACKDIR}
 
 check-xref-packages:: $(PACKAGE_DIR)+check-xref
 
