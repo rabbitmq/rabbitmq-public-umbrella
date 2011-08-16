@@ -1,16 +1,14 @@
 #!/usr/bin/env escript
 %% -*- erlang -*-
 
-main([InFile, OutFile | SrcDirs]) ->
-    Modules = [list_to_atom(filename:basename(F, ".erl")) ||
-                  SrcDir <- SrcDirs,
-                  F <- filelib:wildcard("*.erl", SrcDir)],
+main([InFile, OutFile, Vers | BeamFiles]) ->
+    Modules = [list_to_atom(filename:basename(F, ".beam")) || F <- BeamFiles],
     {ok, [{application, Application, Properties}]} = file:consult(InFile),
-    NewProperties =
-        case proplists:get_value(modules, Properties) of
-            [] -> lists:keyreplace(modules, 1, Properties, {modules, Modules});
-            _  -> Properties
-        end,
+    NewProperties = [case Prop of
+                         {modules, _} -> {modules, Modules};
+                         {vsn, _}     -> {vsn, Vers};
+                         OtherProp    -> OtherProp
+                     end || Prop <- Properties],
     file:write_file(
       OutFile,
       io_lib:format("~p.~n", [{application, Application, NewProperties}])).
