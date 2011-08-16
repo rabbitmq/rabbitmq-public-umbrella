@@ -470,6 +470,8 @@ $(PACKAGE_DIR)+check-xref: $(PACKAGE_DIR)/dist/.done
 	for ez in $$$$(find $(PACKAGE_DIR)/dist -type f -name "*.ez"); do \
 	  unzip -q $$$${ez} -d $$$${UNPACKDIR}; \
 	done && \
+	rm -rf $$$${UNPACKDIR}/rabbit_common-* && \
+	ln -sf $$$$(pwd)/$(RABBITMQ_SERVER_PATH) $$$${UNPACKDIR} && \
 	$(UMBRELLA_BASE_DIR)/check_xref $(PACKAGE_DIR) $$$${UNPACKDIR}; \
 	rm -rf $$$${UNPACKDIR}
 
