@@ -375,11 +375,13 @@ ifndef DO_NOT_GENERATE_APP_FILE
 
 # Generate the .app file. Note that this is a separate step from above
 # so that the plugin still works correctly when symlinked as a directory
-$(ORIGINAL_APP_FILE): $(ORIGINAL_APP_SOURCE) $(SOURCE_ERLS) $(UMBRELLA_BASE_DIR)/generate_app
+$(ORIGINAL_APP_FILE): $(ORIGINAL_APP_SOURCE) $(EBIN_BEAMS) $(UMBRELLA_BASE_DIR)/generate_app
 	escript $(UMBRELLA_BASE_DIR)/generate_app $$< $$@ "$(PACKAGE_VERSION)" $(EBIN_BEAMS)
+	cp $$@ $(EBIN_DIR)/$(APP_NAME).app
 
 $(PACKAGE_DIR)+clean::
 	rm -f $(ORIGINAL_APP_FILE)
+	rm -f $(EBIN_DIR)/$(APP_NAME).app
 
 endif
 
