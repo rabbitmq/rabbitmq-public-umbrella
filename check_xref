@@ -48,9 +48,10 @@ main([PackageDir, TmpDir]) ->
     Q = "U * range (closure E | " ++ ModulesQ ++")",
     {ok, MFAs} = xref:q(?MODULE, Q),
     case filter_noise(MFAs) of
-        []       -> io:format("No undefined functions. Good job!~n");
-        Problems -> io:format("Undefined functions: ~p~n", [Problems]),
-                    exit(undefined_functions)
+        []     -> io:format("No undefined functions. Good job!~n");
+        PrMFAs -> io:format("Undefined functions:~n"),
+                  [io:format("\t~p:~p/~p~n", [M, F, A]) || {M, F, A} <- PrMFAs],
+                  exit(undefined_functions)
     end.
 
 add_dir(PackageDir, Dir) ->
