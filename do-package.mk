@@ -472,8 +472,10 @@ $(PACKAGE_DIR)+check-xref: $(PACKAGE_DIR)/dist/.done
 	done && \
 	rm -rf $$$${UNPACKDIR}/rabbit_common-* && \
 	ln -sf $$$$(pwd)/$(RABBITMQ_SERVER_PATH) $$$${UNPACKDIR} && \
-	$(UMBRELLA_BASE_DIR)/check_xref $(PACKAGE_DIR) $$$${UNPACKDIR}; \
-	rm -rf $$$${UNPACKDIR}
+	OK=true && \
+	{ $(UMBRELLA_BASE_DIR)/check_xref $(PACKAGE_DIR) $$$${UNPACKDIR} || OK=false; } && \
+	rm -rf $$$${UNPACKDIR} && \
+	$$$${OK}
 
 check-xref-packages:: $(PACKAGE_DIR)+check-xref
 
