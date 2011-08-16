@@ -52,6 +52,9 @@ release:
 clean:
 	$(MAKE) -f all-packages.mk clean-all-packages
 
+check-xref:
+	$(MAKE) -f all-packages.mk check-xref-packages
+
 plugins-dist: release
 	rm -rf $(PLUGINS_DIST_DIR)
 	mkdir -p $(PLUGINS_DIST_DIR)

@@ -20,6 +20,7 @@ $(PACKAGE_DIR)+clean-with-deps:: $(PACKAGE_DIR)+clean
 # Hook into the "all package" targets used by the main public-umbrella
 # makefile
 all-packages:: $(PACKAGE_DIR)/dist/.done
+check-xref-packages:: $(PACKAGE_DIR)+check-xref
 clean-all-packages:: $(PACKAGE_DIR)+clean
 
 ifndef NON_INTEGRATED_$(PACKAGE_DIR)
