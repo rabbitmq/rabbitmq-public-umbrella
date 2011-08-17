@@ -366,17 +366,17 @@ $(APP_DONE): $(EBIN_BEAMS) $(INCLUDE_HRLS) $(APP_FILE) $(CONSTRUCT_APP_PREREQS)
 	$(construct_app_commands)
 	touch $$@
 
-# Copy the .app file into place
+# Copy the .app file into place, set its version number
 $(APP_FILE): $(ORIGINAL_APP_FILE)
 	@mkdir -p $$(@D)
-	cp $$< $$@
+	sed -e 's|{vsn, *\"[^\"]*\"|{vsn,\"$(PACKAGE_VERSION)\"|' <$$< >$$@
 
 ifndef DO_NOT_GENERATE_APP_FILE
 
 # Generate the .app file. Note that this is a separate step from above
 # so that the plugin still works correctly when symlinked as a directory
 $(ORIGINAL_APP_FILE): $(ORIGINAL_APP_SOURCE) $(EBIN_BEAMS) $(UMBRELLA_BASE_DIR)/generate_app
-	escript $(UMBRELLA_BASE_DIR)/generate_app $$< $$@ "$(PACKAGE_VERSION)" $(EBIN_BEAMS)
+	escript $(UMBRELLA_BASE_DIR)/generate_app $$< $$@ $(EBIN_BEAMS)
 
 $(PACKAGE_DIR)+clean::
 	rm -f $(ORIGINAL_APP_FILE)

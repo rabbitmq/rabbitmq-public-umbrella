@@ -1,12 +1,11 @@
 #!/usr/bin/env escript
 %% -*- erlang -*-
 
-main([InFile, OutFile, Vers | BeamFiles]) ->
+main([InFile, OutFile | BeamFiles]) ->
     Modules = [list_to_atom(filename:basename(F, ".beam")) || F <- BeamFiles],
     {ok, [{application, Application, Properties}]} = file:consult(InFile),
     NewProperties = [case Prop of
                          {modules, _} -> {modules, Modules};
-                         {vsn, _}     -> {vsn, Vers};
                          OtherProp    -> OtherProp
                      end || Prop <- Properties],
     file:write_file(
