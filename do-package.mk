@@ -36,7 +36,7 @@ APP_NAME=$(call package_to_app_name,$(PACKAGE_NAME))
 
 # The location of the .app file which is used as the basis for the
 # .app file which goes into the .ez
-ORIGINAL_APP_FILE=$(PACKAGE_DIR)/ebin/$(APP_NAME).app
+ORIGINAL_APP_FILE=$(EBIN_DIR)/$(APP_NAME).app
 
 # The location of the source for that file (before the modules list is
 # generated).

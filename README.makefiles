@@ -212,7 +212,7 @@ ORIGINAL_APP_FILE
   .app file which goes into the .ez (see the section "Version Numbers"
   below).
 
-  Default: $(PACKAGE_DIR)/src/$(APP_NAME).app
+  Default: $(EBIN_DIR)/$(APP_NAME).app
 
 ORIGINAL_APP_SOURCE
   The location of the .app.src file which is used to build the .app file
