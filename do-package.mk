@@ -471,7 +471,7 @@ $(PACKAGE_DIR)+check-xref: $(PACKAGE_DIR)/dist/.done
 	  unzip -q $$$${ez} -d $$$${UNPACKDIR}; \
 	done && \
 	rm -rf $$$${UNPACKDIR}/rabbit_common-* && \
-	ln -sf $$$$(pwd)/$(RABBITMQ_SERVER_PATH) $$$${UNPACKDIR} && \
+	ln -sf $$$$(pwd)/$(RABBITMQ_SERVER_PATH)/ebin $$$${UNPACKDIR} && \
 	OK=true && \
 	{ $(UMBRELLA_BASE_DIR)/check_xref $(PACKAGE_DIR) $$$${UNPACKDIR} || OK=false; } && \
 	rm -rf $$$${UNPACKDIR} && \
