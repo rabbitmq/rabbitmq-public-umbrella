@@ -199,7 +199,7 @@ rabbitmq-java-artifacts: prepare
 	mkdir -p $(JAVA_CLIENT_PACKAGES_DIR)
 	cp rabbitmq-java-client/build/*.tar.gz $(JAVA_CLIENT_PACKAGES_DIR)
 	cp rabbitmq-java-client/build/*.zip $(JAVA_CLIENT_PACKAGES_DIR)
-	cd $(JAVA_CLIENT_PACKAGES_DIR); unzip rabbitmq-java-client-javadoc-$(VERSION).zip
+	cd $(JAVA_CLIENT_PACKAGES_DIR); unzip -q rabbitmq-java-client-javadoc-$(VERSION).zip
 
 
 .PHONY: rabbitmq-dotnet-artifacts
@@ -252,7 +252,7 @@ LIVE_DEPLOY_PATH=/home/rabbitmq/extras
 STAGE_DEPLOY_HOST=rabbit-web-stage
 STAGE_DEPLOY_PATH=/home/rabbitmq/extras
 
-RSYNC_CMD=rsync -irvpl --delete-after
+RSYNC_CMD=rsync -rpl --delete-after
 
 DEPLOYMENT_SUBDIRECTORIES=rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-erlang-client plugins
 
