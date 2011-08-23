@@ -40,7 +40,7 @@ ORIGINAL_APP_FILE=$(EBIN_DIR)/$(APP_NAME).app
 
 # The location of the source for that file (before the modules list is
 # generated). Ignored if DO_NOT_GENERATE_APP_FILE is set.
-ORIGINAL_APP_SOURCE=$(EBIN_DIR)/$(APP_NAME).app.in
+ORIGINAL_APP_SOURCE=$(PACKAGE_DIR)/src/$(APP_NAME).app.src
 
 # Set to prevent generation of the app file.
 DO_NOT_GENERATE_APP_FILE:=
