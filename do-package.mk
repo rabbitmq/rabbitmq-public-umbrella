@@ -39,7 +39,7 @@ APP_NAME=$(call package_to_app_name,$(PACKAGE_NAME))
 ORIGINAL_APP_FILE=$(EBIN_DIR)/$(APP_NAME).app
 
 # The location of the source for that file (before the modules list is
-# generated).
+# generated). Ignored if DO_NOT_GENERATE_APP_FILE is set.
 ORIGINAL_APP_SOURCE=$(PACKAGE_DIR)/src/$(APP_NAME).app.src
 
 # Set to prevent generation of the app file.
@@ -375,8 +375,8 @@ ifndef DO_NOT_GENERATE_APP_FILE
 
 # Generate the .app file. Note that this is a separate step from above
 # so that the plugin still works correctly when symlinked as a directory
-$(ORIGINAL_APP_FILE): $(ORIGINAL_APP_SOURCE) $(EBIN_BEAMS) $(UMBRELLA_BASE_DIR)/generate_app
-	escript $(UMBRELLA_BASE_DIR)/generate_app $$< $$@ $(EBIN_BEAMS)
+$(ORIGINAL_APP_FILE): $(ORIGINAL_APP_SOURCE) $(SOURCE_ERLS) $(UMBRELLA_BASE_DIR)/generate_app
+	escript $(UMBRELLA_BASE_DIR)/generate_app $$< $$@ $(SOURCE_DIRS)
 
 $(PACKAGE_DIR)+clean::
 	rm -f $(ORIGINAL_APP_FILE)
