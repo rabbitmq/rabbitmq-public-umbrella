@@ -98,6 +98,9 @@ enhancements
 - add an extension mechanisms - plug-ins for the management
   plug-in. The first of these is rabbitmq-shovel-management which
   displays status information of the rabbitmq-shovel plugin
+- queue and exchange forms now contain fields for well-known arguments
+  such as message TTL and alternate exchange
+
 
 mochiweb plugin
 ---------------
