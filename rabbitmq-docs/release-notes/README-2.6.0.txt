@@ -78,7 +78,7 @@ bug fixes
 
 enhancements
 - introduce a more advanced permissions model, allowing access to
-  information for monitoring purposes without the user needing to a
+  information for monitoring purposes without the user needing to be a
   rabbit administrator. See
   http://www.rabbitmq.com/management.html#permissions
 - simplify changing the URL; shorter default URL
