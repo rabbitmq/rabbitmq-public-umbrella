@@ -40,7 +40,6 @@ enhancements
   declaration
 - optimise of message delivery on channels with a basic.qos
   prefetch limit that are consuming from many queues
-- record rabbitmqctl actions in broker log
 - in 'rabbitmqctl list_channels', do not show the tx mode by default
 - when a cluster 'degrades' to only containing ram nodes - through
   'rabbitmqctl' actions or node failure - display/log a warning.
