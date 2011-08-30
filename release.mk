@@ -28,8 +28,8 @@ ABSOLUTE_PLUGINS_DIR=$(CURDIR)/$(PLUGINS_DIR)
 REQUIRED_EMULATOR_VERSION=5.6.5
 ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
 
-REPOS:=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-public-umbrella
-REPOS_LESS_PUBLIC:=$(filter-out rabbitmq-public-umbrella,$(REPOS))
+REPOS:=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client
+REPOS_WITH_PUBLIC:=$(REPOS) rabbitmq-public-umbrella
 
 HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
@@ -44,7 +44,7 @@ all:
 
 
 .PHONY: checkout
-checkout: $(foreach r,$(REPOS),.$(r).checkout)
+checkout: $(foreach r,$(REPOS_WITH_PUBLIC),.$(r).checkout)
 
 .%.checkout:
 	[ -d $* ] || hg clone $(HG_OPTS) $(HGREPOBASE)/$*
@@ -57,12 +57,12 @@ checkout: $(foreach r,$(REPOS),.$(r).checkout)
 
 .PHONY: tag
 tag: checkout
-	$(foreach r,. $(REPOS_LESS_PUBLIC),hg tag -R $(r) $(TAG);)
+	$(foreach r,. $(REPOS),hg tag -R $(r) $(TAG);)
 	$(MAKE) -C rabbitmq-public-umbrella tag TAG=$(TAG)
 
 .PHONY: push
 push: checkout
-	$(foreach r,. $(REPOS_LESS_PUBLIC),hg push -R $(r) -f $(HG_OPTS);)
+	$(foreach r,. $(REPOS),hg push -R $(r) -f $(HG_OPTS);)
 	$(MAKE) -C rabbitmq-public-umbrella push
 
 .PHONY: dist
@@ -76,7 +76,7 @@ endif
 
 
 .PHONY: clean
-clean: rabbitmq-umbrella-clean $(foreach r,$(REPOS),$(r)-clean)
+clean: rabbitmq-umbrella-clean $(foreach r,$(REPOS_WITH_PUBLIC),$(r)-clean)
 
 .PHONY: rabbitmq-umbrella-clean
 	rm -rf $(PACKAGES_DIR) .*.checkout
@@ -87,7 +87,7 @@ $(1)-clean:
 	[ ! -d $(1) ] || $(MAKE) -C $(1) clean
 
 endef
-$(eval $(foreach r,$(filter-out rabbitmq-server,$(REPOS)),$(call clean-repo-template,$(r))))
+$(eval $(foreach r,$(filter-out rabbitmq-server,$(REPOS_WITH_PUBLIC)),$(call clean-repo-template,$(r))))
 
 
 .PHONY: prepare
