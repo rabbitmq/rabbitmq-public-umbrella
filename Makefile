@@ -10,6 +10,7 @@ PACKAGE_REPOS:=\
     mochiweb-wrapper \
     rabbitmq-auth-backend-ldap \
     rabbitmq-auth-mechanism-ssl \
+    rabbitmq-erlang-client \
     rabbitmq-external-exchange \
     rabbitmq-federation \
     rabbitmq-ha-test \
@@ -27,7 +28,7 @@ PACKAGE_REPOS:=\
     toke \
     webmachine-wrapper
 
-REPOS:=rabbitmq-server rabbitmq-erlang-client rabbitmq-codegen $(PACKAGE_REPOS)
+REPOS:=rabbitmq-server rabbitmq-codegen $(PACKAGE_REPOS)
 
 BRANCH:=default
 
