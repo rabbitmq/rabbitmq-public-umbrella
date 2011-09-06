@@ -288,6 +288,7 @@ define run_broker
 	RABBITMQ_PLUGINS_DIR=$(TEST_TMPDIR)/plugins \
 	  RABBITMQ_LOG_BASE=$(TEST_TMPDIR)/log \
 	  RABBITMQ_MNESIA_BASE=$(TEST_TMPDIR)/$(NODENAME) \
+	  RABBITMQ_PID_FILE=$(TEST_TMPDIR)/$(NODENAME).pid \
 	  RABBITMQ_NODENAME=$(NODENAME) \
 	  RABBITMQ_SERVER_START_ARGS=$(1) \
 	  $(2) $(UMBRELLA_BASE_DIR)/rabbitmq-server/scripts/rabbitmq-server
@@ -302,7 +303,7 @@ endef
 
 define run_with_broker_tests_aux
 	$(call run_broker,'-pa $(TEST_EBIN_DIR) -coverage directories ["$(EBIN_DIR)"$(COMMA)"$(TEST_EBIN_DIR)"]',RABBITMQ_CONFIG_FILE=$(WITH_BROKER_TEST_CONFIG),$(1)) &
-	sleep 5
+	$(UMBRELLA_BASE_DIR)/rabbitmq-server/scripts/rabbitmqctl -n $(NODENAME) wait $(TEST_TMPDIR)/$(NODENAME).pid
 	echo > $(TEST_TMPDIR)/rabbit-test-output && \
 	if $(foreach CMD,$(WITH_BROKER_TEST_COMMANDS), \
 	     echo >> $(TEST_TMPDIR)/rabbit-test-output && \
