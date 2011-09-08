@@ -153,7 +153,7 @@ rabbitmq-server-generic-unix-packaging: rabbitmq-server-srcdist
 
 .PHONY: rabbitmq-server-windows-packaging
 rabbitmq-server-windows-packaging: rabbitmq-server-srcdist
-	$(MAKE) -C rabbitmq-server/packaging/windows dist VERSION=$(VERSION)
+	$(MAKE) -C rabbitmq-server/packaging/windows dist VERSION=$(VERSION) PLUGINS_DIST_DIR=$(ABSOLUTE_PLUGINS_DIR)
 	cp rabbitmq-server/packaging/windows/rabbitmq-server-windows-*.zip $(SERVER_PACKAGES_DIR)
 
 .PHONY: rabbitmq-server-windows-exe-packaging
