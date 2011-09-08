@@ -136,7 +136,7 @@ rabbitmq-server-artifacts: rabbitmq-server-rpm-packaging
 
 .PHONY: rabbitmq-server-srcdist
 rabbitmq-server-srcdist: prepare rabbitmq-public-umbrella-artifacts
-	$(MAKE) -C rabbitmq-server srcdist VERSION=$(VERSION) PLUGINS_SRC_DIST_DIR=$(ABSOLUTE_PLUGINS_SRC_DIST_DIR)
+	$(MAKE) -C rabbitmq-server srcdist VERSION=$(VERSION) PLUGINS_SRC_DIR=$(ABSOLUTE_PLUGINS_SRC_DIR)
 	mkdir -p $(SERVER_PACKAGES_DIR)
 	cp rabbitmq-server/dist/rabbitmq-server-*.tar.gz rabbitmq-server/dist/rabbitmq-server-*.zip $(SERVER_PACKAGES_DIR)
 
@@ -223,7 +223,7 @@ rabbitmq-erlang-client-artifacts: prepare
 
 .PHONY: rabbitmq-public-umbrella-artifacts
 rabbitmq-public-umbrella-artifacts:
-	$(MAKE) -C rabbitmq-public-umbrella plugins-srcdist plugins-dist PLUGINS_DIST_DIR=$(ABSOLUTE_PLUGINS_DIR) PLUGINS_SRC_DIST_DIR=$(ABSOLUTE_PLUGINS_SRC_DIR) VERSION=$(VERSION)
+	$(MAKE) -C rabbitmq-public-umbrella plugins-src-dist plugins-dist PLUGINS_DIST_DIR=$(ABSOLUTE_PLUGINS_DIR) PLUGINS_SRC_DIST_DIR=$(ABSOLUTE_PLUGINS_SRC_DIR) VERSION=$(VERSION)
 
 
 .PHONY: sign-artifacts
