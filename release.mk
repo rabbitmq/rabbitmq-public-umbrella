@@ -148,7 +148,7 @@ rabbitmq-server-website-manpages: rabbitmq-server-srcdist
 
 .PHONY: rabbitmq-server-generic-unix-packaging
 rabbitmq-server-generic-unix-packaging: rabbitmq-server-srcdist
-	$(MAKE) -C rabbitmq-server/packaging/generic-unix dist VERSION=$(VERSION)
+	$(MAKE) -C rabbitmq-server/packaging/generic-unix dist VERSION=$(VERSION) PLUGINS_DIST_DIR=$(ABSOLUTE_PLUGINS_DIR)
 	cp rabbitmq-server/packaging/generic-unix/rabbitmq-server-generic-unix-*.tar.gz $(SERVER_PACKAGES_DIR)
 
 .PHONY: rabbitmq-server-windows-packaging
