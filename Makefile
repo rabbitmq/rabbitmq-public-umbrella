@@ -66,6 +66,8 @@ plugins-src-dist: clean
 	mkdir -p $(PLUGINS_SRC_DIST_DIR)
 	rsync -Ca . $(PLUGINS_SRC_DIST_DIR)
 
+	rm -rf $(PLUGINS_SRC_DIST_DIR)/rabbitmq-server
+
 #----------------------------------
 # Convenience aliases
 
