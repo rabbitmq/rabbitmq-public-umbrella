@@ -61,6 +61,11 @@ plugins-dist: release
 	mkdir -p $(PLUGINS_DIST_DIR)
 	$(MAKE) -f all-packages.mk copy-releasable VERSION=$(VERSION) $(PLUGINS_DIST_DIR)=$(PLUGINS_DIST_DIR)
 
+plugins-src-dist: clean
+	rm -rf $(PLUGINS_SRC_DIST_DIR)
+	mkdir -p $(PLUGINS_SRC_DIST_DIR)
+	rsync -Ca . $(PLUGINS_SRC_DIST_DIR)
+
 #----------------------------------
 # Convenience aliases
 
