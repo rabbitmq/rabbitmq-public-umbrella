@@ -19,6 +19,7 @@ PACKAGE_REPOS:=\
     rabbitmq-jsonrpc-channel-examples \
     rabbitmq-management \
     rabbitmq-management-agent \
+    rabbitmq-management-visualiser \
     rabbitmq-metronome \
     rabbitmq-mochiweb \
     rabbitmq-shovel \
