@@ -23,7 +23,9 @@ JAVA_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-java-client/$(VDIR)
 DOTNET_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-dotnet-client/$(VDIR)
 ERLANG_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-erlang-client/$(VDIR)
 PLUGINS_DIR=$(PACKAGES_DIR)/plugins/$(VDIR)
+PLUGINS_SRC_DIR=$(PACKAGES_DIR)/plugins-src/$(VDIR)
 ABSOLUTE_PLUGINS_DIR=$(CURDIR)/$(PLUGINS_DIR)
+ABSOLUTE_PLUGINS_SRC_DIR=$(CURDIR)/$(PLUGINS_SRC_DIR)
 
 REQUIRED_EMULATOR_VERSION=5.6.5
 ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
@@ -133,8 +135,8 @@ rabbitmq-server-artifacts: rabbitmq-server-debian-packaging
 rabbitmq-server-artifacts: rabbitmq-server-rpm-packaging
 
 .PHONY: rabbitmq-server-srcdist
-rabbitmq-server-srcdist: prepare
-	$(MAKE) -C rabbitmq-server srcdist VERSION=$(VERSION)
+rabbitmq-server-srcdist: prepare rabbitmq-public-umbrella-artifacts
+	$(MAKE) -C rabbitmq-server srcdist VERSION=$(VERSION) PLUGINS_SRC_DIST_DIR=$(ABSOLUTE_PLUGINS_SRC_DIST_DIR)
 	mkdir -p $(SERVER_PACKAGES_DIR)
 	cp rabbitmq-server/dist/rabbitmq-server-*.tar.gz rabbitmq-server/dist/rabbitmq-server-*.zip $(SERVER_PACKAGES_DIR)
 
@@ -221,7 +223,7 @@ rabbitmq-erlang-client-artifacts: prepare
 
 .PHONY: rabbitmq-public-umbrella-artifacts
 rabbitmq-public-umbrella-artifacts:
-	$(MAKE) -C rabbitmq-public-umbrella plugins-dist PLUGINS_DIST_DIR=$(ABSOLUTE_PLUGINS_DIR) VERSION=$(VERSION)
+	$(MAKE) -C rabbitmq-public-umbrella plugins-srcdist plugins-dist PLUGINS_DIST_DIR=$(ABSOLUTE_PLUGINS_DIR) PLUGINS_SRC_DIST_DIR=$(ABSOLUTE_PLUGINS_SRC_DIR) VERSION=$(VERSION)
 
 
 .PHONY: sign-artifacts
