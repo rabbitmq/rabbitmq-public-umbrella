@@ -148,12 +148,12 @@ rabbitmq-server-website-manpages: rabbitmq-server-srcdist
 
 .PHONY: rabbitmq-server-generic-unix-packaging
 rabbitmq-server-generic-unix-packaging: rabbitmq-server-srcdist
-	$(MAKE) -C rabbitmq-server/packaging/generic-unix dist VERSION=$(VERSION) PLUGINS_DIST_DIR=$(ABSOLUTE_PLUGINS_DIR)
+	$(MAKE) -C rabbitmq-server/packaging/generic-unix dist VERSION=$(VERSION)
 	cp rabbitmq-server/packaging/generic-unix/rabbitmq-server-generic-unix-*.tar.gz $(SERVER_PACKAGES_DIR)
 
 .PHONY: rabbitmq-server-windows-packaging
 rabbitmq-server-windows-packaging: rabbitmq-server-srcdist
-	$(MAKE) -C rabbitmq-server/packaging/windows dist VERSION=$(VERSION) PLUGINS_DIST_DIR=$(ABSOLUTE_PLUGINS_DIR)
+	$(MAKE) -C rabbitmq-server/packaging/windows dist VERSION=$(VERSION)
 	cp rabbitmq-server/packaging/windows/rabbitmq-server-windows-*.zip $(SERVER_PACKAGES_DIR)
 
 .PHONY: rabbitmq-server-windows-exe-packaging
@@ -167,8 +167,7 @@ rabbitmq-server-debian-packaging: rabbitmq-server-srcdist
 		UNOFFICIAL_RELEASE=$(UNOFFICIAL_RELEASE) \
 		GNUPG_PATH=$(GNUPG_PATH) \
 		VERSION=$(VERSION) \
-		SIGNING_KEY_ID=$(SIGNING_KEY) \
-		PLUGINS_DIST_DIR=$(ABSOLUTE_PLUGINS_DIR)
+		SIGNING_KEY_ID=$(SIGNING_KEY)
 	cp rabbitmq-server/packaging/debs/Debian/rabbitmq-server*$(VERSION)*.deb $(SERVER_PACKAGES_DIR)
 	cp rabbitmq-server/packaging/debs/Debian/rabbitmq-server*$(VERSION)*.diff.gz $(SERVER_PACKAGES_DIR)
 	cp rabbitmq-server/packaging/debs/Debian/rabbitmq-server*$(VERSION)*.orig.tar.gz $(SERVER_PACKAGES_DIR)
@@ -182,7 +181,7 @@ rabbitmq-server-debian-packaging: rabbitmq-server-srcdist
 .PHONY: rabbitmq-server-rpm-packaging
 rabbitmq-server-rpm-packaging: rabbitmq-server-srcdist
 	for distro in fedora suse ; do \
-	  $(MAKE) -C rabbitmq-server/packaging/RPMS/Fedora rpms VERSION=$(VERSION) RPM_OS=$$distro PLUGINS_DIST_DIR=$(ABSOLUTE_PLUGINS_DIR) && \
+	  $(MAKE) -C rabbitmq-server/packaging/RPMS/Fedora rpms VERSION=$(VERSION) RPM_OS=$$distro && \
 	  find rabbitmq-server/packaging/RPMS/Fedora -name "*.rpm" -exec cp '{}' $(SERVER_PACKAGES_DIR) ';' ; \
 	done
 
