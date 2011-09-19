@@ -92,6 +92,10 @@ STANDALONE_TEST_SCRIPTS:=
 # during testing
 WITH_BROKER_TEST_SCRIPTS:=
 
+# When cleaning, should we also remove the cloned directory for
+# wrappers?
+PRESERVE_CLONE_DIR?=
+
 # The directory within the package that contains tests
 TEST_DIR=$(PACKAGE_DIR)/test
 
@@ -256,7 +260,7 @@ $(APP_FILE): $(PACKAGE_DIR)/build/hash.mk
 PACKAGE_VERSION:=$(PACKAGE_VERSION)-$(UPSTREAM_TYPE)$(UPSTREAM_SHORT_HASH)
 
 $(PACKAGE_DIR)+clean::
-	rm -rf $(CLONE_DIR)
+	[ "x" != "x$(PRESERVE_CLONE_DIR)" ] || rm -rf $(CLONE_DIR)
 endef # package_rules
 $(eval $(package_rules))
 
