@@ -66,7 +66,7 @@ plugins-src-dist: clean
 	mkdir -p $(PLUGINS_SRC_DIST_DIR)
 	$(MAKE) -f all-packages.mk copy-srcdist VERSION=$(VERSION) $(PLUGINS_SRC_DIST_DIR)=$(PLUGINS_SRC_DIST_DIR)
 	make -Crabbitmq-erlang-client clean
-	rsync -Ca rabbitmq-erlang-client $(PLUGINS_SRC_DIST_DIR)/
+	rsync -a --exclude '.hg*' rabbitmq-erlang-client $(PLUGINS_SRC_DIST_DIR)/
 	cp Makefile *.mk generate* $(PLUGINS_SRC_DIST_DIR)/
 	echo "This is the released version of rabbitmq-public-umbrella. \
 You can clone the full version with: hg clone http://hg.rabbitmq.com/rabbitmq-public-umbrella"

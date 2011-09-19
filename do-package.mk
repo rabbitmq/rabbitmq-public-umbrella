@@ -421,7 +421,7 @@ copy-releasable:: $(PACKAGE_DIR)/dist/.done
 	cp $(PACKAGE_DIR)/dist/*.ez $(PLUGINS_DIST_DIR)
 
 copy-srcdist:: $(ORIGINAL_APP_FILE)
-	rsync -Ca $(PACKAGE_DIR) $(PLUGINS_SRC_DIST_DIR)/
+	rsync -a --exclude '.hg*' $(PACKAGE_DIR) $(PLUGINS_SRC_DIST_DIR)/
 
 endif
 
