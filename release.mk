@@ -28,7 +28,8 @@ ABSOLUTE_PLUGINS_DIR=$(CURDIR)/$(PLUGINS_DIR)
 REQUIRED_EMULATOR_VERSION=5.6.5
 ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
 
-REPOS=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-erlang-client rabbitmq-public-umbrella
+REPOS:=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client
+REPOS_WITH_PUBLIC:=$(REPOS) rabbitmq-public-umbrella
 
 HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
@@ -43,7 +44,7 @@ all:
 
 
 .PHONY: checkout
-checkout: $(foreach r,$(REPOS),.$(r).checkout)
+checkout: $(foreach r,$(REPOS_WITH_PUBLIC),.$(r).checkout)
 
 .%.checkout:
 	[ -d $* ] || hg clone $(HG_OPTS) $(HGREPOBASE)/$*
@@ -75,7 +76,7 @@ endif
 
 
 .PHONY: clean
-clean: rabbitmq-umbrella-clean $(foreach r,$(REPOS),$(r)-clean)
+clean: rabbitmq-umbrella-clean $(foreach r,$(REPOS_WITH_PUBLIC),$(r)-clean)
 
 .PHONY: rabbitmq-umbrella-clean
 	rm -rf $(PACKAGES_DIR) .*.checkout
@@ -86,7 +87,7 @@ $(1)-clean:
 	[ ! -d $(1) ] || $(MAKE) -C $(1) clean
 
 endef
-$(eval $(foreach r,$(filter-out rabbitmq-server,$(REPOS)),$(call clean-repo-template,$(r))))
+$(eval $(foreach r,$(filter-out rabbitmq-server,$(REPOS_WITH_PUBLIC)),$(call clean-repo-template,$(r))))
 
 
 .PHONY: prepare
@@ -211,11 +212,11 @@ rabbitmq-dotnet-artifacts: prepare
 
 .PHONY: rabbitmq-erlang-client-artifacts
 rabbitmq-erlang-client-artifacts: prepare
-	$(MAKE) -C rabbitmq-erlang-client distribution VERSION=$(VERSION) APPEND_VERSION=true
+	$(MAKE) -C rabbitmq-public-umbrella/rabbitmq-erlang-client distribution VERSION=$(VERSION)
 	mkdir -p $(ERLANG_CLIENT_PACKAGES_DIR)
-	cp rabbitmq-erlang-client/dist/*.ez $(ERLANG_CLIENT_PACKAGES_DIR)
-	cp rabbitmq-erlang-client/dist/*.tar.gz $(ERLANG_CLIENT_PACKAGES_DIR)
-	cp -r rabbitmq-erlang-client/doc/ $(ERLANG_CLIENT_PACKAGES_DIR)
+	cp rabbitmq-public-umbrella/rabbitmq-erlang-client/dist/*.ez $(ERLANG_CLIENT_PACKAGES_DIR)
+	cp rabbitmq-public-umbrella/rabbitmq-erlang-client/dist/*.tar.gz $(ERLANG_CLIENT_PACKAGES_DIR)
+	cp -r rabbitmq-public-umbrella/rabbitmq-erlang-client/doc/ $(ERLANG_CLIENT_PACKAGES_DIR)
 
 
 .PHONY: rabbitmq-public-umbrella-artifacts
