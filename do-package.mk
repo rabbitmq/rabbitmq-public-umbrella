@@ -45,8 +45,8 @@ ORIGINAL_APP_SOURCE=$(PACKAGE_DIR)/src/$(APP_NAME).app.src
 # Set to prevent generation of the app file.
 DO_NOT_GENERATE_APP_FILE:=
 
-# Should the .ez files for this package and its dependencies be
-# included in RabbitMQ releases?
+# Should the .ez files for this package, its dependencies, and its
+# source distribution be included in RabbitMQ releases?
 RELEASABLE:=
 
 # The options to pass to erlc when compiling .erl files in this
