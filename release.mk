@@ -223,7 +223,7 @@ rabbitmq-erlang-client-artifacts: prepare
 
 .PHONY: rabbitmq-public-umbrella-artifacts
 rabbitmq-public-umbrella-artifacts:
-	$(MAKE) -C rabbitmq-public-umbrella plugins-src-dist plugins-dist PLUGINS_DIST_DIR=$(ABSOLUTE_PLUGINS_DIR) PLUGINS_SRC_DIST_DIR=$(ABSOLUTE_PLUGINS_SRC_DIR) VERSION=$(VERSION)
+	$(MAKE) -C rabbitmq-public-umbrella plugins-srcdist plugins-dist PLUGINS_DIST_DIR=$(ABSOLUTE_PLUGINS_DIR) PLUGINS_SRC_DIST_DIR=$(ABSOLUTE_PLUGINS_SRC_DIR) VERSION=$(VERSION)
 
 
 .PHONY: sign-artifacts
