@@ -421,8 +421,13 @@ all-releasable:: $(PACKAGE_DIR)/dist/.done
 copy-releasable:: $(PACKAGE_DIR)/dist/.done
 	cp $(PACKAGE_DIR)/dist/*.ez $(PLUGINS_DIST_DIR)
 
-copy-srcdist:: $(ORIGINAL_APP_FILE)
+copy-srcdist:: $(PLUGINS_SRC_DIST_DIR)/$(PACKAGE_DIR)/.srcdist_done
+
+$(PACKAGE_DIR)/build/dep-ezs/.done: $(foreach P,$(DEP_PATHS),$(P)/dist/.done)
+
+$(PLUGINS_SRC_DIST_DIR)/$(PACKAGE_DIR)/.srcdist_done: $(ORIGINAL_APP_FILE) $(foreach P,$(DEP_PATHS),$(PLUGINS_SRC_DIST_DIR)/$(P)/.srcdist_done)
 	rsync -a --exclude '.hg*' $(PACKAGE_DIR) $(PLUGINS_SRC_DIST_DIR)/
+	touch $(PLUGINS_SRC_DIST_DIR)/$(PACKAGE_DIR)/.srcdist_done
 
 endif
 
