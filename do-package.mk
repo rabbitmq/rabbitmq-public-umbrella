@@ -423,13 +423,11 @@ copy-releasable:: $(PACKAGE_DIR)/dist/.done
 
 copy-srcdist:: $(PLUGINS_SRC_DIST_DIR)/$(PACKAGE_DIR)/.srcdist_done
 
-$(PACKAGE_DIR)/build/dep-ezs/.done: $(foreach P,$(DEP_PATHS),$(P)/dist/.done)
+endif
 
 $(PLUGINS_SRC_DIST_DIR)/$(PACKAGE_DIR)/.srcdist_done: $(ORIGINAL_APP_FILE) $(foreach P,$(DEP_PATHS),$(PLUGINS_SRC_DIST_DIR)/$(P)/.srcdist_done)
 	rsync -a --exclude '.hg*' $(PACKAGE_DIR) $(PLUGINS_SRC_DIST_DIR)/
 	touch $(PLUGINS_SRC_DIST_DIR)/$(PACKAGE_DIR)/.srcdist_done
-
-endif
 
 # A hook to allow packages to verify that prerequisites are satisfied
 # before running.
