@@ -425,8 +425,8 @@ copy-srcdist:: $(PLUGINS_SRC_DIST_DIR)/$(PACKAGE_DIR)/.srcdist_done
 
 endif
 
-$(PLUGINS_SRC_DIST_DIR)/$(PACKAGE_DIR)/.srcdist_done: $(ORIGINAL_APP_FILE) $(foreach P,$(DEP_PATHS),$(PLUGINS_SRC_DIST_DIR)/$(P)/.srcdist_done)
-	rsync -a --exclude '.hg*' $(PACKAGE_DIR) $(PLUGINS_SRC_DIST_DIR)/
+$(PLUGINS_SRC_DIST_DIR)/$(PACKAGE_DIR)/.srcdist_done:: $(ORIGINAL_APP_FILE) $(foreach P,$(DEP_PATHS),$(PLUGINS_SRC_DIST_DIR)/$(P)/.srcdist_done)
+	rsync -a --exclude '.hg*' --exclude '.git*' $(PACKAGE_DIR) $(PLUGINS_SRC_DIST_DIR)/
 	touch $(PLUGINS_SRC_DIST_DIR)/$(PACKAGE_DIR)/.srcdist_done
 
 # A hook to allow packages to verify that prerequisites are satisfied
