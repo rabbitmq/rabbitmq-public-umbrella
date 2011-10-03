@@ -111,6 +111,7 @@ ifeq ($(SKIP_DOTNET_CLIENT),)
 artifacts: rabbitmq-dotnet-artifacts
 endif
 artifacts: rabbitmq-erlang-client-artifacts
+artifacts: rabbitmq-public-umbrella-srcdist
 artifacts: rabbitmq-public-umbrella-artifacts
 
 
@@ -135,7 +136,7 @@ rabbitmq-server-artifacts: rabbitmq-server-debian-packaging
 rabbitmq-server-artifacts: rabbitmq-server-rpm-packaging
 
 .PHONY: rabbitmq-server-srcdist
-rabbitmq-server-srcdist: prepare rabbitmq-public-umbrella-artifacts
+rabbitmq-server-srcdist: prepare rabbitmq-public-umbrella-srcdist
 	$(MAKE) -C rabbitmq-server srcdist VERSION=$(VERSION) PLUGINS_SRC_DIR=$(ABSOLUTE_PLUGINS_SRC_DIR)
 	mkdir -p $(SERVER_PACKAGES_DIR)
 	cp rabbitmq-server/dist/rabbitmq-server-*.tar.gz rabbitmq-server/dist/rabbitmq-server-*.zip $(SERVER_PACKAGES_DIR)
@@ -223,8 +224,11 @@ rabbitmq-erlang-client-artifacts: prepare
 
 .PHONY: rabbitmq-public-umbrella-artifacts
 rabbitmq-public-umbrella-artifacts:
-	$(MAKE) -C rabbitmq-public-umbrella plugins-srcdist plugins-dist PLUGINS_DIST_DIR=$(ABSOLUTE_PLUGINS_DIR) PLUGINS_SRC_DIST_DIR=$(ABSOLUTE_PLUGINS_SRC_DIR) VERSION=$(VERSION)
+	$(MAKE) -C rabbitmq-public-umbrella plugins-dist PLUGINS_DIST_DIR=$(ABSOLUTE_PLUGINS_DIR) VERSION=$(VERSION)
 
+.PHONY: rabbitmq-public-umbrella-srcdist
+rabbitmq-public-umbrella-srcdist:
+	$(MAKE) -C rabbitmq-public-umbrella plugins-srcdist PLUGINS_SRC_DIST_DIR=$(ABSOLUTE_PLUGINS_SRC_DIR) VERSION=$(VERSION)
 
 .PHONY: sign-artifacts
 ifneq "$(UNOFFICIAL_RELEASE)" ""
