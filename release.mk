@@ -16,6 +16,7 @@ HG_OPTS=
 SSH_OPTS=
 
 PACKAGES_DIR=packages
+TMP_DIR=tmp
 
 SERVER_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-server/$(VDIR)
 MANPAGES_DIR=$(SERVER_PACKAGES_DIR)/man
@@ -23,7 +24,7 @@ JAVA_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-java-client/$(VDIR)
 DOTNET_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-dotnet-client/$(VDIR)
 ERLANG_CLIENT_PACKAGES_DIR=$(PACKAGES_DIR)/rabbitmq-erlang-client/$(VDIR)
 PLUGINS_DIR=$(PACKAGES_DIR)/plugins/$(VDIR)
-PLUGINS_SRC_DIR=$(PACKAGES_DIR)/plugins-src/$(VDIR)
+PLUGINS_SRC_DIR=$(TMP_DIR)/plugins-src/$(VDIR)
 ABSOLUTE_PLUGINS_DIR=$(CURDIR)/$(PLUGINS_DIR)
 ABSOLUTE_PLUGINS_SRC_DIR=$(CURDIR)/$(PLUGINS_SRC_DIR)
 
@@ -81,7 +82,7 @@ endif
 clean: rabbitmq-umbrella-clean $(foreach r,$(REPOS_WITH_PUBLIC),$(r)-clean)
 
 .PHONY: rabbitmq-umbrella-clean
-	rm -rf $(PACKAGES_DIR) .*.checkout
+	rm -rf $(PACKAGES_DIR) $(TMP_DIR) .*.checkout
 
 define clean-repo-template
 .PHONY: $(1)-clean
@@ -259,7 +260,7 @@ DEPLOY_DEST=$(DEPLOY_HOST):$(DEPLOY_PATH)
 
 RSYNC_CMD=rsync -rpl --delete-after
 
-DEPLOYMENT_SUBDIRECTORIES=rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-erlang-client plugins
+DEPLOYMENT_SUBDIRECTORIES=rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-erlang-client
 
 DEPLOY_RSYNC_CMDS=\
 	set -x -e; \
