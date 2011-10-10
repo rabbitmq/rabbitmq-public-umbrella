@@ -64,7 +64,7 @@ plugins-dist: release
 
 plugins-srcdist:
 	rm -rf $(PLUGINS_SRC_DIST_DIR)
-	mkdir -p $(PLUGINS_SRC_DIST_DIR)
+	mkdir -p $(PLUGINS_SRC_DIST_DIR)/licensing
 
 	rsync -a --exclude '.hg*' rabbitmq-erlang-client $(PLUGINS_SRC_DIST_DIR)/
 	touch $(PLUGINS_SRC_DIST_DIR)/rabbitmq-erlang-client/.srcdist_done
