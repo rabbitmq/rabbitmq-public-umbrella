@@ -26,6 +26,7 @@ PACKAGE_REPOS:=\
     rabbitmq-shovel-management \
     rabbitmq-stomp \
     rabbitmq-toke \
+    rabbitmq-tracing \
     toke \
     webmachine-wrapper
 
