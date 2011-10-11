@@ -45,8 +45,8 @@ ORIGINAL_APP_SOURCE=$(PACKAGE_DIR)/src/$(APP_NAME).app.src
 # Set to prevent generation of the app file.
 DO_NOT_GENERATE_APP_FILE:=
 
-# Should the .ez files for this package and its dependencies be
-# included in RabbitMQ releases?
+# Should the .ez files for this package, its dependencies, and its
+# source distribution be included in RabbitMQ releases?
 RELEASABLE:=
 
 # The options to pass to erlc when compiling .erl files in this
@@ -91,6 +91,10 @@ STANDALONE_TEST_SCRIPTS:=
 # Test scripts which should be invoked alongside a running broker
 # during testing
 WITH_BROKER_TEST_SCRIPTS:=
+
+# When cleaning, should we also remove the cloned directory for
+# wrappers?
+PRESERVE_CLONE_DIR?=
 
 # The directory within the package that contains tests
 TEST_DIR=$(PACKAGE_DIR)/test
@@ -256,7 +260,7 @@ $(APP_FILE): $(PACKAGE_DIR)/build/hash.mk
 PACKAGE_VERSION:=$(PACKAGE_VERSION)-$(UPSTREAM_TYPE)$(UPSTREAM_SHORT_HASH)
 
 $(PACKAGE_DIR)+clean::
-	rm -rf $(CLONE_DIR)
+	[ "x" != "x$(PRESERVE_CLONE_DIR)" ] || rm -rf $(CLONE_DIR)
 endef # package_rules
 $(eval $(package_rules))
 
@@ -416,7 +420,16 @@ all-releasable:: $(PACKAGE_DIR)/dist/.done
 
 copy-releasable:: $(PACKAGE_DIR)/dist/.done
 	cp $(PACKAGE_DIR)/dist/*.ez $(PLUGINS_DIST_DIR)
+
+copy-srcdist:: $(PLUGINS_SRC_DIST_DIR)/$(PACKAGE_DIR)/.srcdist_done
+
 endif
+
+$(PLUGINS_SRC_DIST_DIR)/$(PACKAGE_DIR)/.srcdist_done:: $(ORIGINAL_APP_FILE) $(foreach P,$(DEP_PATHS),$(PLUGINS_SRC_DIST_DIR)/$(P)/.srcdist_done)
+	rsync -a --exclude '.hg*' --exclude '.git*' $(PACKAGE_DIR) $(PLUGINS_SRC_DIST_DIR)/
+	[ -f $(PACKAGE_DIR)/license_info ] && cp $(PACKAGE_DIR)/license_info $(PLUGINS_SRC_DIST_DIR)/licensing/license_info_$(PACKAGE_NAME) || true
+	find $(PACKAGE_DIR) -maxdepth 1 -name 'LICENSE-*' -exec cp '{}' $(PLUGINS_SRC_DIST_DIR)/licensing/ \;
+	touch $(PLUGINS_SRC_DIST_DIR)/$(PACKAGE_DIR)/.srcdist_done
 
 # A hook to allow packages to verify that prerequisites are satisfied
 # before running.
