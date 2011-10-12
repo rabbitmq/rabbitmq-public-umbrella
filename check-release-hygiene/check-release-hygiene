@@ -45,7 +45,7 @@ for repo in $REPOS ; do
     fi
     cd ..
     rm -rf $repo
-    echo -n .
+    printf "."
 done
 
 echo
@@ -58,11 +58,11 @@ rm *.bugs-unmerged
 
 echo Pulling from bugzilla...
 
-./bz.pl --login $2 --rememberlogin --bug_id "`cat all-bugs-merged | tr '\n' ' '`" > bz-merged
+perl bz.pl --login $2 --rememberlogin --bug_id "`cat all-bugs-merged | tr '\n' ' '`" > bz-merged
 
 # Dodgy bugs that break XML-RPC or exist in hg but not bz.
 cat all-bugs-unmerged | grep -v 21899 | grep -v 22019 > all-bugs-unmerged0 && mv all-bugs-unmerged0 all-bugs-unmerged
 
-./bz.pl --login $2 --rememberlogin --bug_id "`cat all-bugs-unmerged | tr '\n' ' '`" > bz-unmerged
+perl bz.pl --login $2 --rememberlogin --bug_id "`cat all-bugs-unmerged | tr '\n' ' '`" > bz-unmerged
 
 ./check-release-hygiene0
