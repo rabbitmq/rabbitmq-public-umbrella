@@ -10,6 +10,7 @@ PACKAGE_REPOS:=\
     mochiweb-wrapper \
     rabbitmq-auth-backend-ldap \
     rabbitmq-auth-mechanism-ssl \
+    rabbitmq-consistent-hash-exchange \
     rabbitmq-erlang-client \
     rabbitmq-external-exchange \
     rabbitmq-federation \
