@@ -37,12 +37,8 @@ echo Pulling from Mercurial...
 for repo in $REPOS ; do
     hg clone $HG/$repo > /dev/null
     cd $repo
-    hg log -r "p2(children($1):: and merge() and ancestors(heads(default))) - branch(default)" | grep branch: | cut -c 17- | grep '^[0-9]\{5\}$' > ../$repo.bugs-merged
-    if [ "x`hg log -r 'present(junk)'`" = x ]; then
-        hg log -r "head() and not ancestors(heads(default))" | grep branch: | cut -c 17- | grep '^[0-9]\{5\}$' > ../$repo.bugs-unmerged
-    else
-        hg log -r "head() and not ancestors(heads(default)) and not ancestors(heads(junk))" | grep branch: | cut -c 17- | grep '^[0-9]\{5\}$' > ../$repo.bugs-unmerged
-    fi
+    hg log -r "p2(merge() and (::default - ::tag($1))) - branch(default)" --template "{branch}\n" | grep '^bug[0-9]\{5\}$' | sed 's/bug//' > ../$repo.bugs-merged
+    hg log -r "head() - ::branch(default) - ::branch(present(junk))" --template "{branch}\n" | grep '^bug[0-9]\{5\}$' | sed 's/bug//' > ../$repo.bugs-unmerged
     cd ..
     rm -rf $repo
     printf "."
