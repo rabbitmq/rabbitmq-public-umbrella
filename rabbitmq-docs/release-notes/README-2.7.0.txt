@@ -17,25 +17,32 @@ server
 
 *enhancements*
 
-- (17162, 17174) improve flow control and parsing performance in the broker
-- (23056) type specifications on exported functions
-- (24298) improve shutdown performance
-- (24315) log rabbitmqctl actions
-- (24323) adapt to changing virtual memory limit automatically and allow
-  dynamic updates to the high-watermark
-- (24332) improvement to error logging so that log rotation is easier
-- (24386) improve performance of file functions (seen if large numbers of queues are deleted)
+- (23764) Messages requeued (as a result of a consumer dying, for example) will now
+  preserve the original order.
+- (17162, 17174) There have been some changes to improve RAM utilisation under high
+  load, and to reduce the time taken to parse message properties.
+- (24298) Shutdown, when there are a large number of queues to delete, is now
+  more efficient.
+- (24315) All actions initiated by rabbitmqctl are now logged.
+- (24323) The server can now automatically adapt to changing virtual memory resources,
+  and dynamic updates to the memory high-watermark.
+- (24332) The rabbit logs have a more conventional management pattern to enable
+  log rotation to be simpler.
+- (24386) Basic file operations are now more efficient.
+
+[work point]
+
 - (24416, 24425, 24428) improve performance of connection establishment and durable queues'
   creation and recovery
 - (24433) improve performance of many low-res consumers
 - (24455) manage RAM overhead for messages already on disk
 - (24459) improve performance of ack/reject handling
 - (24461) make rabbit_event API more pleasant and less costly
+- (23056) Code Quality: all exported Erlang functions should now have type specifications.
 
 *bug fixes*
 
 - (23596) revise channel queue monitoring to avoid unnecessary monitors
-- (23764) preserve order of requeued messages for single consumer
 - (24371) test startup checks improved and made consistent
 - (24460)NR tx.rollback can break multi-ack
 - (24462)NR x-ha-policy = nodes does not work
