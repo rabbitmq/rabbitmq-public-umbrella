@@ -3,7 +3,7 @@ Release: RabbitMQ 2.7.0
 Release Highlights
 ==================
 
-[Note: Bugs with no effect upon the release notes, remove these before release:
+[*Bugs with no effect upon the release notes, remove these before release:*
 
 * 24424	Docs/Website	Some man pages contained duplicate text.
 * 23866	Docs/Website	Add navigation to next steps after server download, install
@@ -11,21 +11,9 @@ Release Highlights
 * 24474	Plug-ins	[CI] Leaving pid file lying around is racy
 * 24514	Broker	soak tests broken due to api change from bug 24509
 * 24510	Broker	make start-background-node start-rabbit-on-node breaks logging after bug 24332
-]
-
-[Note: Bugs under consideration:
-
-* 24499	Erlang client	channel:wait_for_confirms is broken in the face of multiple=true
-* 24509	Broker	new requeue code causes messages to expire too late
-* 24516	Building/Packaging	rabbitmq-server.init does not close filedescriptors for rabbitmq-server
-* 24481	Broker	Enable equivalence checks across AMQP libraries
 * 24362	Broker	[CI] mirrored_supervisor tests fail occasionally
+* 24509	Broker	new requeue code causes messages to expire too late (caused by 23764)
 * 24508	Broker	replace timer:apply_interval with timer:send_interval
-* 24443	Clients	connection/channel.close timeouts  considered harmfiul
-* 24504	Broker	Various tiny performance tweaks
-* 24488	Erlang client	Impossible to specify socket connection timeout with Erlang client
-* 24511	Broker	VQ soak test must generate unique message IDs
-
 ]
 
 server
@@ -33,23 +21,29 @@ server
 
 *enhancements*
 
-- (23764) Messages requeued (as a result of a consumer dying, for example) will now
+- Messages requeued (as a result of a consumer dying, for example) will now
   preserve the original order.
-- (17162, 17174) There have been some changes to improve RAM utilisation under high
+(23764)
+- There have been some changes to improve RAM utilisation under high
   load, and to reduce the time taken to parse message properties.
-- (24298) Shutdown, when there are a large number of queues to delete, is now
+(17162, 17174) 
+- Shutdown, when there are a large number of queues to delete, is now
   more efficient.
-- (24315) All actions initiated by rabbitmqctl are now logged.
-- (24323) The server can now automatically adapt to changing virtual memory resources,
+(24298) 
+- All actions initiated by rabbitmqctl are now logged.
+(24315) 
+- The server can now automatically adapt to changing virtual memory resources,
   and dynamic updates to the memory high-watermark.
-- (24332) The rabbit logs have a more conventional management pattern to enable
+(24323) 
+- The rabbit logs have a more conventional management pattern to enable
   log rotation to be simpler.
-- (24386) Basic file operations are now more efficient.
-
-[work point]
-
-- (24416, 24425, 24428) improve performance of connection establishment and durable queues'
-  creation and recovery
+(24332) 
+- Basic file operations are now more efficient.
+(24386)
+- Durable queues are now faster on first use, and faster to recover.
+(24425, 24428)
+- Creating a connection is now faster.
+(24416)
 - (24433) improve performance of many low-res consumers
 - (24455) manage RAM overhead for messages already on disk
 - (24459) improve performance of ack/reject handling
@@ -58,56 +52,105 @@ server
 
 *bug fixes*
 
+- Equivalent queues created by different software libraries could look different
+  to the broker, causing queue creation errors.
+(24481)
+- (24511) VQ soak test must generate unique message IDs
+- (24504) various tiny performance tweaks
 - (23596) revise channel queue monitoring to avoid unnecessary monitors
 - (24371) test startup checks improved and made consistent
-- (24460)NR tx.rollback can break multi-ack
-- (24462)NR x-ha-policy = nodes does not work
+- (24460) tx.rollback can break multi-ack
+- (24462) x-ha-policy = nodes does not work
 - (24477) msg_store erroneously confirms messages on 'remove'
 - (24478) (Windows) WCF tests fail due to PID mismatch under cygwin
 - (24483) (Windows) escape backslashes in paths in BAT files
-- (24486)NR 'badarg' error when displaying plug-in activation error
+- (24486) 'badarg' error when displaying plug-in activation error
 
-all clients
------------
+
+build and packaging
+-------------------
+
+*bug fixes*
+
+- On non-Windows platforms invoking rabbitmq as a daemon can leave standard
+input and output streams permanently open.
+(24516)
+
+clients
+-------
 
 *enhancements*
 
-- (24453) AMQP URL support
+- There is a new "amqp" URI scheme, which can provide all of the
+  information required to connect to an AMQP server in one URI.
+  The Java client, the Erlang client and the .NET client all support
+  this URI scheme on connect.
+  See the [AMQP URI](http://www.rabbitmq.com/uri-spec.html) specification for
+  more information.
+(24453)
+
+*bug fixes*
+
+- Connection and Channel closes in the clients have internal timeouts which
+  can expire prematurely and spoil the client's view of the channel state.
+(24443)
+
+erlang client
+-------------
+
+*enhancements*
+
+- It is now possible to specify a connection timeout value on Erlang client
+connections.
+(24488)
+
+*bug fixes*
+
+- Under some circumstances wait\_for\_confirms can fail to return.
+(24499)
 
 java client
 -----------
 
 *enhancements*
 
-- (18384) threadsafe channels and consumer callbacks
-- (24391) show causing method name in channel/connection errors
+- Consumer callbacks, and channel operations are now threadsafe. This means that
+  calls to channel operations (even close) can be safely made from a Consumer
+  method call.  There is now less need for QueueingConsumer, and Consumer clients
+  can be more simply written.  Consumer callbacks are executed on a ThreadExecutor
+  pool, which can be user-supplied.
+(18384)
+- Channel or Connection errors that refer to another frame now provide the
+  frame's AMQP name (if it has one) in the error message.
+(24391)
 
 plugins
 -------
 
 *enhancements*
 
-- (21319) There is a new rabbitmq-plugins tool to enable and disable plugins. 
-  Plugins are now included in the main rabbitmq-server release, 
-  simplifying server configuration and plugin installation and upgrades. 
+- There is a new rabbitmq-plugins tool to enable and disable plugins.
+  Plugins are now included in the main rabbitmq-server release,
+  simplifying server configuration and plugin installation and upgrades.
+(21319)
 - rabbitmq_federation is now a maintained plugin.
 
 (See [the plugins page](http://www.rabbitmq.com/plugins.html) for more information.)
 
 *bug fixes*
 
-- (23369) Shutdown of web-based plugins does not remove all resources.
+- (23369) Shutdown of web-based plugins does not remove all relevant resources.
 
 management plugin
 -----------------
 
 *enhancements*
 
-- (24432) More detailed global memory stats
+- (24432) more detailed global memory stats
 
 *bug fixes*
 
-- (24423)NR jQuery bug makes queue details fail with HA on Firefox 6
+- (24423) jQuery bug makes queue details fail with HA on Firefox 6
 - (24466) "all configuration" is poorly named
 
 .net client
@@ -122,9 +165,12 @@ mochiweb plugin
 
 *bug fixes*
 
-- (23235) rabbitmq-mochiweb does not provide any means to unregister a context
-- (24448) Increase the limit on 1MB messages to 100MB, so that, for example,
-  JSON-RPC channel can publish larger messages.
+- Increase the limit on message body size from 1MB to 100MB, so that, for example,
+  JSON-RPC channel can publish much larger messages.
+(24448)
+
+- rabbitmq-mochiweb does not provide any means to unregister a context
+(23235)
 
 STOMP adapter
 -------------
