@@ -9,6 +9,22 @@ Release Highlights
 * 23866	Docs/Website	Add navigation to next steps after server download, install
 * 24403	Docs/Website	Fix doctype to prevent entity load warnings in driver.py and problems when resolving remote DTD
 * 24474	Plug-ins	[CI] Leaving pid file lying around is racy
+* 24514	Broker	soak tests broken due to api change from bug 24509
+* 24510	Broker	make start-background-node start-rabbit-on-node breaks logging after bug 24332
+]
+
+[Note: Bugs under consideration:
+
+* 24499	Erlang client	channel:wait_for_confirms is broken in the face of multiple=true
+* 24509	Broker	new requeue code causes messages to expire too late
+* 24516	Building/Packaging	rabbitmq-server.init does not close filedescriptors for rabbitmq-server
+* 24481	Broker	Enable equivalence checks across AMQP libraries
+* 24362	Broker	[CI] mirrored_supervisor tests fail occasionally
+* 24508	Broker	replace timer:apply_interval with timer:send_interval
+* 24443	Clients	connection/channel.close timeouts  considered harmfiul
+* 24504	Broker	Various tiny performance tweaks
+* 24488	Erlang client	Impossible to specify socket connection timeout with Erlang client
+* 24511	Broker	VQ soak test must generate unique message IDs
 
 ]
 
