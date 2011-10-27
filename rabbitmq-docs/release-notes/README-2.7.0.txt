@@ -14,6 +14,16 @@ Release Highlights
 * 24362	Broker	[CI] mirrored_supervisor tests fail occasionally
 * 24509	Broker	new requeue code causes messages to expire too late (caused by 23764)
 * 24508	Broker	replace timer:apply_interval with timer:send_interval
+* 24504	Broker	various tiny performance tweaks
+* 24511	Broker	VQ soak test must generate unique message IDs
+* 24433	Broker	improve performance of many low-res consumers
+* 24459	Broker	improve performance of ack/reject handling
+* 24461	Broker	make rabbit_event API more pleasant and less costly
+* 24371	Broker	test startup checks improved and made consistent
+* 24477	Broker	msg_store erroneously confirms messages on 'remove'
+* 24478	Broker	(Windows) WCF tests fail due to PID mismatch under cygwin
+* 24486	Broker	'badarg' error when displaying plug-in activation error
+* 24335	Broker	user-id breaks .net message patterns
 ]
 
 server
@@ -44,28 +54,27 @@ server
 (24425, 24428)
 - Creating a connection is now faster.
 (24416)
-- (24433) improve performance of many low-res consumers
-- (24455) manage RAM overhead for messages already on disk
-- (24459) improve performance of ack/reject handling
-- (24461) make rabbit_event API more pleasant and less costly
-- (23056) Code Quality: all exported Erlang functions should now have type specifications.
+- Code Quality: more exported Erlang functions now have type specifications.
+(23056)
 
 *bug fixes*
 
 - Equivalent queues created by different software libraries could look different
   to the broker, causing queue creation errors.
 (24481)
-- (24511) VQ soak test must generate unique message IDs
-- (24504) various tiny performance tweaks
-- (23596) revise channel queue monitoring to avoid unnecessary monitors
-- (24371) test startup checks improved and made consistent
-- (24460) tx.rollback can break multi-ack
-- (24462) x-ha-policy = nodes does not work
-- (24477) msg_store erroneously confirms messages on 'remove'
-- (24478) (Windows) WCF tests fail due to PID mismatch under cygwin
-- (24483) (Windows) escape backslashes in paths in BAT files
-- (24486) 'badarg' error when displaying plug-in activation error
-
+- In large queues, messages already on disk retain memory for too long making
+  memory utilisation unnecessarily high under load.
+(24455)
+- Queue process monitors are not removed correctly, which is a resource leak.
+(23596)
+- Acknowledgements are not properly handled on transaction rollback.
+(24460)
+- Cannot declare a mirrored queue with a policy of "nodes" and an explicit
+  list of node names.
+(24462)
+- (Windows) Some batch file variables may pass unescaped backslashes to the
+  broker, causing it to crash.
+(24483)
 
 build and packaging
 -------------------
@@ -73,7 +82,7 @@ build and packaging
 *bug fixes*
 
 - On non-Windows platforms invoking rabbitmq as a daemon can leave standard
-input and output streams permanently open.
+  input and output streams permanently open.
 (24516)
 
 clients
@@ -81,11 +90,11 @@ clients
 
 *enhancements*
 
-- There is a new "amqp" URI scheme, which can provide all of the
+- There is a new "amqp" URI scheme, which can describe all of the
   information required to connect to an AMQP server in one URI.
   The Java client, the Erlang client and the .NET client all support
   this URI scheme on connect.
-  See the [AMQP URI](http://www.rabbitmq.com/uri-spec.html) specification for
+  See the [AMQP URI](http://www.rabbitmq.com/uri-spec.html) page for
   more information.
 (24453)
 
@@ -101,12 +110,12 @@ erlang client
 *enhancements*
 
 - It is now possible to specify a connection timeout value on Erlang client
-connections.
+  connections.
 (24488)
 
 *bug fixes*
 
-- Under some circumstances wait\_for\_confirms can fail to return.
+- Under some circumstances wait\_for\_confirms/1 can fail to return.
 (24499)
 
 java client
@@ -139,26 +148,25 @@ plugins
 
 *bug fixes*
 
-- (23369) Shutdown of web-based plugins does not remove all relevant resources.
+- Shutdown of web-based plugins does not remove all relevant mochiweb resources
+  which may mean that listeners do not terminate when they should.
+(23369)
 
 management plugin
 -----------------
 
 *enhancements*
 
-- (24432) more detailed global memory stats
+- There are more and more detailed global memory statistics shown.
+(24432)
 
 *bug fixes*
 
-- (24423) jQuery bug makes queue details fail with HA on Firefox 6
-- (24466) "all configuration" is poorly named
-
-.net client
------------
-
-*bug fixes*
-
-- (24335) user-id breaks .net message patterns
+- HA queue details fail to display on some browsers.
+(24423)
+- Dump and restore of "all configuration" is poorly named. ('Definitions' is
+  used instead.)
+(24466)
 
 mochiweb plugin
 ---------------
@@ -169,7 +177,7 @@ mochiweb plugin
   JSON-RPC channel can publish much larger messages.
 (24448)
 
-- rabbitmq-mochiweb does not provide any means to unregister a context
+- rabbitmq-mochiweb does not provide any means to unregister a context.
 (23235)
 
 STOMP adapter
@@ -177,9 +185,10 @@ STOMP adapter
 
 *bug fixes*
 
-- (24426) The STOMP adapter can fail prematurely (instead of throttling the
-  sender) when sending large numbers of messages which exceed memory limits.
-
+- The STOMP adapter can fail prematurely (instead of slowing the sender)
+  when sending large numbers of messages and exceeding the memory high
+  watermark.
+(24426) 
 
 Upgrading
 =========
