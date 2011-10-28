@@ -2,183 +2,123 @@ RabbitMQ 2.7.0
 ==============
 Release Highlights
 ==================
-[*Bugs with no effect upon the release notes, remove these before release:*
-
-* 24424	Docs/Website	Some man pages contained duplicate text.
-* 23866	Docs/Website	Add navigation to next steps after server download, install
-* 24403	Docs/Website	Fix doctype to prevent entity load warnings in driver.py and problems when resolving remote DTD
-* 24474	Plug-ins	[CI] Leaving pid file lying around is racy
-* 24514	Broker	soak tests broken due to api change from bug 24509
-* 24510	Broker	make start-background-node start-rabbit-on-node breaks logging after bug 24332
-* 24362	Broker	[CI] mirrored_supervisor tests fail occasionally
-* 24509	Broker	new requeue code causes messages to expire too late (caused by 23764)
-* 24508	Broker	replace timer:apply_interval with timer:send_interval
-* 24504	Broker	various tiny performance tweaks
-* 24511	Broker	VQ soak test must generate unique message IDs
-* 24433	Broker	improve performance of many low-res consumers
-* 24459	Broker	improve performance of ack/reject handling
-* 24461	Broker	make rabbit_event API more pleasant and less costly
-* 24371	Broker	test startup checks improved and made consistent
-* 24477	Broker	msg_store erroneously confirms messages on 'remove'
-* 24478	Broker	(Windows) WCF tests fail due to PID mismatch under cygwin
-* 24486	Broker	'badarg' error when displaying plug-in activation error
-* 24335	Broker	user-id breaks .net message patterns
-]
 
 server
 ------
 *enhancements*
 
-- Messages requeued (as a result of a consumer dying, for example) will now
-  preserve the original order.
-(23764)
-- There have been some changes to improve RAM utilisation under high
-  load, and to reduce the time taken to parse message properties.
-(17162, 17174) 
-- Shutdown, when there are a large number of queues to delete, is now
-  more efficient.
-(24298) 
-- All actions initiated by rabbitmqctl are now logged.
-(24315) 
-- The server can now automatically adapt to changing virtual memory resources,
-  and dynamic updates to the memory high-watermark.
-(24323) 
-- The rabbit logs have a more conventional management pattern to enable
-  log rotation to be simpler.
-(24332) 
-- Basic file operations are now more efficient.
-(24386)
-- Durable queues are now faster on first use, and faster to recover.
-(24425, 24428)
-- Creating a connection is now faster.
-(24416)
-- Code Quality: more exported Erlang functions now have type specifications.
-(23056)
+- Messages requeued (as a result of a consumer dying, for example) have their
+  original order preserved.
+- The server automatically adapts to changes to virtual memory resources, and
+  to the memory high-watermark.
+- The rabbit logs are appended to on restart; log rotation is simplified.
+- Non-query actions initiated by rabbitmqctl are logged.
+- Creating a connection is faster.
+- RAM utilisation under high load is improved, and the time taken to parse
+  message properties is reduced.
+- Shutdown is more efficient, especially when there are many queues to delete.
+- Concurrent message storage operations for many queues are more efficient.
+- Durable queues are faster on first use, and faster to recover.
+- Performance improvements to: exchange, consumer and acknowledgement
+  management.
 
 *bug fixes*
 
-- Equivalent queues created by different software libraries could look different
-  to the broker, causing queue creation errors.
-(24481)
-- In large queues, messages already on disk retain memory for too long making
-  memory utilisation unnecessarily high under load.
-(24455)
-- Queue process monitors are not removed correctly, which is a resource leak.
-(23596)
-- Acknowledgements are not properly handled on transaction rollback.
-(24460)
-- Cannot declare a mirrored queue with a policy of "nodes" and an explicit
+- Acknowledgements were not properly handled on transaction rollback.
+- Could not declare a mirrored queue with a policy of "nodes" and an explicit
   list of node names.
-(24462)
-- (Windows) Some batch file variables may pass unescaped backslashes to the
+- Queues created by different software libraries could look inequivalent
+  to the broker, though they had equivalent properties.
+- In large queues under load, messages already on disk were retained in memory
+  for too long.
+- Queue process monitors were not removed correctly.
+- (Windows) Some batch file variables might pass unescaped backslashes to the
   broker, causing it to crash.
-(24483)
-
-build and packaging
--------------------
-*bug fixes*
-
-- On non-Windows platforms invoking rabbitmq as a daemon can leave standard
-  input and output streams permanently open.
-(24516)
 
 clients
 -------
-*enhancements*
+*enhancement*
 
-- There is a new "amqp" URI scheme, which can describe all of the
+- Clients accept a new "amqp" URI scheme, which can describe all of the
   information required to connect to an AMQP server in one URI.
-  The Java client, the Erlang client and the .NET client all support
-  this URI scheme on connect.
-  See the [AMQP URI](http://www.rabbitmq.com/uri-spec.html) page for
-  more information.
-(24453)
 
-*bug fixes*
+  (See the [AMQP URI](http://www.rabbitmq.com/uri-spec.html) page for
+  more information.)
 
-- Connection and Channel closes in the clients have internal timeouts which
-  can expire prematurely and spoil the client's view of the channel state.
-(24443)
+*bug fix*
+
+- Connection and Channel closes in the clients had internal timeouts which
+  could expire prematurely and spoil the client's view of the channel state.
 
 erlang client
 -------------
-*enhancements*
+*enhancement*
 
-- It is now possible to specify a connection timeout value on Erlang client
-  connections.
-(24488)
+- A connection timeout value is accepted on Erlang client connections.
 
-*bug fixes*
+*bug fix*
 
-- Under some circumstances wait\_for\_confirms/1 can fail to return.
-(24499)
+- Under some circumstances wait_for_confirms/1 could fail to return.
 
 java client
 -----------
 *enhancements*
 
-- Consumer callbacks, and channel operations are now threadsafe. This means that
-  calls to channel operations (even close) can be safely made from a Consumer
-  method call.  There is now less need for QueueingConsumer, and Consumer clients
-  can be more simply written.  Consumer callbacks are executed on a ThreadExecutor
-  pool, which can be user-supplied.
-(18384)
-- Channel or Connection errors that refer to another frame now provide the
-  frame's AMQP name (if it has one) in the error message.
-(24391)
+- Consumer callbacks, and channel operations are threadsafe. Calls to channel
+  operations can be safely made from a Consumer method call.  Consumer callback
+  work threads can be user-supplied.
+- Channel or Connection errors that refer to another method frame provide the
+  method's AMQP name (if it has one) in the error message.
 
 plugins
 -------
 *enhancements*
 
-- There is a new rabbitmq-plugins tool to enable and disable plugins.
-  Plugins are now included in the main rabbitmq-server release,
-  simplifying server configuration and plugin installation and upgrades.
-(21319)
-- rabbitmq_federation is now a maintained plugin.
+- Plugins are included in the main rabbitmq-server release, simplifying server
+  configuration and plugin installation and upgrades. The new rabbitmq-plugins
+  tool enables and disables plugins.
+- rabbitmq_federation is no longer experimental and is now a maintained plugin.
+  rabbitmq_tracing and rabbitmq_consistent_hash_exchange are two new
+  experimental plugins.
+  
+  (See the [plugins](http://www.rabbitmq.com/plugins.html) page for more
+  information.)
 
-(See [the plugins page](http://www.rabbitmq.com/plugins.html) for more information.)
+*bug fix*
 
-*bug fixes*
-
-- Shutdown of web-based plugins does not remove all relevant mochiweb resources
-  which may mean that listeners do not terminate when they should.
-(23369)
+- Shutdown of web-based plugins did not remove mochiweb resources which
+  could leave erroneous pages accessible.
 
 management plugin
 -----------------
 *enhancements*
 
 - There are more, and more detailed, global memory statistics shown.
-(24432)
+- In Dump and restore, "all configuration" is renamed to "Definitions".
 
-*bug fixes*
+*bug fix*
 
-- HA queue details fail to display on some browsers.
-(24423)
-- Dump and restore of "all configuration" is poorly named. ('Definitions' is
-  used instead.)
-(24466)
+- HA queue details failed to display on some browsers.
 
 mochiweb plugin
 ---------------
-*bug fixes*
+*enhancement*
 
-- Increase the limit on message body size from 1MB to 100MB, so that, for example,
+- The limit on message body size is increased to 100MB, so that, for example,
   JSON-RPC channel can publish much larger messages.
-(24448)
-
-- rabbitmq-mochiweb does not provide any means to unregister a context.
-(23235)
 
 STOMP adapter
 -------------
-*bug fixes*
+*bug fix*
 
-- The STOMP adapter can fail prematurely (instead of slowing the sender)
-  when sending large numbers of messages and exceeding the memory high
-  watermark.
-(24426) 
+- The STOMP adapter could crash when exceeding the memory high watermark.
+
+build and packaging
+-------------------
+*bug fix*
+
+- On non-Windows platforms invoking rabbitmq as a daemon could leave standard
+  input and output streams permanently open.
 
 Upgrading
 =========
