@@ -1,8 +1,7 @@
-Release: RabbitMQ 2.7.0
-
+RabbitMQ 2.7.0
+==============
 Release Highlights
 ==================
-
 [*Bugs with no effect upon the release notes, remove these before release:*
 
 * 24424	Docs/Website	Some man pages contained duplicate text.
@@ -28,7 +27,6 @@ Release Highlights
 
 server
 ------
-
 *enhancements*
 
 - Messages requeued (as a result of a consumer dying, for example) will now
@@ -78,7 +76,6 @@ server
 
 build and packaging
 -------------------
-
 *bug fixes*
 
 - On non-Windows platforms invoking rabbitmq as a daemon can leave standard
@@ -87,7 +84,6 @@ build and packaging
 
 clients
 -------
-
 *enhancements*
 
 - There is a new "amqp" URI scheme, which can describe all of the
@@ -106,7 +102,6 @@ clients
 
 erlang client
 -------------
-
 *enhancements*
 
 - It is now possible to specify a connection timeout value on Erlang client
@@ -120,7 +115,6 @@ erlang client
 
 java client
 -----------
-
 *enhancements*
 
 - Consumer callbacks, and channel operations are now threadsafe. This means that
@@ -135,7 +129,6 @@ java client
 
 plugins
 -------
-
 *enhancements*
 
 - There is a new rabbitmq-plugins tool to enable and disable plugins.
@@ -154,10 +147,9 @@ plugins
 
 management plugin
 -----------------
-
 *enhancements*
 
-- There are more and more detailed global memory statistics shown.
+- There are more, and more detailed, global memory statistics shown.
 (24432)
 
 *bug fixes*
@@ -170,7 +162,6 @@ management plugin
 
 mochiweb plugin
 ---------------
-
 *bug fixes*
 
 - Increase the limit on message body size from 1MB to 100MB, so that, for example,
@@ -182,7 +173,6 @@ mochiweb plugin
 
 STOMP adapter
 -------------
-
 *bug fixes*
 
 - The STOMP adapter can fail prematurely (instead of slowing the sender)
