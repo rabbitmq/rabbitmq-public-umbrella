@@ -190,13 +190,10 @@ To upgrade a clustered RabbitMQ from release 2.1.1 or later, install
 the new version on all the nodes and follow these
 [upgrading](http://www.rabbitmq.com/clustering.html#upgrading) instructions.
 
-All configuration and persistent message data is retained.
+To upgrade RabbitMQ from release 2.1.0, first upgrade to 2.1.1 (which
+retains all data), and then to the current version as described above.
 
-To upgrade a non-clustered RabbitMQ from release 2.1.0, first upgrade
-to 2.1.1 (which retains all data), and then to the current version as
-described above.
-
-To upgrade a clustered RabbitMQ prior to 2.1.1 or a stand-alone broker
+Upgrades from RabbitMQ versions prior to 2.1.0 or a stand-alone broker
 from releases prior to 2.1.0, if the RabbitMQ installation does not
 contain any important data then simply install the new
 version. RabbitMQ will move the existing data to a backup location
