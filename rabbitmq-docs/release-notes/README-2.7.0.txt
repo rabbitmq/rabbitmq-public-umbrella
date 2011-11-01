@@ -9,12 +9,12 @@ bug fixes
 - acknowledgements were not properly handled on transaction rollback.
 - could not declare a mirrored queue with a policy of "nodes" and an explicit
   list of node names.
-- queues created by different software libraries could look inequivalent
+- queues created by different client libraries could look inequivalent
   to the broker, though they had equivalent properties.
 - in large queues under load, messages already on disk were retained in memory
   for too long.
 - queue process monitors were not removed correctly.
-- (Windows) some batch file variables might pass unescaped backslashes to the
+- on Windows some batch file variables might pass unescaped backslashes to the
   broker, causing it to crash.
 
 enhancements
@@ -25,13 +25,13 @@ enhancements
 - the rabbit logs are appended to on restart; log rotation is simplified.
 - non-query actions initiated by rabbitmqctl are logged.
 - creating a connection is faster.
-- RAM utilisation under high load is improved, and the time taken to parse
-  message properties is reduced.
 - shutdown is more efficient, especially when there are many queues to delete.
 - concurrent message storage operations for many queues are more efficient.
 - durable queues are faster on first use, and faster to recover.
-- performance improvements to: exchange, consumer and acknowledgement
-  management.
+- performance improvements to queues with large numbers of consumers with
+  low prefetch counts
+- internal flow control is more consistent
+- various other general performance improvements
 
 clients
 -------
@@ -51,7 +51,7 @@ bug fixes
 - under some circumstances wait_for_confirms/1 could fail to return.
 
 enhancements
-- a connection timeout value is accepted on Erlang client connections.
+- a connection timeout value can be set for Erlang client connections.
 
 java client
 -----------
@@ -65,33 +65,36 @@ enhancements
 plugins
 -------
 bug fixes
-- shutdown of web-based plugins did not remove mochiweb resources which
-  could leave erroneous pages accessible.
+- HTTP-based plugins did not shut down correctly when stopped independently
+  of the Erlang VM
 
 enhancements
 - plugins are included in the main rabbitmq-server release, simplifying server
-  configuration and plugin installation and upgrades. The new rabbitmq-plugins
-  tool enables and disables plugins.
-- rabbitmq_federation is no longer experimental and is now a maintained plugin.
-  rabbitmq_tracing and rabbitmq_consistent_hash_exchange are two new
-  experimental plugins.
-
-  See http://www.rabbitmq.com/plugins.html for more information.
+  configuration and upgrades. A new tool, rabbitmq-plugins, enables and
+  disables plugins. See http://www.rabbitmq.com/plugins.html for more
+  information.
+- rabbitmq_federation is no longer considered experimental and is now a
+  maintained plugin.
+- new experimental plugin: rabbitmq_consistent_hash_exchange, useful for
+  load balancing very high message rates across multiple queues
+- new experimental plugin: rabbitmq_tracing, a management UI for the firehose
 
 management plugin
 -----------------
 bug fixes
-- HA queue details failed to display on some browsers.
+- queue details page failed to display on recent browsers (e.g. Firefox 6)
+  for HA queues.
 
 enhancements
-- there are more, and more detailed, global memory statistics shown.
-- in dump and restore, "all configuration" is renamed to "Definitions".
+- more detailed global memory statistics shown.
+- "all configuration" is renamed to "definitions" to reduce confusion with
+  rabbitmq.config.
 
 mochiweb plugin
 ---------------
 enhancements
-- the limit on message body size is increased to 100MB, so that, for example,
-  JSON-RPC channel can publish much larger messages.
+- the limit on upload size is increased to 100MB so that JSON-RPC channel
+  can publish larger messages.
 
 STOMP adapter
 -------------
