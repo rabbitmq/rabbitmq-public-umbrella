@@ -11,8 +11,6 @@ bug fixes
   list of node names
 - queues created by different client libraries could look inequivalent
   to the broker, though they had equivalent properties
-- in large queues under load, messages already on disk were retained in memory
-  for too long
 - queue process monitors were not removed correctly
 - on Windows some batch file variables might pass unescaped backslashes to the
   broker, causing it to crash
@@ -20,6 +18,8 @@ bug fixes
 enhancements
 - messages requeued (as a result of a consumer dying, for example) have their
   original order preserved
+- in large queues under load, reduce length of time messages already on disk
+  are retained in memory
 - the server automatically adapts to changes to virtual memory resources, and
   to the memory high-watermark
 - the rabbit logs are appended to on restart; log rotation is simplified
