@@ -12,6 +12,8 @@ bug fixes
 - queues created by different client libraries could look inequivalent
   to the broker, though they had equivalent properties
 - queue process monitors were not removed correctly
+- server start up could hang when trying to contact other Erlang nodes in some
+  network configurations (24525)
 - on Windows some batch file variables might pass unescaped backslashes to the
   broker, causing it to crash
 
@@ -26,6 +28,7 @@ enhancements
 - the server automatically adapts to changes to virtual memory resources, and
   to the memory high-watermark (24522)
 - the rabbit logs are appended to on restart; log rotation is simplified
+- improved synchronisation between rabbitmqctl and the server when stopping (24517)
 - non-query actions initiated by rabbitmqctl are logged
 - creating a connection is faster
 - shutdown is more efficient, especially when there are many queues to delete
@@ -56,6 +59,7 @@ bug fixes
 
 enhancements
 - a connection timeout value can be set for Erlang client connections
+- socket options may be specified on connection start
 
 java client
 -----------
@@ -65,6 +69,11 @@ enhancements
   work threads can be user-supplied
 - channel or connection errors that refer to another method frame provide the
   method's AMQP name (if it has one) in the error message
+
+.net client
+-----------
+bug fixes
+- some methods were not documented correctly (24501)
 
 plugins
 -------
@@ -91,6 +100,11 @@ enhancements
 - more detailed global memory statistics shown
 - "all configuration" is renamed to "definitions" to reduce confusion with
   rabbitmq.config
+
+auth-backend-ldap plugin
+------------------------
+enhancements
+- the queries are extended to read attributes and allow pattern-matching (24497)
 
 mochiweb plugin
 ---------------
