@@ -13,7 +13,7 @@ bug fixes
   to the broker, though they had equivalent properties
 - queue process monitors were not removed correctly
 - server start up could hang when trying to contact other Erlang nodes in some
-  network configurations (24525)
+  network configurations
 - on Windows some batch file variables might pass unescaped backslashes to the
   broker, causing it to crash
 
@@ -24,18 +24,18 @@ enhancements
   are retained in memory
 - on platforms which support the High Performance Erlang Compiler (HiPE), the
   server can optionally (re)compile selected modules on startup for increased
-  run-time performance; see http://www.rabbitmq.com/configure.html (24513)
+  run-time performance; see http://www.rabbitmq.com/configure.html
 - the server automatically adapts to changes to virtual memory resources, and
-  to the memory high-watermark (24522)
+  to the memory high-watermark
 - the rabbit logs are appended to on restart; log rotation is simplified
-- improved synchronisation between rabbitmqctl and the server when stopping (24517)
+- improved synchronisation between rabbitmqctl and the server when stopping
 - non-query actions initiated by rabbitmqctl are logged
 - creating a connection is faster
 - shutdown is more efficient, especially when there are many queues to delete
 - concurrent message storage operations for many queues are more efficient
 - durable queues are faster on first use, and faster to recover
 - messages removed before being written to disk have the writes eliminated,
-  increasing message throughput under load (24308)
+  increasing message throughput under load
 - performance improvements to queues with large numbers of consumers with
   low prefetch counts
 - internal flow control is more consistent
@@ -73,7 +73,7 @@ enhancements
 .net client
 -----------
 bug fixes
-- some methods were not documented correctly (24501)
+- some client methods were not documented correctly
 
 plugins
 -------
@@ -104,7 +104,7 @@ enhancements
 auth-backend-ldap plugin
 ------------------------
 enhancements
-- the queries are extended to read attributes and allow pattern-matching (24497)
+- the queries are extended to include attributes and allow pattern-matching
 
 mochiweb plugin
 ---------------
