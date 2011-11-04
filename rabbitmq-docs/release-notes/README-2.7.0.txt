@@ -20,14 +20,19 @@ enhancements
   original order preserved
 - in large queues under load, reduce length of time messages already on disk
   are retained in memory
+- on platforms which support the High Performance Erlang Compiler (HiPE), the
+  server can optionally (re)compile selected modules on startup for increased
+  run-time performance; see http://www.rabbitmq.com/configure.html (24513)
 - the server automatically adapts to changes to virtual memory resources, and
-  to the memory high-watermark
+  to the memory high-watermark (24522)
 - the rabbit logs are appended to on restart; log rotation is simplified
 - non-query actions initiated by rabbitmqctl are logged
 - creating a connection is faster
 - shutdown is more efficient, especially when there are many queues to delete
 - concurrent message storage operations for many queues are more efficient
 - durable queues are faster on first use, and faster to recover
+- messages removed before being written to disk have the writes eliminated,
+  increasing message throughput under load (24308)
 - performance improvements to queues with large numbers of consumers with
   low prefetch counts
 - internal flow control is more consistent
@@ -41,7 +46,7 @@ bug fixes
 
 enhancements
 - clients accept a new "amqp" URI scheme, which can describe all of the
-  information required to connect to an AMQP server in one URI. See
+  information required to connect to an AMQP server in one URI; see
   http://www.rabbitmq.com/uri-spec.html
 
 erlang client
@@ -55,9 +60,9 @@ enhancements
 java client
 -----------
 enhancements
-- consumer callbacks, and channel operations are threadsafe. Calls to channel
-  operations can be safely made from a Consumer method call.  Consumer callback
-  work threads can be user-supplied.
+- consumer callbacks, and channel operations are threadsafe; calls to channel
+  operations can be safely made from a Consumer method call; Consumer callback
+  work threads can be user-supplied
 - channel or connection errors that refer to another method frame provide the
   method's AMQP name (if it has one) in the error message
 
@@ -69,8 +74,8 @@ bug fixes
 
 enhancements
 - plugins are included in the main rabbitmq-server release, simplifying server
-  configuration and upgrades. A new tool, rabbitmq-plugins, enables and
-  disables plugins. See http://www.rabbitmq.com/plugins.html
+  configuration and upgrades; a new tool, rabbitmq-plugins, enables and
+  disables plugins; see http://www.rabbitmq.com/plugins.html
 - rabbitmq_federation is no longer considered experimental
 - new experimental plugin: rabbitmq_consistent_hash_exchange, useful for
   load balancing very high message rates across multiple queues
