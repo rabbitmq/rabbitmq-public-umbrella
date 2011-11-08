@@ -9,8 +9,8 @@ bug fixes
 - acknowledgements were not properly handled on transaction rollback
 - could not declare a mirrored queue with a policy of "nodes" and an explicit
   list of node names
-- queues created by different client libraries could look inequivalent
-  to the broker, though they had equivalent properties
+- queues created by different client libraries could look inequivalent to the
+  broker, though they had equivalent properties
 - queue process monitors were not removed correctly
 - server start up could hang when trying to contact other Erlang nodes in some
   network configurations
@@ -18,15 +18,15 @@ bug fixes
   broker, causing it to crash
 
 enhancements
-- messages requeued (as a result of a consumer dying, for example) have their
+- messages re-queued (as a result of a consumer dying, for example) have their
   original order preserved
-- in large queues under load, reduce length of time messages already on disk
-  are retained in memory
+- in large queues under load, reduce length of time messages already on disk are
+  retained in memory
 - on platforms which support the High Performance Erlang Compiler (HiPE), the
   server can optionally (re)compile selected modules on startup for increased
   run-time performance; see http://www.rabbitmq.com/configure.html
-- the server automatically adapts to changes to virtual memory resources, and
-  to the memory high-watermark
+- the server automatically adapts to changes to virtual memory resources, and to
+  the memory high-watermark
 - the rabbit logs are appended to on restart; log rotation is simplified
 - improved synchronisation between rabbitmqctl and the server when stopping
 - non-query actions initiated by rabbitmqctl are logged
@@ -78,23 +78,23 @@ bug fixes
 plugins
 -------
 bug fixes
-- HTTP-based plugins did not shut down correctly when stopped independently
-  of the Erlang VM
+- HTTP-based plugins did not shut down correctly when stopped independently of
+  the Erlang VM
 
 enhancements
 - plugins are included in the main rabbitmq-server release, simplifying server
   configuration and upgrades; a new tool, rabbitmq-plugins, enables and
   disables plugins; see http://www.rabbitmq.com/plugins.html
 - rabbitmq_federation is no longer considered experimental
-- new experimental plugin: rabbitmq_consistent_hash_exchange, useful for
-  load balancing very high message rates across multiple queues
+- new experimental plugin: rabbitmq_consistent_hash_exchange, useful for load
+  balancing very high message rates across multiple queues
 - new experimental plugin: rabbitmq_tracing, a management UI for the firehose
 
 management plugin
 -----------------
 bug fixes
-- queue details page failed to display on recent browsers (e.g. Firefox 6)
-  for HA queues
+- queue details page failed to display on recent browsers (e.g. Firefox 6) for
+  High Availability queues
 
 enhancements
 - more detailed global memory statistics shown
@@ -109,8 +109,8 @@ enhancements
 mochiweb plugin
 ---------------
 enhancements
-- the limit on upload size is increased to 100MB so that JSON-RPC channel
-  can publish larger messages
+- the limit on upload size is increased to 100MB so that JSON-RPC channel can
+  publish larger messages
 
 STOMP adapter
 -------------
@@ -125,19 +125,18 @@ bug fixes
 
 Upgrading
 =========
-To upgrade a non-clustered RabbitMQ from release 2.1.1 or later, simply
-install the new version. All configuration and persistent message data
-is retained.
+To upgrade a non-clustered RabbitMQ from release 2.1.1 or later, simply install
+the new version. All configuration and persistent message data is retained.
 
-To upgrade a clustered RabbitMQ from release 2.1.1 or later, install
-the new version on all the nodes and follow these
-[upgrading](http://www.rabbitmq.com/clustering.html#upgrading) instructions.
+To upgrade a clustered RabbitMQ from release 2.1.1 or later, install the new
+version on all the nodes and follow the instructions at
+http://www.rabbitmq.com/clustering.html#upgrading .
 
-To upgrade RabbitMQ from release 2.1.0, first upgrade to 2.1.1 (which
-retains all data), and then to the current version as described above.
+To upgrade RabbitMQ from release 2.1.0, first upgrade to 2.1.1 (all data will be
+retained), and then to the current version as described above.
 
-When upgrading from RabbitMQ versions prior to 2.1.0, the existing
-data will be moved to a backup location and a fresh, empty database
-will be created. A warning is recorded in the logs. If your RabbitMQ
-installation contains important data then we recommend you contact
-support@rabbitmq.com for assistance with the upgrade.
+When upgrading from RabbitMQ versions prior to 2.1.0, the existing data will be
+moved to a backup location and a fresh, empty database will be created. A
+warning is recorded in the logs. If your RabbitMQ installation contains
+important data then we recommend you contact support at rabbitmq.com for
+assistance with the upgrade.
