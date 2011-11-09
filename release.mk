@@ -280,7 +280,7 @@ DEPLOY_RSYNC_CMDS=\
 deploy: verify-signatures fixup-permissions-for-deploy
 	$(DEPLOY_RSYNC_CMDS)
 
-deploy-live: verify-signatures deploy-maven fix-permissions-for-deploy
+deploy-live: verify-signatures deploy-maven fixup-permissions-for-deploy
 	$(DEPLOY_RSYNC_CMDS)
 
 fixup-permissions-for-deploy:
