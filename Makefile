@@ -14,6 +14,7 @@ PACKAGE_REPOS:=\
     rabbitmq-erlang-client \
     rabbitmq-external-exchange \
     rabbitmq-federation \
+    rabbitmq-federation-management \
     rabbitmq-ha-test \
     rabbitmq-jsonrpc \
     rabbitmq-jsonrpc-channel \
