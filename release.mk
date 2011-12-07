@@ -297,5 +297,5 @@ verify-signatures:
 	[ -z "$$bad_signature" ]
 
 deploy-maven: verify-signatures
-	$(MAKE) -C rabbitmq-java-client stage-maven-bundle promote-maven-bundle SIGNING_KEY=$(SIGNING_KEY) VERSION=$(VERSION) GNUPG_PATH=$(GNUPG_PATH)
+	$(MAKE) -C rabbitmq-java-client stage-and-promote-maven-bundle SIGNING_KEY=$(SIGNING_KEY) VERSION=$(VERSION) GNUPG_PATH=$(GNUPG_PATH)
 
