@@ -10,3 +10,7 @@ You may need:
 # apt-get install libsoap-lite-perl libterm-readpassword-perl
 
 If it breaks you get to keep both pieces.
+
+On Mac-Os you can use cpan to get missing Perl packages
+for example:
+  sudo cpan install Term::ReadPassword
