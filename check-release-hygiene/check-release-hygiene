@@ -7,22 +7,28 @@ if [ "x$1" = "x" -o "x$2" = "x" ]; then
 fi
 
 # C+P this from rabbitmq-public-umbrella Makefile
-PLUGIN_REPOS="rabbitmq-erlang-client \
-              rabbitmq-jsonrpc \
-              rabbitmq-mochiweb \
-              rabbitmq-jsonrpc-channel \
-              rabbitmq-management-agent \
-              rabbitmq-management \
-              rabbitmq-stomp \
-              rabbitmq-federation \
-              rabbitmq-shovel \
+# last updated for release 2.7.1
+PLUGIN_REPOS="\
               rabbitmq-auth-backend-ldap \
               rabbitmq-auth-mechanism-ssl \
+              rabbitmq-consistent-hash-exchange \
+              rabbitmq-erlang-client \
               rabbitmq-external-exchange \
+              rabbitmq-federation \
               rabbitmq-ha-test \
+              rabbitmq-jsonrpc \
+              rabbitmq-jsonrpc-channel \
               rabbitmq-jsonrpc-channel-examples \
+              rabbitmq-management \
+              rabbitmq-management-agent \
+              rabbitmq-management-visualiser \
               rabbitmq-metronome \
-              rabbitmq-toke"
+              rabbitmq-mochiweb \
+              rabbitmq-shovel \
+              rabbitmq-shovel-management \
+              rabbitmq-stomp \
+              rabbitmq-toke \
+              rabbitmq-tracing"
 
 REPOS="rabbitmq-public-umbrella \
        rabbitmq-umbrella \
