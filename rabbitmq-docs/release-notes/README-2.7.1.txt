@@ -1,4 +1,4 @@
-Release: RabbitMQ 2.7.1 (UNORDERED, REVIEW COPY)
+Release: RabbitMQ 2.7.1
 
 Release Highlights
 ==================
@@ -30,9 +30,9 @@ enhancements
 java client
 -----------
 bug fixes
+- resources were not recovered if ConnectionFactory failed to connect
 - defaults for the ConnectionFactory class were not public
 - part of the Java client API was hidden, causing application build errors
-- resources were not recovered if ConnectionFactory failed to connect
 - interrupts were mishandled in the Java threading logic
 
 .net client
@@ -44,20 +44,20 @@ plugins
 -------
 bug fixes
 - consistent-hash-exchange mis-routed messages when handling multiple exchanges
-- some tests and Erlang patches depended upon functions not in latest Erlang
-  version
+- some tests and Erlang patches depended upon functions not in the latest Erlang
+  release
 
 management plugin
 -----------------
 bug fixes
 - management plug-in could crash if it had limited permissions
+- overview could sometimes crash when another node starts up or shuts down
+- statistics could be lost when nodes failed
 - shovels were not displayed if they were in an undefined state
 - slave synchronisation could sometimes be misrepresented on the management
   interface
 - encoding of underscore in URL properties was incomplete
 - management interface could break if there were html syntax characters in names
-- overview could sometimes crash when another node starts up or shuts down
-- statistics could be lost when nodes failed
 
 enhancements
 - rate of change of queue lengths has been added to the management user
@@ -67,13 +67,13 @@ enhancements
 auth-backend-ldap plugin
 ------------------------
 enhancements
-- accept a broader class of group objects on in_group filters
+- accept a broader class of group objects on in_group filter
 
 STOMP adapter
 -------------
 bug fixes
-- duplicate headers were generated in some MESSAGE frames
 - temporary reply-to queues were not re-usable
+- duplicate headers were generated in some MESSAGE frames
 - functions were used not in the latest Erlang release
 
 build and packaging
