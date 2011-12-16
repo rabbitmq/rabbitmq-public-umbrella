@@ -10,23 +10,23 @@ bug fixes
 - broker-generated queue names did not conform to AMQP syntax rules
 - broker sometimes hung when closing channels and connection from multiple
   threads
-- high availability master nodes didn't recover properly
-- long-running brokers could suddenly crash due to global unique identifiers
-  not being unique enough
-- broker could crash if clients are attempting to (re)connect before the broker
-  is properly started
-- there was a slow memory leak in mirrored queues with persistent (or confirmed)
+- when using HA queues with policy of 'nodes', master queues didn't recover
+  properly
+- long-running brokers could crash due to global unique identifiers not being
+  unique enough
+- there was a slow memory leak in mirrored queues with persistent and confirmed
   messages
-- queue equivalence check did not properly detect extremely different arguments
+- queue equivalence check did not properly detect different arguments under
+  some circumstances
 - rabbitmqctl list_connections could return incomplete information
-- promotion of a slave to master could fail when confirms are enabled
+- promotion of a slave to master could fail when using confirms
 - guaranteed multicast could fail under some circumstances with multiple
   participating nodes
-- some functions were used that are not in the latest Erlang release
+- a (harmless) warning was emitted when running under Erlang R15B
 
 enhancements
-- rabbitmqctl eval <expr> evaluates arbitrary Erlang expressions in the broker
-  node
+- 'rabbitmqctl eval <expr>' evaluates arbitrary Erlang expressions in the
+  broker node
 - deletion of exchanges or queues with many bindings is more efficient
 
 java client
@@ -46,42 +46,43 @@ plugins
 -------
 bug fixes
 - consistent-hash-exchange mis-routed messages when handling multiple exchanges
-- some tests and Erlang patches depended upon functions not in the latest Erlang
-  release
 
 management plugin
 -----------------
 bug fixes
-- management plug-in could crash if it had limited permissions
+- management plug-in could fail to start if there were strange permissions
+  in /proc
 - overview could sometimes crash when another node starts up or shuts down
-- statistics could be lost when nodes failed
+- statistics database could be lost when nodes were restarted
 - shovels were not displayed if they were in an undefined state
-- slave synchronisation could sometimes be misrepresented on the management
-  interface
+- slave synchronisation could sometimes be misrepresented on the management UI
 - encoding of underscore in URL properties was incomplete
 - management interface could break if there were html syntax characters in names
+- broker could fail to start if clients attempt to connect before the
+  management plugin is fully started
 
 enhancements
-- rate of change of queue lengths has been added to the management user
-  interface
-- minor improvements to shovel information formatting
+- rate of change of queue lengths added to the management API and UI
+- improvements to shovel information formatting
 
 auth-backend-ldap plugin
 ------------------------
+bug fixes
+- made compatible with Erlang R15B
 enhancements
 - accept a broader class of group objects on in_group filter
 
 STOMP adapter
 -------------
 bug fixes
+- made compatible with Erlang R15B
 - temporary reply-to queues were not re-usable
 - duplicate headers were generated in some MESSAGE frames
-- functions were used not in the latest Erlang release
 
 build and packaging
 -------------------
 bug fixes
-- rabbitmq-server Mac OSx portfile was incorrectly built
+- rabbitmq-server Mac OS X portfile was incorrectly built
 - maven bundle for Java client was not published to maven central
 
 
