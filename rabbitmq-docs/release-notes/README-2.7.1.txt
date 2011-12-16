@@ -6,24 +6,22 @@ Release Highlights
 server
 ------
 bug fixes
-- the broker sometimes hung when recovering queues on startup
-- broker-generated queue names did not conform to AMQP syntax rules
-- broker sometimes hung when closing channels and connection from multiple
-  threads
-- when using HA queues with policy of 'nodes', master queues didn't recover
-  properly
 - long-running brokers could crash due to global unique identifiers not being
   unique enough
-- broker could crash if clients are attempting to (re)connect before the broker
-  is properly started and the management plug-in is active
+- promotion of a slave to master could fail when using confirms
 - there was a slow memory leak in mirrored queues with persistent and confirmed
   messages
+- when using HA queues with policy of 'nodes', master queues didn't recover
+  properly
+- broker sometimes hung when closing channels and connection from multiple
+  threads
 - queue equivalence check did not properly detect different arguments under
   some circumstances
+- the broker sometimes hung when recovering queues on startup
 - rabbitmqctl list_connections could return incomplete information
-- promotion of a slave to master could fail when using confirms
 - guaranteed multicast could fail under some circumstances with multiple
   participating nodes
+- broker-generated queue names did not conform to AMQP syntax rules
 - a (harmless) warning was emitted when running under Erlang R15B
 
 enhancements
@@ -52,16 +50,16 @@ bug fixes
 management plugin
 -----------------
 bug fixes
-- management plug-in could fail to start if there were strange permissions
+- statistics database could remain down after nodes were restarted
+- broker could fail to start if clients attempt to connect before the
+  management plugin is fully started
+- management plugin could fail to start if there were strange permissions
   in /proc
 - overview could sometimes crash when another node starts up or shuts down
-- statistics database could be lost when nodes were restarted
-- shovels were not displayed if they were in an undefined state
 - slave synchronisation could sometimes be misrepresented on the management UI
 - encoding of underscore in URL properties was incomplete
 - management interface could break if there were html syntax characters in names
-- broker could fail to start if clients attempt to connect before the
-  management plugin is fully started
+- shovels were not displayed if they were in an undefined state
 
 enhancements
 - rate of change of queue lengths added to the management API and UI
@@ -77,9 +75,9 @@ enhancements
 STOMP adapter
 -------------
 bug fixes
-- made compatible with Erlang R15B
-- temporary reply-to queues were not re-usable
 - duplicate headers were generated in some MESSAGE frames
+- temporary reply-to queues were not re-usable
+- made compatible with Erlang R15B
 
 build and packaging
 -------------------
