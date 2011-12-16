@@ -14,7 +14,7 @@ bug fixes
 - long-running brokers could suddenly crash due to global unique identifiers
   not being unique enough
 - broker could crash if clients are attempting to (re)connect before the broker
-  is properly started
+  is properly started and the management plug-in is active
 - there was a slow memory leak in mirrored queues with persistent (or confirmed)
   messages
 - queue equivalence check did not properly detect extremely different arguments
