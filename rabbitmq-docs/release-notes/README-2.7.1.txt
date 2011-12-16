@@ -8,26 +8,25 @@ server
 bug fixes
 - long-running brokers could crash due to global unique identifiers not being
   unique enough
-- promotion of a slave to master could fail when using confirms
-- there was a slow memory leak in mirrored queues with persistent and confirmed
+- promotion of a HA slaves to master could fail when using confirms
+- there was a slow memory leak in HA queues with persistent and confirmed
   messages
 - when using HA queues with policy of 'nodes', master queues didn't recover
   properly
+- HA queues could fail when nodes were restarting frequently
 - broker sometimes hung when closing channels and connection from multiple
   threads
 - queue equivalence check did not properly detect different arguments under
   some circumstances
 - the broker sometimes hung when recovering queues on startup
-- rabbitmqctl list_connections could return incomplete information
-- guaranteed multicast could fail under some circumstances with multiple
-  participating nodes
+- 'rabbitmqctl list_connections' could return incomplete information
 - broker-generated queue names did not conform to AMQP syntax rules
 - a (harmless) warning was emitted when running under Erlang R15B
 
 enhancements
+- deletion of exchanges or queues with many bindings is more efficient
 - 'rabbitmqctl eval <expr>' evaluates arbitrary Erlang expressions in the
   broker node
-- deletion of exchanges or queues with many bindings is more efficient
 
 java client
 -----------
@@ -56,7 +55,8 @@ bug fixes
 - management plugin could fail to start if there were strange permissions
   in /proc
 - overview could sometimes crash when another node starts up or shuts down
-- slave synchronisation could sometimes be misrepresented on the management UI
+- HA slave synchronisation could sometimes be misrepresented on the
+  management UI
 - encoding of underscore in URL properties was incomplete
 - management interface could break if there were html syntax characters in names
 - shovels were not displayed if they were in an undefined state
