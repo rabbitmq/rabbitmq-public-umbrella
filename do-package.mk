@@ -414,8 +414,8 @@ $(DEPS_FILE): $(SOURCE_ERLS) $(INCLUDE_HRLS) $(TEST_SOURCE_ERLS)
 	@echo [elided] generate deps
 	@$$(if $$^,echo $$(subst : ,:,$$(foreach F,$$^,$$(abspath $$(F)):)) | escript $(abspath $(UMBRELLA_BASE_DIR)/generate_deps) $$@ '$$$$(EBIN_DIR)',echo >$$@)
 	@echo [elided] fix test deps
-	@$$(foreach F,$(TEST_EBIN_BEAMS),sed -i -e 's|^$$$$(EBIN_DIR)/$$(notdir $$(F)):|$$$$(TEST_EBIN_DIR)/$$(notdir $$(F)):|' $$@ && ) :
-	sed -i -e 's|$$@|$$$$(DEPS_FILE)|' $$@
+	@$$(foreach F,$(TEST_EBIN_BEAMS),sed -e 's|^$$$$(EBIN_DIR)/$$(notdir $$(F)):|$$$$(TEST_EBIN_DIR)/$$(notdir $$(F)):|' $$@ > $$@.tmp && mv $$@.tmp $$@ && ) :
+	sed -e 's|$$@|$$$$(DEPS_FILE)|' $$@ > $$@.tmp && mv $$@.tmp $$@
 
 $(eval $(call safe_include,$(DEPS_FILE)))
 
