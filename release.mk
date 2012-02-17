@@ -246,6 +246,7 @@ sign-artifacts: artifacts
 	for p in \
 		$(SERVER_PACKAGES_DIR)/* \
 		$(JAVA_CLIENT_PACKAGES_DIR)/* \
+		$(ERLANG_CLIENT_PACKAGES_DIR)/* \
 	; do \
 		[ -f $$p ] && \
 			HOME=$(GNUPG_PATH) gpg --default-key $(SIGNING_KEY) -abs -o $$p.asc $$p ; \
