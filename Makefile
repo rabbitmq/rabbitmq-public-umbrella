@@ -26,7 +26,6 @@ PACKAGE_REPOS:=\
     rabbitmq-shovel \
     rabbitmq-shovel-management \
     rabbitmq-stomp \
-    rabbitmq-store-exporter \
     rabbitmq-toke \
     rabbitmq-tracing \
     toke \
