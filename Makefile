@@ -3,11 +3,13 @@ default:
 	@echo No default target && false
 
 PACKAGE_REPOS:=\
+    cowboy-wrapper \
     eldap-wrapper \
     erlando \
     erlang-rfc4627-wrapper \
     hstcp \
     mochiweb-wrapper \
+    sockjs-erlang-wrapper \
     rabbitmq-auth-backend-ldap \
     rabbitmq-auth-mechanism-ssl \
     rabbitmq-consistent-hash-exchange \
@@ -28,6 +30,8 @@ PACKAGE_REPOS:=\
     rabbitmq-stomp \
     rabbitmq-toke \
     rabbitmq-tracing \
+    rabbitmq-web-stomp \
+    rabbitmq-web-stomp-examples \
     toke \
     webmachine-wrapper
 
