@@ -115,6 +115,7 @@ enhancements
 - make "exchange type" into a select box in the web UI
 - show the heartbeat more clearly in the web UI
 
+
 rabbitmqadmin
 -------------
 bug fixes
@@ -124,6 +125,7 @@ bug fixes
 
 enhancements
 - configuration file for connections (thanks to Massimo Paladin)
+
 
 federation plugin
 -----------------
