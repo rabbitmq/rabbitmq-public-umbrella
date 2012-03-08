@@ -27,15 +27,14 @@ enhancements
   predictable if the server is overloaded
 - fsync after Mnesia transactions to ensure recently-created queues, exchanges
   are not lost in the event of an unexpected shutdown
-- improve performance of deleting queues with many bindings to topic exchanges
-- better OpenBSD support (thanks to Piotr Sikora)
-- basic.reject and basic.nack now respect transactions
+- much more eager fsync when persistent messages are published without
+  confirms / transactions leading to far fewer messages lost in the event
+  of an unexpected shutdown
 - server no longer fails to start when a durable exchange is declared using
   an exchange type plugin which is subsequently disabled. Instead the exchange
   exists but routes no messages
-- performance improvements to consuming and message ID generation
-- much more eager fsync when persistent messages are published without confirms
-  leading to far fewer messages lost in the event of an unexpected shutdown
+- better OpenBSD support (thanks to Piotr Sikora)
+- basic.reject and basic.nack now respect transactions
 - rabbitmq-echopid.bat introduced: allows obtaining the server PID on Windows
 - the start of logging configuration: initially just for per-connection logging
 - set SO_LINGER to 0 to prevent file descriptors being used by closed
@@ -45,7 +44,14 @@ enhancements
 - improve error reporting when Mnesia times out waiting for tables
 - consistent naming of connections and channels across rabbitmqctl and the
   management plugin
-- add file descriptor statistics to "rabbitmqctl status"
+- file descriptor statistics added to "rabbitmqctl status"
+
+performance improvements
+- consuming has smarter flow control, leading to performance improvements in
+  many cases
+- deleting queues with many bindings to topic exchanges is no longer
+  O(binding_count^2)
+- message ID generation is somewhat faster
 
 
 packaging
@@ -83,11 +89,11 @@ bug fixes
 
 enhancements
 - waitForConfirms() can now take a timeout
-- show fractional message rates in MulticastMain
-- show aggregated producer rates in MulticastMain
 - allow use of Java arrays in AMQP arrays (e.g. for arguments and headers)
 - don't depend on org.apache.commons classes except for tests
 - fire channel shutdown listeners on connection shutdown
+- show fractional message rates in MulticastMain
+- show aggregated producer rates in MulticastMain
 
 
 .net client
@@ -104,16 +110,16 @@ management plugin
 bug fixes
 - fix overview page in MSIE
 - give sensible error if user tags field is missing
-- fix wrong date in "last updated" in the web UI
 - escape HTML entities properly in the web UI
 - fix [Admin] etc links which were broken in some browsers
+- fix wrong date in "last updated" in the web UI
 
 enhancements
 - add separate form to update users
 - add option to import file of entity definitions at startup
 - publish messages from the queue details page of the web UI
 - make "exchange type" into a select box in the web UI
-- show the heartbeat more clearly in the web UI
+- show the connection heartbeat more clearly in the web UI
 
 
 rabbitmqadmin
@@ -138,7 +144,7 @@ STOMP plugin
 bug fixes
 - fix invalid MESSAGE Frames for reply-to temporary queues
 - fix non-UTF-8 durable topic subscription queue names
-- behave sensible on death of the internal AMQP connection / channel
+- behave sensibly on death of the internal AMQP connection / channel
 - prevent an infinite loop when implicit connect enabled with an invalid
   username / password
 - allow more than one SSL handshake to happen at once
