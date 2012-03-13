@@ -8,7 +8,7 @@ server
 bug fixes
 - reduce idle CPU usage when there are lots of mirrored queues
 - fix a rare bug which could cause the server to stop accepting connections
-- ensure starting a ram node when all disk nodes are down fails instead
+- ensure starting a ram node when all disk nodes are down fails, instead
   of creating a blank ram node
 - fix a race in mirrored queues where one node could run two slaves
 - improve internal accounting of file descriptors; make it harder to hit the
@@ -159,8 +159,6 @@ enhancements
 
 auth backend LDAP plugin
 ------------------------
-bug fixes
-
 enhancements
 - optionally look up a user's DN after binding - useful for Microsoft
   Active Directory
