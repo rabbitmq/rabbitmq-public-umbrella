@@ -109,8 +109,10 @@ management plugin
 -----------------
 bug fixes
 - fix overview page in MSIE
-- give sensible error if user tags field is missing
 - escape HTML entities properly in the web UI
+- fix incorrect display of mirrored queues as unsynchronised after database
+  failover
+- give sensible error if user tags field is missing
 - fix [Admin] etc links which were broken in some browsers
 - fix wrong date in "last updated" in the web UI
 
@@ -120,6 +122,11 @@ enhancements
 - publish messages from the queue details page of the web UI
 - make "exchange type" into a select box in the web UI
 - show the connection heartbeat more clearly in the web UI
+
+json-rpc plugin
+---------------
+bug fixes
+- fix memory leak in ETS
 
 
 rabbitmqadmin
