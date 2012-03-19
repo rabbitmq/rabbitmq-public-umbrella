@@ -13,9 +13,7 @@ bug fixes
 - fix a race in mirrored queues where one node could run two slaves
 - improve internal accounting of file descriptors; make it harder to hit the
   limit unexpectedly
-- don't start external cpu_sup process; we don't need it
-- more robustness if rabbitmq-plugins cannot parse the enabled plugins file
-- remaining cosmetic R15B bugs fixed
+- rabbitmqctl <unknown-action> fixed on R15B
 - fix race condition leading to monitoring other cluster nodes twice
 - leave the Erlang distributed system, not just Mnesia, when resetting
 - more consistent handling of RABBITMQ_* environment variables
@@ -45,6 +43,8 @@ enhancements
 - consistent naming of connections and channels across rabbitmqctl and the
   management plugin
 - file descriptor statistics added to "rabbitmqctl status"
+- more robustness if rabbitmq-plugins cannot parse the enabled plugins file
+- don't start external cpu_sup process; we don't need it
 
 performance improvements
 - consuming has smarter flow control, leading to performance improvements in
