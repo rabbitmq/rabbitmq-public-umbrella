@@ -123,6 +123,7 @@ enhancements
 - make "exchange type" into a select box in the web UI
 - show the connection heartbeat more clearly in the web UI
 
+
 json-rpc plugin
 ---------------
 bug fixes
