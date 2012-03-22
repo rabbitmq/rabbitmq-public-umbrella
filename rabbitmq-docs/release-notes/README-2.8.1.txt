@@ -8,17 +8,18 @@ server
 bug fixes
 - fixed cluster upgrades for RAM nodes
 
+
 packaging
 ---------
 bug fixes
 - remove use of runuser for the SUSE RPM
 - package rabbitmq-echopid.bat on Windows
 
+
 management plugin
 -----------------
 bug fixes
 - fixed web UI for users with only the 'management' tag
-
 
 
 Upgrading
