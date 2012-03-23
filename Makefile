@@ -63,7 +63,7 @@ check-xref:
 plugins-dist: release
 	rm -rf $(PLUGINS_DIST_DIR)
 	mkdir -p $(PLUGINS_DIST_DIR)
-	$(MAKE) -f all-packages.mk copy-releasable VERSION=$(VERSION) $(PLUGINS_DIST_DIR)=$(PLUGINS_DIST_DIR)
+	$(MAKE) -f all-packages.mk copy-releasable VERSION=$(VERSION) PLUGINS_DIST_DIR=$(PLUGINS_DIST_DIR)
 
 plugins-srcdist:
 	rm -rf $(PLUGINS_SRC_DIST_DIR)
@@ -75,7 +75,7 @@ plugins-srcdist:
 	rsync -a --exclude '.hg*' rabbitmq-server $(PLUGINS_SRC_DIST_DIR)/
 	touch $(PLUGINS_SRC_DIST_DIR)/rabbitmq-server/.srcdist_done
 
-	$(MAKE) -f all-packages.mk copy-srcdist VERSION=$(VERSION) $(PLUGINS_SRC_DIST_DIR)=$(PLUGINS_SRC_DIST_DIR)
+	$(MAKE) -f all-packages.mk copy-srcdist VERSION=$(VERSION) PLUGINS_SRC_DIST_DIR=$(PLUGINS_SRC_DIST_DIR)
 	cp Makefile *.mk generate* $(PLUGINS_SRC_DIST_DIR)/
 	echo "This is the released version of rabbitmq-public-umbrella. \
 You can clone the full version with: hg clone http://hg.rabbitmq.com/rabbitmq-public-umbrella" > $(PLUGINS_SRC_DIST_DIR)/README
