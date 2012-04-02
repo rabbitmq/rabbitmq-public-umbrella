@@ -53,7 +53,10 @@ WEBSITE_REPO=
 
 # The email address field to use in package changelog
 # entries.  If you omit this, changelog entries won't be added.
-CHANGELOG_EMAIL=
+CHANGELOG_EMAIL=packaging@rabbitmq.com
+
+# The full name to use in package changelog # entries, if an entry is added.
+CHANGELOG_FULLNAME="RabbitMQ Team"
 
 # The comment for changelog entires
 CHANGELOG_COMMENT="Test release"
@@ -80,7 +83,7 @@ while [[ $# -gt 0 ]] ; do
 done
 
 mandatory_vars="VERSION BUILD_USERHOST"
-optional_vars="SSH_OPTS KEYSDIR SIGNING_PARAMS WEB_URL WEBSITE_REPO CHANGELOG_EMAIL CHANGELOG_COMMENT TOPDIR topdir REPOS SCRIPTDIR UMBRELLADIR WIN_USERHOST"
+optional_vars="SSH_OPTS KEYSDIR SIGNING_PARAMS WEB_URL WEBSITE_REPO CHANGELOG_EMAIL CHANGELOG_FULLNAME CHANGELOG_COMMENT TOPDIR topdir REPOS SCRIPTDIR UMBRELLADIR WIN_USERHOST"
 
 . $SCRIPTDIR/utils.sh
 absolutify_scriptdir
@@ -179,7 +182,8 @@ make clean
 
 if [[ -n "$CHANGELOG_EMAIL" ]] ; then
     # Tweak changelogs
-    ( cd rabbitmq-server/packaging/debs/Debian/debian ; DEBEMAIL="$CHANGELOG_EMAIL" dch -v ${VERSION}-1 --check-dirname-level 0 "$CHANGELOG_COMMENT" )
+    ( cd rabbitmq-server/packaging/debs/Debian/debian ; DEBFULLNAME="$CHANGELOG_FULLNAME" DEBEMAIL="$CHANGELOG_EMAIL" \
+      dch -v ${VERSION}-1 --check-dirname-level 0 --distribution unstable --force-distribution "$CHANGELOG_COMMENT" )
 
     spec=rabbitmq-server/packaging/RPMS/Fedora/rabbitmq-server.spec
     mv $spec $spec~
