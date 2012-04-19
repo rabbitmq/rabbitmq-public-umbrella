@@ -351,6 +351,13 @@ WITH_BROKER_TEST_SCRIPTS
 
   Default: empty
 
+WITH_BROKER_SETUP_SCRIPTS
+  A space-separated list of scripts which should be invoked
+  alongside a running broker before testing. The exit status of each
+  script should indicate whether the tests succeeded.
+
+  Default: empty
+
 WITH_BROKER_TEST_CONFIG
   The location of a configuration file to give to the broker that will
   run the tests.
