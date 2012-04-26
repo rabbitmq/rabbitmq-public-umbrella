@@ -36,7 +36,8 @@ packaging
 ---------
 bug fixes
 - Debian: provide a mechanism to change the FD limit
-- Debian: don't delete the rabbitmq user when removing package (#663503)
+- Debian: don't delete the rabbitmq user when removing package (#663503,
+          #620799, #646175)
 - Debian: use lsb-base functions in init script (#663434)
 
 
