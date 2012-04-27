@@ -19,6 +19,7 @@ bug fixes
 - dead-lettering a large number of messages at once was very slow
 - memory leak when queue references a DLX that does not exist
 - fix startup in FreeBSD jail without IPv6 support (thanks to Mattias Ahlbäck)
+- error logged by mirrored queue supervisor on shutdown
 
 enhancements
 - disc space monitoring and blocking, similar to the existing memory monitoring
