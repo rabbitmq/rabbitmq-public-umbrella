@@ -174,6 +174,7 @@ rabbitmq-server-debian-packaging: rabbitmq-server-srcdist
 	cp rabbitmq-server/packaging/debs/Debian/rabbitmq-server*$(VERSION)*.diff.gz $(SERVER_PACKAGES_DIR)
 	cp rabbitmq-server/packaging/debs/Debian/rabbitmq-server*$(VERSION)*.orig.tar.gz $(SERVER_PACKAGES_DIR)
 	cp rabbitmq-server/packaging/debs/Debian/rabbitmq-server*$(VERSION)*.dsc $(SERVER_PACKAGES_DIR)
+	cp rabbitmq-server/packaging/debs/Debian/rabbitmq-server*$(VERSION)*.changes $(SERVER_PACKAGES_DIR)
 	$(MAKE) -C rabbitmq-server/packaging/debs/apt-repository all \
 		UNOFFICIAL_RELEASE=$(UNOFFICIAL_RELEASE) \
 		GNUPG_PATH=$(GNUPG_PATH) \
