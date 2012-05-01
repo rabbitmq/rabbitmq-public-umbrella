@@ -92,6 +92,9 @@ STANDALONE_TEST_SCRIPTS:=
 # during testing
 WITH_BROKER_TEST_SCRIPTS:=
 
+# Test scripts which should be invoked to configure the broker before testing
+WITH_BROKER_SETUP_SCRIPTS:=
+
 # When cleaning, should we also remove the cloned directory for
 # wrappers?
 PRESERVE_CLONE_DIR?=
@@ -318,7 +321,8 @@ define run_with_broker_tests_aux
 	$(call run_broker,'-pa $(TEST_EBIN_DIR) -coverage directories ["$(EBIN_DIR)"$(COMMA)"$(TEST_EBIN_DIR)"]',RABBITMQ_CONFIG_FILE=$(WITH_BROKER_TEST_CONFIG),$(1)) &
 	$(UMBRELLA_BASE_DIR)/rabbitmq-server/scripts/rabbitmqctl -n $(NODENAME) wait $(TEST_TMPDIR)/$(NODENAME).pid
 	echo > $(TEST_TMPDIR)/rabbit-test-output && \
-	if $(foreach CMD,$(WITH_BROKER_TEST_COMMANDS), \
+	if $(foreach SCRIPT,$(WITH_BROKER_SETUP_SCRIPTS),$(SCRIPT) &&) \
+	    $(foreach CMD,$(WITH_BROKER_TEST_COMMANDS), \
 	     echo >> $(TEST_TMPDIR)/rabbit-test-output && \
 	     echo "$(CMD)." \
                | tee -a $(TEST_TMPDIR)/rabbit-test-output \
