@@ -24,6 +24,7 @@ PACKAGE_REPOS:=\
     rabbitmq-management-visualiser \
     rabbitmq-metronome \
     rabbitmq-mochiweb \
+    rabbitmq-old-federation \
     rabbitmq-shovel \
     rabbitmq-shovel-management \
     rabbitmq-stomp \
