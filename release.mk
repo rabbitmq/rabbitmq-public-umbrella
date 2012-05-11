@@ -58,6 +58,15 @@ checkout: $(foreach r,$(REPOS_WITH_PUBLIC),.$(r).checkout)
 	$(MAKE) -C rabbitmq-public-umbrella checkout
 	touch $@
 
+.PHONY: named_update
+named_update: $(foreach r,$(REPOS_WITH_PUBLIC),.$(r).named_update)
+
+.%.named_update: .%.checkout
+	hg update -R $* -C $(BRANCH)
+
+.rabbitmq-public-umbrella.named_update:
+	$(MAKE) -C rabbitmq-public-umbrella named_update BRANCH=$(BRANCH)
+
 .PHONY: tag
 tag: checkout
 	$(foreach r,. $(REPOS),hg tag -R $(r) $(TAG);)

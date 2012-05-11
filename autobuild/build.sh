@@ -69,6 +69,9 @@ TOPDIR=
 # letting it clone them.
 REPOS=
 
+# Branch/tag to update to in the repos, if not default
+BRANCH=
+
 # Where auxiliary scripts live
 SCRIPTDIR=$(dirname $0)
 
@@ -179,6 +182,7 @@ done
 
 make checkout HG_OPTS="-e 'ssh $SSH_OPTS'" HGREPOBASE="$HGREPOBASE"
 make clean
+[[ -n "$BRANCH" ]] && make named_update BRANCH=$BRANCH
 
 if [[ -n "$CHANGELOG_EMAIL" ]] ; then
     # Tweak changelogs
