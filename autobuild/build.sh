@@ -181,7 +181,6 @@ for repo in $REPOS ; do
 done
 
 make checkout HG_OPTS="-e 'ssh $SSH_OPTS'" HGREPOBASE="$HGREPOBASE"
-make clean
 [[ -n "$BRANCH" ]] && make named_update BRANCH=$BRANCH
 
 if [[ -n "$CHANGELOG_EMAIL" ]] ; then
@@ -201,6 +200,11 @@ EOF
 fi
 
 rsync -a $TOPDIR/ $BUILD_USERHOST:$topdir
+
+# We don't do 'make clean' locally because it can rely on things like ant.
+ssh $SSH_OPTS $BUILD_USERHOST '
+    set -e -x
+    make -C '$topdir'/rabbitmq-umbrella clean'
 
 # Do per-user install of the required erlang/OTP versions
 ssh $SSH_OPTS $BUILD_USERHOST "$topdir/install-otp.sh R12B-5"
@@ -228,6 +232,8 @@ if [ -n "$WIN_USERHOST" ] ; then
 
     dotnetdir=$topdir/rabbitmq-umbrella/rabbitmq-dotnet-client
     local_dotnetdir=$TOPDIR/rabbitmq-umbrella/rabbitmq-dotnet-client
+
+    make -C $local_dotnetdir clean
 
     ssh $SSH_OPTS "$WIN_USERHOST" "mkdir -p $dotnetdir"
     rsync -a $local_dotnetdir/ "$WIN_USERHOST:$dotnetdir"
