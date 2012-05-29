@@ -4,6 +4,7 @@
 VERSION=0.0.0
 VDIR=v$(VERSION)
 TAG=rabbitmq_$(subst .,_,$(VDIR))
+BRANCH=default
 
 SIGNING_KEY=056E8E56
 SIGNING_USER_EMAIL=info@rabbitmq.com
@@ -57,6 +58,11 @@ checkout: $(foreach r,$(REPOS_WITH_PUBLIC),.$(r).checkout)
 	[ -d rabbitmq-public-umbrella ] || hg clone $(HG_OPTS) $(HGREPOBASE)/rabbitmq-public-umbrella
 	$(MAKE) -C rabbitmq-public-umbrella checkout
 	touch $@
+
+.PHONY: named_update
+named_update: checkout
+	$(foreach r,. $(REPOS),hg pull;hg update -R $(r) -C $(BRANCH);)
+	$(MAKE) -C rabbitmq-public-umbrella named_update BRANCH=$(BRANCH)
 
 .PHONY: tag
 tag: checkout
