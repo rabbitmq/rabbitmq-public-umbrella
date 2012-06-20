@@ -7,7 +7,7 @@ server
 ------
 bug fixes
 - several fixes to communication protocol underlying HA queues
-- process leak deleting HA queues
+- memory leak deleting HA queues
 - rotating logs loaded the entire log file into memory
 - queues with many busy consumers could refuse to accept publishes until empty
 - stale transient queue information could be left behind when a node restarted
@@ -20,15 +20,17 @@ bug fixes
 - RABBITMQ_PLUGINS_DIR could not be set on Windows
 
 enhancements
-- reduce default disk space limit to 1GB since many users were tripping over
-  this when getting started
+- set default disk space limit to 1GB since many users were running into the
+  previous default limit of {mem_relative, 1.0} when running RabbitMQ for
+  the first time
 
 
 packaging
 ---------
 bug fixes
 - Debian: uninstalling failed if broker was stopped
-- Debian: server process was not child of init
+- Debian: server process was not child of init, leading it to get closed in
+  certain situations
 
 enhancements
 - Debian: emit upstart events
@@ -43,14 +45,17 @@ enhancements
 erlang client
 -------------
 bug fixes
-- code_change/3 did not return {ok, State} in many places
-- function_clause when SSL connection closed abruptly under R15B0x
+- code_change/3 did not return {ok, State} in many places breaking
+  applications that use code reloading and the Erlang client
+- spurious function_clause error in logs when SSL connection closed abruptly
+  under R15B0x
 
 
 federation plugin
 -----------------
 enhancements
-- default prefetch count to 1000, rather than unlimited, to give flow control
+- set default prefetch count to 1000, rather than unlimited, to ensure there
+  is flow control on federation links
 
 
 management plugin
