@@ -6,7 +6,8 @@ Release Highlights
 server
 ------
 bug fixes
-- log files could grow indefinitely after rotation when no suffix was specified
+- log file rotation when no suffix was specified could lead to the log file
+  growing rapidly
 - rabbitmq-plugins.bat did not work
 
 
