@@ -338,7 +338,7 @@ define run_with_broker_tests_aux
 	  echo "\n\nFAILED\n" ; \
 	fi
 	sleep 1
-	echo "init:stop()." | $(ERL_CALL) $(ERL_CALL_OPTS) >/dev/null
+	echo "rabbit_misc:report_cover(), init:stop()." | $(ERL_CALL) $(ERL_CALL_OPTS)
 	sleep 1
 	test -f $(TEST_TMPDIR)/.passed
 endef

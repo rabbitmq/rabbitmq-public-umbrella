@@ -34,15 +34,7 @@
 -export([init/1]). 
 
 stop(_State) ->
-    case application:get_env(coverage, directories) of
-        undefined ->
-            ok;
-        {ok, []} ->
-            ok;
-        _ ->
-            rabbit_misc:report_cover(),
-            cover:stop()
-    end.
+    ok.
 
 start(normal, []) -> supervisor:start_link(?MODULE, []).
 
