@@ -1,9 +1,0 @@
-syntax: glob
-*~
-erl_crash.dump
-.pb.preset
-
-syntax: regexp
-^dist/
-
-^erlang-rfc4627/
