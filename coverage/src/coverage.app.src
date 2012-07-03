@@ -3,5 +3,4 @@
   {vsn, "%%VSN%%"},
   {modules, []},
   {registered, []},
-  {mod, {coverage, []}},
   {applications, [kernel, stdlib]}]}.

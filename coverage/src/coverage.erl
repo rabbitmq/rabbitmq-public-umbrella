@@ -26,17 +26,7 @@
                     {mfa,         {?MODULE, start_coverage, []}},
                     {enables,     pre_boot}]}).
 
--behaviour(application).
--behaviour(supervisor).
-
 -export([start_coverage/0]).
--export([start/2, stop/1]).
--export([init/1]). 
-
-stop(_State) ->
-    ok.
-
-start(normal, []) -> supervisor:start_link(?MODULE, []).
 
 start_coverage() ->
     case application:get_env(coverage, directories) of
@@ -54,6 +44,3 @@ start_coverage() ->
                       end
               end, ok, Directories)
     end.
-
-init([]) -> 
-    {ok, {{one_for_all, 0, 1}, []}}.
