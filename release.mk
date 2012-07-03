@@ -61,7 +61,7 @@ checkout: $(foreach r,$(REPOS_WITH_PUBLIC),.$(r).checkout)
 
 .PHONY: named_update
 named_update: checkout
-	$(foreach r,. $(REPOS),hg pull;hg update -R $(r) -C $(BRANCH);)
+	$(foreach r,. $(REPOS),hg pull -R $(r);hg update -R $(r) -C $(BRANCH);)
 	$(MAKE) -C rabbitmq-public-umbrella named_update BRANCH=$(BRANCH)
 
 .PHONY: tag
