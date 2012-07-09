@@ -1,5 +1,0 @@
-To run the functional tests and obtain code coverage stats:
-
-1) cd into 'rabbitmq-test'
-2) run 'make all'
-3) inspect the coverage result html files in rabbitmq-server/cover
