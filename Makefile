@@ -5,7 +5,6 @@ default:
 PACKAGE_REPOS:=\
     cowboy-wrapper \
     eldap-wrapper \
-    erlando \
     erlang-rfc4627-wrapper \
     mochiweb-wrapper \
     sockjs-erlang-wrapper \
