@@ -66,7 +66,5 @@ filter_noise(MFAs) ->
 
 is_interesting({'$M_EXPR', _, _}) -> false;
 is_interesting({_, '$F_EXPR', _}) -> false;
-%% Mochiweb may optionally use fdsrv, but we don't include it.
-is_interesting({fdsrv, _, _})     -> false;
 is_interesting({_, _, -1})        -> false;
 is_interesting(_)                 -> true.
