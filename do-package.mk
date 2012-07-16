@@ -243,7 +243,7 @@ endif # UPSTREAM_HG
 
 # When we clone, we need to remake anything derived from the app file
 # (e.g. build/version.mk).
-$(ORIGINAL_APP_FILE): $(CLONE_DIR)/.done
+$(ORIGINAL_APP_FILE): $(CLONE_DIR)/.done $(PACKAGE_DIR)+override-target
 
 # We include the commit hash into the package version, via
 # build/hash.mk
