@@ -236,6 +236,11 @@ PACKAGE_ERLC_OPTS
 
   Default: $(ERLC_OPTS)
 
+COMPILE_PREREQS
+  Anything that needs to get built before compilation can occur.
+
+  Default: empty
+
 
 Layout of a typical package
 ===========================

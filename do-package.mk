@@ -53,6 +53,9 @@ RELEASABLE:=
 # package
 PACKAGE_ERLC_OPTS=$(ERLC_OPTS)
 
+# Any targets needed before compilation can occur
+COMPILE_PREREQS:=
+
 # The directories containing Erlang source files
 SOURCE_DIRS:=$(PACKAGE_DIR)/src
 
