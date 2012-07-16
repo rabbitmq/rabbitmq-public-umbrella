@@ -243,7 +243,7 @@ endif # UPSTREAM_HG
 
 # When we clone, we need to remake anything derived from the app file
 # (e.g. build/version.mk).
-$(ORIGINAL_APP_FILE): $(CLONE_DIR)/.done $(PACKAGE_DIR)+override-target
+$(ORIGINAL_APP_FILE): $(CLONE_DIR)/.done
 
 # We include the commit hash into the package version, via
 # build/hash.mk
@@ -272,7 +272,7 @@ endif # UPSTREAM_TYPE
 # Generate a rule to compile .erl files from the directory $(1) into
 # directory $(2), taking extra erlc options from $(3)
 define package_source_dir_targets
-$(2)/%.beam: $(1)/%.erl $(PACKAGE_DIR)/build/dep-apps/.done | $(DEPS_FILE)
+$(2)/%.beam: $(1)/%.erl $(PACKAGE_DIR)/build/dep-apps/.done $(COMPILE_PREREQS) | $(DEPS_FILE)
 	@mkdir -p $$(@D)
 	ERL_LIBS=$(PACKAGE_DIR)/build/dep-apps $(ERLC) $(PACKAGE_ERLC_OPTS) $(foreach D,$(INCLUDE_DIRS),-I $(D)) -pa $$(@D) -o $$(@D) $(3) $$<
 
