@@ -8,14 +8,25 @@ server
 bug fixes
 - unnecessary CPU utilisation no longer occurs in the presence of large
   numbers of idle HA queues
-- rapidly declaring then deleting HA queues no longer crashes the master
-- fixed a race condition in handling node down signals that could result in
-  HA queues failing to restart on a slave
-- channel will no longer crash when detecting that nodes no longer contactable
-- log file rotation when no suffix was specified could lead to the log file
-  growing rapidly
-- rabbitmq-plugins.bat did not work
+- rapidly declaring and then deleting HA queues no longer crashes the master
+- fixed a race condition in handling node down signals, that could result in
+  HA queues failing to restart when bringing a mirror/slave back online
+- channels no longer crash when detecting nodes that have gone offline
+- rabbitmqctl no longer garbles error messages when rendering non-ASCII
+  characters
+- the installer now places the .erlang.cookie file in %HOMEDRIVE%\%HOMEPATH%
+  on Windows, so that %USERPROFILE% can be safely relocated
 
+STOMP plugin
+------------
+bug fixes
+- fixed a bug in the test suite that was failing to check for the expected
+  number of receipts before checking if a message had arrived successfully
+
+jsonrpc-channel plugin
+----------------------
+bug fixes
+- updated to support the latest versions of rfc4627 and Mochiweb
 
 Upgrading
 =========
