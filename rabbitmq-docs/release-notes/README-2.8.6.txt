@@ -6,15 +6,11 @@ Release Highlights
 server
 ------
 bug fixes
-- the broker no longer reaps dead messages in batches based on the TTL,
-  which could lead to high latency when combined with a DLX, but instead
-  the server will try to reap messages at or shortly after their
-  TTL-based expiry
 - removing RAM nodes from a cluster no longer leads to inconsistent state
   on disk nodes (which previously failed to notice the RAM nodes' departure) 
-- the broker now handles the vm_memory_high_watermark more explicitly, tracking
-  and using the supplied value directly instead of reconstructing the high
-  watermark from limit/total absolute values
+- reap TTL-expired messages promptly rather than after a delay of up to TTL,
+  which could result in performance spikes
+- correct reporting of the vm_memory_high_watermark
 
 Upgrading
 =========
