@@ -7,10 +7,24 @@ server
 ------
 bug fixes
 - removing RAM nodes from a cluster no longer leads to inconsistent state
-  on disk nodes (which previously failed to notice the RAM nodes' departure) 
+  on disk nodes (which previously failed to notice the RAM nodes' departure)
 - reap TTL-expired messages promptly rather than after a delay of up to TTL,
   which could result in performance spikes
 - correct reporting of the vm_memory_high_watermark
+- reduce likelihood of node name collision on Windows due to non-randomness
+  of %RANDOM%
+
+erlang client
+-------------
+bug fixes
+- correctly account for file handles consumed by outgoing network connections
+  when running as a plugin
+
+management plugin
+-----------------
+bug fixes
+- prevent publishing a message with non-binary content
+
 
 Upgrading
 =========
