@@ -6,6 +6,8 @@ Release Highlights
 server
 ------
 bug fixes
+- removed unsupported plugins added in 2.8.5 (old-federation, sockjs-erlang,
+  cowboy, web-stomp and web-stomp-examples)
 - removing RAM nodes from a cluster no longer leads to inconsistent state
   on disk nodes (which previously failed to notice the RAM nodes' departure)
 - reap TTL-expired messages promptly rather than after a delay of up to TTL,
