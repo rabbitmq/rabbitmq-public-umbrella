@@ -277,7 +277,7 @@ DEPLOY_RSYNC_CMDS=\
 		$(RSYNC_CMD) $(PACKAGES_DIR)/$$subdirectory/* \
 		    $(DEPLOY_DEST)/$$subdirectory ; \
 	done; \
-	for subdirectory in debian macports ; do \
+	for subdirectory in debian ; do \
 		$(RSYNC_CMD) $(PACKAGES_DIR)/$$subdirectory \
 	    	    $(DEPLOY_DEST); \
 	done; \
