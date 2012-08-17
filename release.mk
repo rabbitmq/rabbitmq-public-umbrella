@@ -4,6 +4,7 @@
 VERSION=0.0.0
 VDIR=v$(VERSION)
 TAG=rabbitmq_$(subst .,_,$(VDIR))
+BRANCH=default
 
 SIGNING_KEY=056E8E56
 SIGNING_USER_EMAIL=info@rabbitmq.com
@@ -57,6 +58,11 @@ checkout: $(foreach r,$(REPOS_WITH_PUBLIC),.$(r).checkout)
 	[ -d rabbitmq-public-umbrella ] || hg clone $(HG_OPTS) $(HGREPOBASE)/rabbitmq-public-umbrella
 	$(MAKE) -C rabbitmq-public-umbrella checkout
 	touch $@
+
+.PHONY: named_update
+named_update: checkout
+	$(foreach r,. $(REPOS),hg pull -R $(r);hg update -R $(r) -C $(BRANCH);)
+	$(MAKE) -C rabbitmq-public-umbrella named_update BRANCH=$(BRANCH)
 
 .PHONY: tag
 tag: checkout
@@ -174,6 +180,7 @@ rabbitmq-server-debian-packaging: rabbitmq-server-srcdist
 	cp rabbitmq-server/packaging/debs/Debian/rabbitmq-server*$(VERSION)*.diff.gz $(SERVER_PACKAGES_DIR)
 	cp rabbitmq-server/packaging/debs/Debian/rabbitmq-server*$(VERSION)*.orig.tar.gz $(SERVER_PACKAGES_DIR)
 	cp rabbitmq-server/packaging/debs/Debian/rabbitmq-server*$(VERSION)*.dsc $(SERVER_PACKAGES_DIR)
+	cp rabbitmq-server/packaging/debs/Debian/rabbitmq-server*$(VERSION)*.changes $(SERVER_PACKAGES_DIR)
 	$(MAKE) -C rabbitmq-server/packaging/debs/apt-repository all \
 		UNOFFICIAL_RELEASE=$(UNOFFICIAL_RELEASE) \
 		GNUPG_PATH=$(GNUPG_PATH) \
