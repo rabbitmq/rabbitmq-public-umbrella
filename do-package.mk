@@ -435,7 +435,7 @@ copy-srcdist:: $(PLUGINS_SRC_DIST_DIR)/$(PACKAGE_DIR)/.srcdist_done
 endif
 
 $(PLUGINS_SRC_DIST_DIR)/$(PACKAGE_DIR)/.srcdist_done:: $(ORIGINAL_APP_FILE) $(foreach P,$(DEP_PATHS),$(PLUGINS_SRC_DIST_DIR)/$(P)/.srcdist_done)
-	rsync -a --exclude '.hg*' --exclude '.git*' $(PACKAGE_DIR) $(PLUGINS_SRC_DIST_DIR)/
+	rsync -a --exclude '.hg*' --exclude '.git*' --exclude '.done' $(PACKAGE_DIR) $(PLUGINS_SRC_DIST_DIR)/
 	[ -f $(PACKAGE_DIR)/license_info ] && cp $(PACKAGE_DIR)/license_info $(PLUGINS_SRC_DIST_DIR)/licensing/license_info_$(PACKAGE_NAME) || true
 	find $(PACKAGE_DIR) -maxdepth 1 -name 'LICENSE-*' -exec cp '{}' $(PLUGINS_SRC_DIST_DIR)/licensing/ \;
 	touch $(PLUGINS_SRC_DIST_DIR)/$(PACKAGE_DIR)/.srcdist_done
