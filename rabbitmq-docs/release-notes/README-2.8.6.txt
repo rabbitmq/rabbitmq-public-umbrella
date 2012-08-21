@@ -6,13 +6,12 @@ Release Highlights
 server
 ------
 bug fixes
-- prevent potential error (present in 2.8.5) during shutdown of a mirrored queue
+- ensure shutdown of mirrored queue nodes is reported correctly
 - removed unsupported plugins added in 2.8.5 (old-federation, sockjs-erlang,
   cowboy, web-stomp and web-stomp-examples)
 - removing RAM nodes from a cluster no longer leads to inconsistent state
   on disk nodes (which previously failed to notice the RAM nodes' departure)
-- reap TTL-expired messages promptly rather than after a delay of up to TTL,
-  which could result in performance spikes
+- reap TTL-expired messages promptly
 - correct reporting of the vm_memory_high_watermark
 - reduce likelihood of node name collision on Windows due to non-randomness
   of %RANDOM%
