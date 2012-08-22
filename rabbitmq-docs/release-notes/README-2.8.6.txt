@@ -6,7 +6,7 @@ Release Highlights
 server
 ------
 bug fixes
-- ensure shutdown of mirrored queue nodes is reported correctly
+- ensure shutdown of mirrored queue nodes is recorded correctly
 - removed unsupported plugins added in 2.8.5 (old-federation, sockjs-erlang,
   cowboy, web-stomp and web-stomp-examples)
 - removing RAM nodes from a cluster no longer leads to inconsistent state
