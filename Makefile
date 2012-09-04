@@ -15,7 +15,6 @@ PACKAGE_REPOS:=\
     rabbitmq-external-exchange \
     rabbitmq-federation \
     rabbitmq-federation-management \
-    rabbitmq-ha-test \
     rabbitmq-jsonrpc \
     rabbitmq-jsonrpc-channel \
     rabbitmq-jsonrpc-channel-examples \

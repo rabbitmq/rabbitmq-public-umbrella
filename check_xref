@@ -44,10 +44,9 @@ main([PackageDir, TmpDir]) ->
     %% I.e. we construct the transitive closure of all calls from any
     %% of the plugin's modules, look at the ranges there of
     %% (i.e. callees, not callers), and see if they're unknown
-
     Q = "U * range (closure E | " ++ ModulesQ ++")",
     {ok, MFAs} = xref:q(?MODULE, Q),
-    case filter_noise(MFAs) of
+    case filter_noise(MFAs, PackageModules) of
         []     -> ok;
         PrMFAs -> io:format("Undefined functions:~n"),
                   [io:format("\t~s:~s/~w~n", [M, F, A]) || {M, F, A} <- PrMFAs],
@@ -61,12 +60,14 @@ add_dir(PackageDir, Dir) ->
         false -> {ok, []}
     end.
 
-filter_noise(MFAs) ->
-    [MFA || MFA <- MFAs, is_interesting(MFA)].
+filter_noise(MFAs, Modules) ->
+    [MFA || MFA <- MFAs, is_interesting(MFA, Modules)].
 
-is_interesting({'$M_EXPR', _, _}) -> false;
-is_interesting({_, '$F_EXPR', _}) -> false;
-%% Mochiweb may optionally use fdsrv, but we don't include it.
-is_interesting({fdsrv, _, _})     -> false;
-is_interesting({_, _, -1})        -> false;
-is_interesting(_)                 -> true.
+is_interesting({'$M_EXPR', _, _},  _Ms) -> false;
+is_interesting({_, '$F_EXPR', _},  _Ms) -> false;
+is_interesting({_, _, -1},         _Ms) -> false;
+%% Cowboy invokes file:sendfile/2 which is only on very recent
+%% Erlang. However it is guarded by a call to
+%% erlang:function_exported/3.
+is_interesting({file, sendfile, 2}, Ms) -> not lists:member(cowboy, Ms);
+is_interesting(_,                  _Ms) -> true.
