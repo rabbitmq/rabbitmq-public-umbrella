@@ -6,15 +6,16 @@ Release Highlights
 server
 ------
 bug fixes
+- ensure shutdown of mirrored queue nodes is recorded correctly
 - removed unsupported plugins added in 2.8.5 (old-federation, sockjs-erlang,
   cowboy, web-stomp and web-stomp-examples)
 - removing RAM nodes from a cluster no longer leads to inconsistent state
   on disk nodes (which previously failed to notice the RAM nodes' departure)
-- reap TTL-expired messages promptly rather than after a delay of up to TTL,
-  which could result in performance spikes
+- reap TTL-expired messages promptly
 - correct reporting of the vm_memory_high_watermark
 - reduce likelihood of node name collision on Windows due to non-randomness
   of %RANDOM%
+
 
 erlang client
 -------------
@@ -22,10 +23,26 @@ bug fixes
 - correctly account for file handles consumed by outgoing network connections
   when running as a plugin
 
+
 management plugin
 -----------------
 bug fixes
 - prevent publishing a message with non-binary content
+
+
+shovel plugin
+-------------
+bug fixes
+- guarantee that reconnect attempts continue if a failure occurs during
+  connection establishment
+
+
+federation plugin
+-----------------
+bug fixes
+- guarantee that links continue to attempt reconnecting if a failure occurs
+  during connection establishment
+- report status correctly in the event of unexpected failure
 
 
 Upgrading
