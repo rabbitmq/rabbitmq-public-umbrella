@@ -5,7 +5,6 @@ default:
 PACKAGE_REPOS:=\
     cowboy-wrapper \
     eldap-wrapper \
-    erlando \
     erlang-rfc4627-wrapper \
     mochiweb-wrapper \
     sockjs-erlang-wrapper \
@@ -16,7 +15,6 @@ PACKAGE_REPOS:=\
     rabbitmq-external-exchange \
     rabbitmq-federation \
     rabbitmq-federation-management \
-    rabbitmq-ha-test \
     rabbitmq-jsonrpc \
     rabbitmq-jsonrpc-channel \
     rabbitmq-jsonrpc-channel-examples \
