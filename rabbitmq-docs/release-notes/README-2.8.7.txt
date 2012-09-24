@@ -33,6 +33,10 @@ Release Highlights
          bug fixes
   25116  - prevent infinite loop when connections fail immediately on startup
 
+         enhancements
+  25152  - reduce unnecessary fsync operations when deleting non-durable resources
+  25157  - offer configuration flag for ipv4 / ipv6 preference
+
 
          management plugin
          -----------------
