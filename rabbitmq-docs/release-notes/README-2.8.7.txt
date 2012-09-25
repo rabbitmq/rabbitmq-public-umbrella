@@ -3,53 +3,50 @@ Release: RabbitMQ 2.8.7
 Release Highlights
 ==================
 
-         server
-         ------
-         bug fixes
-  25112  - fix timer error that prevented slave nodes from proactively persisting acks and
-           messages
-  25114  - prevent hypothetical infinite loop when deleting mirrorred queue
-  25117  - fix race condition that could stop mirrorred queue from sending further
-           publisher acks
-  25118  - fix slave synchronisation detection logic in mirrorred queues
-  25119  - fix possible deadlock during broker shutdown
-  25120  - fix DOS vulnerability possible by malicious SSL clients
-  25144  - fix resource leak when declaring many short-lived mirrorred queues
-  25158  - fix bug that prevented publisher acks when x-message-ttl was set to zero
-  25154  - make log messages around disk free space more intelligible
+server
+------
+bug fixes
+- fix timer error that prevented slave nodes from pro-actively persisting acks
+  and messages
+- prevent hypothetical infinite loop when deleting mirrored queue
+- fix race condition that could stop mirrored queue from sending further
+  publisher acks
+- fix slave synchronisation detection logic in mirrored queues
+- fix possible deadlock during broker shutdown
+- fix DOS vulnerability possible by malicious SSL clients
+- fix resource leak when declaring many short-lived mirrored queues
+- fix bug that prevented publisher acks when x-message-ttl was set to zero
+- make log messages around disk free space more intelligible
 
-         enhancements
-  25152  - reduce unnecessary fsync operations when deleting non-durable resources
-
-
-         packaging
-         ---------
-         bug fixes
-  25113  - ensure source packages can be built without network access
+performance improvements
+- reduce unnecessary fsync operations when deleting non-durable resources
 
 
-         erlang client
-         -------------
-         bug fixes
-  25116  - prevent infinite loop when connections fail immediately on startup
-
-         enhancements
-  25152  - reduce unnecessary fsync operations when deleting non-durable resources
-  25157  - offer configuration flag for ipv4 / ipv6 preference
+packaging
+---------
+bug fixes
+- ensure source packages can be built without network access
 
 
-         management plugin
-         -----------------
-         bug fixes
-  25111  - ensure management database retains information when failing over
+erlang client
+-------------
+bug fixes
+- prevent infinite loop when connections fail immediately on startup
+
+enhancements
+- offer configuration flag for ipv4 / ipv6 preference
 
 
-         STOMP plugin
-         ------------
-         bug fixes
-  25155  - fix bug that caused alarms (e.g. disk free space checking) to turn off
+management plugin
+-----------------
+bug fixes
+- ensure management database retains information when failing over
 
 
+STOMP plugin
+------------
+bug fixes
+- fix bug that caused alarms (e.g. disk free space checking) to turn off
 
 
 Upgrading
