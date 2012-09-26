@@ -31,7 +31,7 @@ bug fixes
 erlang client
 -------------
 bug fixes
-- prevent infinite loop when connections fail immediately on startup
+- fix bug when connections fail immediately on startup
 
 enhancements
 - offer configuration flag for ipv4 / ipv6 preference
@@ -40,7 +40,7 @@ enhancements
 management plugin
 -----------------
 bug fixes
-- ensure management database retains information when failing over
+- prevent management plugin from crashing nodes when failing over
 
 
 STOMP plugin
