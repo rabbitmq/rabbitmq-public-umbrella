@@ -6,20 +6,20 @@ Release Highlights
 server
 ------
 bug fixes
-- fix timer error that prevented slave nodes from pro-actively persisting acks
-  and messages
-- prevent hypothetical infinite loop when deleting mirrored queue
 - fix race condition that could stop mirrored queue from sending further
   publisher acks
+- fix bug that prevented publisher acks when x-message-ttl was set to zero
 - fix slave synchronisation detection logic in mirrored queues
 - fix possible deadlock during broker shutdown
-- fix DOS vulnerability possible by malicious SSL clients
 - fix resource leak when declaring many short-lived mirrored queues
-- fix bug that prevented publisher acks when x-message-ttl was set to zero
+- fix DOS vulnerability possible by malicious SSL clients
 - make disk free space reporting more intelligible
+- prevent infinite loop when deleting mirrored queue
 
 performance improvements
 - reduce unnecessary fsync operations when deleting non-durable resources
+- slave nodes of mirrored queues now pro-actively persist acks and messages on
+  a timer with a sensible interval
 
 
 packaging
