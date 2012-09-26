@@ -16,7 +16,7 @@ bug fixes
 - fix DOS vulnerability possible by malicious SSL clients
 - fix resource leak when declaring many short-lived mirrored queues
 - fix bug that prevented publisher acks when x-message-ttl was set to zero
-- make log messages around disk free space more intelligible
+- make disk free space reporting more intelligible
 
 performance improvements
 - reduce unnecessary fsync operations when deleting non-durable resources
