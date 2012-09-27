@@ -7,11 +7,13 @@ server
 ------
 bug fixes
 - fix race condition that could stop mirrored queue from sending further
-  publisher acks
-- fix bug that prevented publisher acks when x-message-ttl was set to zero
+  confirms, and cause it to leak memory
+- fix bug that prevented confirms from mirrored queues when x-message-ttl
+  was set to zero
 - fix slave synchronisation detection logic in mirrored queues
 - fix possible deadlock during broker shutdown
-- fix resource leak when declaring many short-lived mirrored queues
+- fix resource leak when declaring many short-lived mirrored queues with
+  different names
 - fix DOS vulnerability possible by malicious SSL clients
 - make disk free space reporting more intelligible
 
@@ -30,7 +32,8 @@ bug fixes
 erlang client
 -------------
 bug fixes
-- fix bug when connections fail immediately on startup
+- ensure management plugin is notified when connections fail as soon as
+  they are opened
 
 enhancements
 - offer configuration flag for ipv4 / ipv6 preference
