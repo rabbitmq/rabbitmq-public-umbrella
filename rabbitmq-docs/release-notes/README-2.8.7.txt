@@ -14,7 +14,6 @@ bug fixes
 - fix resource leak when declaring many short-lived mirrored queues
 - fix DOS vulnerability possible by malicious SSL clients
 - make disk free space reporting more intelligible
-- prevent infinite loop when deleting mirrored queue
 
 performance improvements
 - reduce unnecessary fsync operations when deleting non-durable resources
