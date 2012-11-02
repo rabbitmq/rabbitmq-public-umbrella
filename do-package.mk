@@ -228,6 +228,8 @@ ifdef UPSTREAM_GIT
 $(CLONE_DIR)/.done:
 	rm -rf $(CLONE_DIR)
 	git clone $(UPSTREAM_GIT) $(CLONE_DIR)
+	# Work around weird github breakage (bug 25264)
+	cd $(CLONE_DIR) && git pull
 	$(if $(UPSTREAM_REVISION),cd $(CLONE_DIR) && git checkout $(UPSTREAM_REVISION))
 	$(if $(WRAPPER_PATCHES),$(foreach F,$(WRAPPER_PATCHES),patch -d $(CLONE_DIR) -p1 <$(PACKAGE_DIR)/$(F) &&) :)
 	touch $$@
