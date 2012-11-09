@@ -159,6 +159,11 @@ rabbitmq-server-generic-unix-packaging: rabbitmq-server-srcdist
 	$(MAKE) -C rabbitmq-server/packaging/generic-unix dist VERSION=$(VERSION)
 	cp rabbitmq-server/packaging/generic-unix/rabbitmq-server-generic-unix-*.tar.gz $(SERVER_PACKAGES_DIR)
 
+.PHONY: rabbitmq-server-mac-standalone-packaging
+rabbitmq-server-mac-standalone-packaging: rabbitmq-server-srcdist
+	$(MAKE) -C rabbitmq-server/packaging/mac dist VERSION=$(VERSION)
+	cp rabbitmq-server/packaging/mac/rabbitmq-server-mac-standalone-*.tar.gz $(SERVER_PACKAGES_DIR)
+
 .PHONY: rabbitmq-server-windows-packaging
 rabbitmq-server-windows-packaging: rabbitmq-server-srcdist
 	$(MAKE) -C rabbitmq-server/packaging/windows dist VERSION=$(VERSION)
@@ -306,4 +311,3 @@ verify-signatures:
 
 deploy-maven: verify-signatures
 	$(MAKE) -C rabbitmq-java-client stage-and-promote-maven-bundle SIGNING_KEY=$(SIGNING_KEY) VERSION=$(VERSION) GNUPG_PATH=$(GNUPG_PATH)
-
