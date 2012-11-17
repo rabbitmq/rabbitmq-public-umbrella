@@ -289,6 +289,11 @@ if [ -n "$MAC_USERHOST" = ] ; then
     cd rabbitmq-umbrella
     { make rabbitmq-server-standalone-packaging '"$vars"' ; } 2>&1
 '
+
+# Copy everything back from the build host
+rsync -a $MAC_USERHOST:$topdir/ $TOPDIR
+ssh $SSH_OPTS $MAC_USERHOST "rm -rf $topdir"
+
 fi
 
 new_vars="$vars VERSION=$VERSION WEB_URL=\"$WEB_URL\" UNOFFICIAL_RELEASE=$UNOFFICIAL_RELEASE"
