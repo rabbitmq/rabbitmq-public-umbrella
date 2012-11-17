@@ -280,6 +280,9 @@ if [ -n "$MAC_USERHOST" = ] ; then
     ssh $SSH_OPTS "$MAC_USERHOST" "mkdir -p $topdir"
     rsync -a $TOPDIR/ $MAC_USERHOST:$topdir
 
+## Do per-user install of the required erlang/OTP versions
+    ssh $SSH_OPTS $MAC_USERHOST "$topdir/install-otp.sh R12B-5"
+
 ## build the mac standalone package
     vars="VERSION=$VERSION"
     ssh $SSH_OPTS "$MAC_USERHOST" '
