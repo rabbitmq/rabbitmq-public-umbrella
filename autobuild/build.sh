@@ -308,6 +308,8 @@ if [ -n "$KEYSDIR" ] ; then
     # Set things up for signing
     rsync -r $KEYSDIR/keyring/ $BUILD_USERHOST:$topdir/keyring/
     vars="$new_vars GNUPG_PATH=$topdir/keyring $SIGNING_PARAMS"
+else
+    vars="$new_vars"
 fi
 
 ssh $SSH_OPTS $BUILD_USERHOST '
