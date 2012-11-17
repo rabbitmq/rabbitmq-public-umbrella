@@ -17,6 +17,10 @@ BUILD_USERHOST=
 # it, the windows bits won't get built.
 WIN_USERHOST=
 
+# The Mac ssh user@host to use for the mac bits.  If you omit
+# it, the windows bits won't get built.
+MAC_USERHOST=
+
 # Setting the following variables is optional.
 
 # Options to pass to ssh commands.  '-i identity_file' is useful for
@@ -39,11 +43,11 @@ SIGNING_PARAMS=
 # If empty, we start a local python web server.  Should include a
 # trailing slash.
 #
-# Make sure your proxy configuration for elinks on BUILD_USERHOST 
-# correctly includes or excludes the hostname of this URL. Using 
-# $(hostname -f) instead of $(hostname) when running a local python 
-# webserver may help. The symptom of a misconfiguration is an 
-# INSTALL file containing a proxy error message instead of 
+# Make sure your proxy configuration for elinks on BUILD_USERHOST
+# correctly includes or excludes the hostname of this URL. Using
+# $(hostname -f) instead of $(hostname) when running a local python
+# webserver may help. The symptom of a misconfiguration is an
+# INSTALL file containing a proxy error message instead of
 # installation instructions.
 WEB_URL=
 
@@ -83,7 +87,7 @@ while [[ $# -gt 0 ]] ; do
 done
 
 mandatory_vars="VERSION BUILD_USERHOST"
-optional_vars="SSH_OPTS KEYSDIR SIGNING_PARAMS WEB_URL WEBSITE_REPO CHANGELOG_EMAIL CHANGELOG_FULLNAME CHANGELOG_COMMENT TOPDIR topdir REPOS SCRIPTDIR UMBRELLADIR WIN_USERHOST"
+optional_vars="SSH_OPTS KEYSDIR SIGNING_PARAMS WEB_URL WEBSITE_REPO CHANGELOG_EMAIL CHANGELOG_FULLNAME CHANGELOG_COMMENT TOPDIR topdir REPOS SCRIPTDIR UMBRELLADIR WIN_USERHOST MAC_USERHOST"
 
 . $SCRIPTDIR/utils.sh
 absolutify_scriptdir
@@ -110,6 +114,7 @@ set -e -x
 ssh $SSH_OPTS $BUILD_USERHOST 'true'
 ssh $SSH_OPTS $ROOT_USERHOST 'true'
 [ -n "$WIN_USERHOST" ] && ssh $SSH_OPTS "$WIN_USERHOST" 'true'
+[ -n "$MAC_USERHOST" ] && ssh $SSH_OPTS "$MAC_USERHOST" 'true'
 
 # Prepare the build host.  Debian etch needs some work to get it in shape
 ssh $SSH_OPTS $ROOT_USERHOST '
@@ -257,7 +262,7 @@ if [ -n "$WIN_USERHOST" ] ; then
         # The PATH when you ssh in to the cygwin sshd is missing things
         PATH="$PATH:$(cygpath -p "$SYSTEMROOT\microsoft.net\framework\v3.5;$PROGRAMFILES\msival2;$PROGRAMFILES\wix;$PROGRAMFILES\Microsoft SDKs\Windows\v6.1\Bin")"
         cd '$dotnetdir'
-        { '"$winvars"' ./dist-msi.sh && touch dist-msi.ok ; } 2>&1 | tee dist-msi.log ; test -e dist-msi.ok 
+        { '"$winvars"' ./dist-msi.sh && touch dist-msi.ok ; } 2>&1 | tee dist-msi.log ; test -e dist-msi.ok
     '
 
     # The cygwin rsync sometimes hangs.  This rm works around it.
@@ -268,6 +273,22 @@ if [ -n "$WIN_USERHOST" ] ; then
     ssh $SSH_OPTS "$WIN_USERHOST" "rm -rf $topdir"
 else
     vars="SKIP_DOTNET_CLIENT=1"
+fi
+
+if [ -n "$MAC_USERHOST" = ] ; then
+## copy the umbrella to the MAC_USERHOST
+    ssh $SSH_OPTS "$MAC_USERHOST" "mkdir -p $topdir"
+    rsync -a $TOPDIR/ $MAC_USERHOST:$topdir
+
+## build the mac standalone package
+    vars="VERSION=$VERSION"
+    ssh $SSH_OPTS "$MAC_USERHOST" '
+    set -e -x
+    PATH=$HOME/otp-R12B-5/bin:$PATH
+    cd '$topdir'
+    cd rabbitmq-umbrella
+    { make rabbitmq-server-standalone-packaging '"$vars"' ; } 2>&1
+'
 fi
 
 new_vars="$vars VERSION=$VERSION WEB_URL=\"$WEB_URL\" UNOFFICIAL_RELEASE=$UNOFFICIAL_RELEASE"
@@ -288,7 +309,7 @@ ssh $SSH_OPTS $BUILD_USERHOST '
 '
 
 # Copy everything back from the build host
-rsync -a $BUILD_USERHOST:$topdir/ $TOPDIR 
+rsync -a $BUILD_USERHOST:$topdir/ $TOPDIR
 ssh $SSH_OPTS $BUILD_USERHOST "rm -rf $topdir"
 
 echo "Build completed successfully (don't worry about the following kill)"
