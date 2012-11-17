@@ -287,13 +287,13 @@ if [ -n "$MAC_USERHOST" ] ; then
     ssh $SSH_OPTS $MAC_USERHOST "$topdir/install-otp.sh $OTP_VERSION"
 
 ## build the mac standalone package
-    vars="VERSION=$VERSION"
+    macvars="VERSION=$VERSION"
     ssh $SSH_OPTS "$MAC_USERHOST" '
     set -e -x
     PATH=$HOME/otp-$OTP_VERSION/bin:$PATH
     cd '$topdir'
     cd rabbitmq-umbrella
-    { make rabbitmq-server-standalone-packaging '"$vars"' ; } 2>&1
+    { make rabbitmq-server-standalone-packaging '"$macvars"' ; } 2>&1
 '
 
 # Copy everything back from the build host
