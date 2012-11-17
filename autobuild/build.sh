@@ -275,7 +275,7 @@ else
     vars="SKIP_DOTNET_CLIENT=1"
 fi
 
-if [ -n "$MAC_USERHOST" = ] ; then
+if [ -n "$MAC_USERHOST" ] ; then
 ## copy the umbrella to the MAC_USERHOST
     ssh $SSH_OPTS "$MAC_USERHOST" "mkdir -p $topdir"
     rsync -a $TOPDIR/ $MAC_USERHOST:$topdir
