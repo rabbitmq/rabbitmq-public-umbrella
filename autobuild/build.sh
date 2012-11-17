@@ -80,6 +80,9 @@ SCRIPTDIR=$(dirname $0)
 # the grandparent-directory of this script.
 UMBRELLADIR=
 
+# OTP version to build against
+OTP_VERSION="R12B-5"
+
 # Imitate make-style variable settings as arguments
 while [[ $# -gt 0 ]] ; do
   declare "$1"
@@ -204,7 +207,7 @@ fi
 rsync -a $TOPDIR/ $BUILD_USERHOST:$topdir
 
 # Do per-user install of the required erlang/OTP versions
-ssh $SSH_OPTS $BUILD_USERHOST "$topdir/install-otp.sh R12B-5"
+ssh $SSH_OPTS $BUILD_USERHOST "$topdir/install-otp.sh $OTP_VERSION"
 
 if [ -z "$WEB_URL" ] ; then
     # Run the website under a local python process
@@ -281,13 +284,13 @@ if [ -n "$MAC_USERHOST" ] ; then
     rsync -a $TOPDIR/ $MAC_USERHOST:$topdir
 
 ## Do per-user install of the required erlang/OTP versions
-    ssh $SSH_OPTS $MAC_USERHOST "$topdir/install-otp.sh R12B-5"
+    ssh $SSH_OPTS $MAC_USERHOST "$topdir/install-otp.sh $OTP_VERSION"
 
 ## build the mac standalone package
     vars="VERSION=$VERSION"
     ssh $SSH_OPTS "$MAC_USERHOST" '
     set -e -x
-    PATH=$HOME/otp-R12B-5/bin:$PATH
+    PATH=$HOME/otp-$OTP_VERSION/bin:$PATH
     cd '$topdir'
     cd rabbitmq-umbrella
     { make rabbitmq-server-standalone-packaging '"$vars"' ; } 2>&1
@@ -309,11 +312,11 @@ fi
 
 ssh $SSH_OPTS $BUILD_USERHOST '
     set -e -x
-    PATH=$HOME/otp-R12B-5/bin:$PATH
+    PATH=$HOME/otp-$OTP_VERSION/bin:$PATH
     cd '$topdir'
     [ -d keyring ] && chmod -R a+rX,u+w keyring
     cd rabbitmq-umbrella
-    { make dist '"$vars"' ERLANG_CLIENT_OTP_HOME=$HOME/otp-R12B-5 && touch dist.ok ; rm -rf '$topdir'/keyring ; } 2>&1 | tee dist.log ; test -e dist.ok
+    { make dist '"$vars"' ERLANG_CLIENT_OTP_HOME=$HOME/otp-$OTP_VERSION && touch dist.ok ; rm -rf '$topdir'/keyring ; } 2>&1 | tee dist.log ; test -e dist.ok
 '
 
 # Copy everything back from the build host
