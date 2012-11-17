@@ -290,7 +290,7 @@ if [ -n "$MAC_USERHOST" ] ; then
     macvars="VERSION=$VERSION"
     ssh $SSH_OPTS "$MAC_USERHOST" '
     set -e -x
-    PATH=$HOME/otp-$OTP_VERSION/bin:$PATH
+    PATH=$HOME/otp-'"$OTP_VERSION"'/bin:$PATH
     cd '$topdir'
     cd rabbitmq-umbrella
     { make rabbitmq-server-standalone-packaging '"$macvars"' ; } 2>&1
@@ -312,11 +312,11 @@ fi
 
 ssh $SSH_OPTS $BUILD_USERHOST '
     set -e -x
-    PATH=$HOME/otp-$OTP_VERSION/bin:$PATH
+    PATH=$HOME/otp-'"$OTP_VERSION"'/bin:$PATH
     cd '$topdir'
     [ -d keyring ] && chmod -R a+rX,u+w keyring
     cd rabbitmq-umbrella
-    { make dist '"$vars"' ERLANG_CLIENT_OTP_HOME=$HOME/otp-$OTP_VERSION && touch dist.ok ; rm -rf '$topdir'/keyring ; } 2>&1 | tee dist.log ; test -e dist.ok
+    { make dist '"$vars"' ERLANG_CLIENT_OTP_HOME=$HOME/otp-'"$OTP_VERSION"' && touch dist.ok ; rm -rf '$topdir'/keyring ; } 2>&1 | tee dist.log ; test -e dist.ok
 '
 
 # Copy everything back from the build host
