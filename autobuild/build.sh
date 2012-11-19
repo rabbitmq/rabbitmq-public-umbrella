@@ -83,6 +83,9 @@ UMBRELLADIR=
 # OTP version to build against
 OTP_VERSION="R12B-5"
 
+# OTP version for the standalone package
+STANDALONE_OTP_VERSION="$OTP_VERSION"
+
 # Imitate make-style variable settings as arguments
 while [[ $# -gt 0 ]] ; do
   declare "$1"
@@ -284,13 +287,13 @@ if [ -n "$MAC_USERHOST" ] ; then
     rsync -a $TOPDIR/ $MAC_USERHOST:$topdir
 
 ## Do per-user install of the required erlang/OTP versions
-    ssh $SSH_OPTS $MAC_USERHOST "$topdir/install-otp.sh $OTP_VERSION"
+    ssh $SSH_OPTS $MAC_USERHOST "$topdir/install-otp.sh $STANDALONE_OTP_VERSION"
 
 ## build the mac standalone package
     macvars="VERSION=$VERSION"
     ssh $SSH_OPTS "$MAC_USERHOST" '
     set -e -x
-    PATH=$HOME/otp-'"$OTP_VERSION"'/bin:$PATH
+    PATH=$HOME/otp-'"$STANDALONE_OTP_VERSION"'/bin:$PATH
     cd '$topdir'
     cd rabbitmq-umbrella
     { make rabbitmq-server-standalone-packaging '"$macvars"' ; } 2>&1
