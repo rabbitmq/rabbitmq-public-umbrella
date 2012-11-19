@@ -167,7 +167,8 @@ $(eval $(call repo_targets,. $(PACKAGE_REPOS),tag,| %,(cd % && hg tag $(TAG))))
 .PHONY: push
 push: $(foreach DIR,. $(REPOS),$(DIR)+push)
 
-$(eval $(call repo_targets,. $(REPOS),push,| %,(cd % && hg push -f)))
+# "|| true" sicne hg push fails if there are no changes
+$(eval $(call repo_targets,. $(REPOS),push,| %,(cd % && hg push -f || true)))
 
 .PHONY: checkin
 checkin: $(foreach DIR,. $(REPOS),$(DIR)+checkin)
