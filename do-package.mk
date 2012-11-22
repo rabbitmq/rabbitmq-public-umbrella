@@ -298,6 +298,7 @@ define run_broker
 	rm -f $(TEST_TMPDIR)/plugins/rabbit_common*.ez
 	for plugin in \
 	  $$$$(RABBITMQ_PLUGINS_DIR=$(TEST_TMPDIR)/plugins \
+            RABBITMQ_ENABLED_PLUGINS_FILE=$(TEST_TMPDIR)/enabled_plugins \
 	    $(UMBRELLA_BASE_DIR)/rabbitmq-server/scripts/rabbitmq-plugins list -m); do \
 	    RABBITMQ_PLUGINS_DIR=$(TEST_TMPDIR)/plugins \
 	    RABBITMQ_ENABLED_PLUGINS_FILE=$(TEST_TMPDIR)/enabled_plugins \
