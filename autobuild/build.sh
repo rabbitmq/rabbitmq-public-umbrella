@@ -18,7 +18,7 @@ BUILD_USERHOST=
 WIN_USERHOST=
 
 # The Mac ssh user@host to use for the mac bits.  If you omit
-# it, the windows bits won't get built.
+# it, the mac bits won't get built.
 MAC_USERHOST=
 
 # Setting the following variables is optional.
