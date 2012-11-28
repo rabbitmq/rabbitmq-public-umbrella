@@ -289,11 +289,8 @@ if [ -n "$MAC_USERHOST" ] ; then
     ## Do per-user install of the required erlang/OTP versions
     ssh $SSH_OPTS $MAC_USERHOST "$topdir/install-otp.sh $STANDALONE_OTP_VERSION"
 
-    REQUIRED_EMULATOR_VERSION=`ssh $SSH_OPTS $MAC_USERHOST '
-    $HOME/otp-'"$STANDALONE_OTP_VERSION"'/bin/erl -noshell -eval "io:format(\"~s\",[erlang:system_info(version)]),init:stop()."'`
-
     ## build the mac standalone package
-    macvars="VERSION=$VERSION REQUIRED_EMULATOR_VERSION=$REQUIRED_EMULATOR_VERSION"
+    macvars="VERSION=$VERSION SKIP_EMULATOR_VERSION_CHECK=true"
     ssh $SSH_OPTS "$MAC_USERHOST" '
         set -e -x
         PATH=$HOME/otp-'"$STANDALONE_OTP_VERSION"'/bin:$PATH
