@@ -31,6 +31,7 @@ ABSOLUTE_PLUGINS_SRC_DIR=$(CURDIR)/$(PLUGINS_SRC_DIR)
 
 REQUIRED_EMULATOR_VERSION=5.6.5
 ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
+SKIP_EMULATOR_VERSION_CHECK=
 
 REPOS:=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client
 REPOS_WITH_PUBLIC:=$(REPOS) rabbitmq-public-umbrella
@@ -101,11 +102,14 @@ $(eval $(foreach r,$(filter-out rabbitmq-server,$(REPOS_WITH_PUBLIC)),$(call cle
 
 .PHONY: prepare
 prepare: checkout
+ifeq "$(SKIP_EMULATOR_VERSION_CHECK)" ""
 	@[ "$(REQUIRED_EMULATOR_VERSION)" = "$(ACTUAL_EMULATOR_VERSION)" ] || \
 		(echo "You are trying to compile with the wrong Erlang/OTP release."; \
 		echo "Please use emulator version $(REQUIRED_EMULATOR_VERSION)."; \
 		echo "Alternatively, set the makefile variable REQUIRED_EMULATOR_VERSION=$(ACTUAL_EMULATOR_VERSION) ."; \
+		echo "Or you could skip the version check altogether by setting the variable SKIP_EMULATOR_VERSION_CHECK."; \
 		[ -n "$(UNOFFICIAL_RELEASE)" ] )
+endif
 	@echo Checking the presence of the tools necessary to build a release on a Debian based OS.
 	[ -f "/etc/debian_version" ] && dpkg -L cdbs elinks fakeroot findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip python-pexpect openssl xmlto xsltproc git-core nsis > /dev/null || echo Not a Debian system
 	@echo All required tools are installed, great!
