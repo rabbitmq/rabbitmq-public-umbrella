@@ -282,30 +282,29 @@ else
 fi
 
 if [ -n "$MAC_USERHOST" ] ; then
-## copy the umbrella to the MAC_USERHOST
+    ## copy the umbrella to the MAC_USERHOST
     ssh $SSH_OPTS "$MAC_USERHOST" "mkdir -p $topdir"
     rsync -a $TOPDIR/ $MAC_USERHOST:$topdir
 
-## Do per-user install of the required erlang/OTP versions
+    ## Do per-user install of the required erlang/OTP versions
     ssh $SSH_OPTS $MAC_USERHOST "$topdir/install-otp.sh $STANDALONE_OTP_VERSION"
 
     REQUIRED_EMULATOR_VERSION=`ssh $SSH_OPTS $MAC_USERHOST '
     $HOME/otp-'"$STANDALONE_OTP_VERSION"'/bin/erl -noshell -eval "io:format(\"~s\",[erlang:system_info(version)]),init:stop()."'`
 
-## build the mac standalone package
+    ## build the mac standalone package
     macvars="VERSION=$VERSION REQUIRED_EMULATOR_VERSION=$REQUIRED_EMULATOR_VERSION"
     ssh $SSH_OPTS "$MAC_USERHOST" '
-    set -e -x
-    PATH=$HOME/otp-'"$STANDALONE_OTP_VERSION"'/bin:$PATH
-    cd '$topdir'
-    cd rabbitmq-umbrella
-    { make rabbitmq-server-mac-standalone-packaging '"$macvars"' ; } 2>&1
-'
+        set -e -x
+        PATH=$HOME/otp-'"$STANDALONE_OTP_VERSION"'/bin:$PATH
+        cd '$topdir'
+        cd rabbitmq-umbrella
+        { make rabbitmq-server-mac-standalone-packaging '"$macvars"' ; } 2>&1
+    '
 
-# Copy everything back from the build host
-rsync -a $MAC_USERHOST:$topdir/ $TOPDIR
-ssh $SSH_OPTS $MAC_USERHOST "rm -rf $topdir"
-
+    # Copy everything back from the build host
+    rsync -a $MAC_USERHOST:$topdir/ $TOPDIR
+    ssh $SSH_OPTS $MAC_USERHOST "rm -rf $topdir"
 fi
 
 new_vars="$vars VERSION=$VERSION WEB_URL=\"$WEB_URL\" UNOFFICIAL_RELEASE=$UNOFFICIAL_RELEASE"
