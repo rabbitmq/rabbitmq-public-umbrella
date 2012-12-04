@@ -35,7 +35,7 @@ PACKAGE_REPOS:=\
     toke \
     webmachine-wrapper
 
-REPOS:=rabbitmq-server rabbitmq-codegen $(PACKAGE_REPOS)
+REPOS:=rabbitmq-server rabbitmq-codegen rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-test $(PACKAGE_REPOS)
 
 BRANCH:=default
 
