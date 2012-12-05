@@ -106,8 +106,7 @@ ifeq "$(SKIP_EMULATOR_VERSION_CHECK)" ""
 	@[ "$(REQUIRED_EMULATOR_VERSION)" = "$(ACTUAL_EMULATOR_VERSION)" ] || \
 		(echo "You are trying to compile with the wrong Erlang/OTP release."; \
 		echo "Please use emulator version $(REQUIRED_EMULATOR_VERSION)."; \
-		echo "Alternatively, set the makefile variable REQUIRED_EMULATOR_VERSION=$(ACTUAL_EMULATOR_VERSION) ."; \
-		echo "Or you could skip the version check altogether by setting the variable SKIP_EMULATOR_VERSION_CHECK."; \
+		echo "Or skip the version check by setting the variable SKIP_EMULATOR_VERSION_CHECK."; \
 		[ -n "$(UNOFFICIAL_RELEASE)" ] )
 endif
 	@echo Checking the presence of the tools necessary to build a release on a Debian based OS.
