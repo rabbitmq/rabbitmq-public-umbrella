@@ -164,7 +164,7 @@ rabbitmq-server-generic-unix-packaging: rabbitmq-server-srcdist
 
 .PHONY: rabbitmq-server-mac-standalone-packaging
 rabbitmq-server-mac-standalone-packaging: rabbitmq-server-srcdist
-	$(MAKE) -C rabbitmq-server/packaging/standalone dist VERSION=$(VERSION)
+	$(MAKE) -C rabbitmq-server/packaging/standalone dist VERSION=$(VERSION) OS=mac
 	cp rabbitmq-server/packaging/standalone/rabbitmq-server-mac-standalone-*.tar.gz $(SERVER_PACKAGES_DIR)
 
 .PHONY: rabbitmq-server-windows-packaging
