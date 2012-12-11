@@ -33,7 +33,7 @@ REQUIRED_EMULATOR_VERSION=5.6.5
 ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
 SKIP_EMULATOR_VERSION_CHECK=
 
-REPOS:=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client
+REPOS:=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-test
 REPOS_WITH_PUBLIC:=$(REPOS) rabbitmq-public-umbrella
 
 HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
