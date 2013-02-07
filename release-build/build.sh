@@ -3,7 +3,7 @@
 # An automated rabbitmq build script
 #
 # Example Usage:
-# autobuild/rabbitmq-build BUILD_USERHOST=etch VERSION=1.7.$[`date +'%Y%m%d'` - 20090000] WIN_USERHOST="David Wragg@192.168.122.85" DEPLOY_USERHOST=mrbraver.lshift.net
+# release-build/build.sh BUILD_USERHOST=etch VERSION=1.7.$[`date +'%Y%m%d'` - 20090000] WIN_USERHOST="David Wragg@192.168.122.85" DEPLOY_USERHOST=mrbraver.lshift.net
 
 # You should provide values for the following variables on the command line:
 
@@ -30,7 +30,7 @@ HGREPOBASE=
 # Where the keys live.  If not set, we will do an "unofficial release"
 KEYSDIR=
 
-# Other signing parameters to pass to the rabbitmq-umbrella Makefile.
+# Other signing parameters to pass to the rabbitmq-public-umbrella Makefile.
 # If KEYSDIR isn't pointing to the release keys, you will need to
 # supply something here to set the Makefile's SIGNING_* vars.
 SIGNING_PARAMS=
@@ -65,14 +65,14 @@ CHANGELOG_COMMENT="Test release"
 # we will use a uniquely-named directory in /var/tmp.
 TOPDIR=
 
-# Which existing hg repos to copy into rabbitmq-umbrella, instead of
+# Which existing hg repos to copy into rabbitmq-public-umbrella, instead of
 # letting it clone them.
 REPOS=
 
 # Where auxiliary scripts live
 SCRIPTDIR=$(dirname $0)
 
-# Where the rabbitmq-umbrella repo lives.  If not set, we assume it is
+# Where the rabbitmq-public-umbrella repo lives.  If not set, we assume it is
 # the grandparent-directory of this script.
 UMBRELLADIR=
 
@@ -169,10 +169,10 @@ mkdir -p $TOPDIR
 cp -a $SCRIPTDIR/install-otp.sh $TOPDIR
 cd $TOPDIR
 
-# Copy rabbitmq-umbrella into place
-cp -a $UMBRELLADIR/../rabbitmq-umbrella .
+# Copy rabbitmq-public-umbrella into place
+cp -a $UMBRELLADIR/../rabbitmq-public-umbrella .
 
-cd rabbitmq-umbrella
+cd rabbitmq-public-umbrella
 for repo in $REPOS ; do
     cp -a $repo .
 done
@@ -222,8 +222,8 @@ fi
 if [ -n "$WIN_USERHOST" ] ; then
     winvars="RABBIT_VSN=$VERSION UNOFFICIAL_RELEASE=$UNOFFICIAL_RELEASE SKIP_MSIVAL2=1 WEB_URL=\"$WEB_URL\""
 
-    dotnetdir=$topdir/rabbitmq-umbrella/rabbitmq-dotnet-client
-    local_dotnetdir=$TOPDIR/rabbitmq-umbrella/rabbitmq-dotnet-client
+    dotnetdir=$topdir/rabbitmq-public-umbrella/rabbitmq-dotnet-client
+    local_dotnetdir=$TOPDIR/rabbitmq-public-umbrella/rabbitmq-dotnet-client
 
     ssh $SSH_OPTS "$WIN_USERHOST" "mkdir -p $dotnetdir"
     rsync -a $local_dotnetdir/ "$WIN_USERHOST:$dotnetdir"
@@ -283,8 +283,8 @@ ssh $SSH_OPTS $BUILD_USERHOST '
     PATH=$HOME/otp-R12B-5/bin:$PATH
     cd '$topdir'
     [ -d keyring ] && chmod -R a+rX,u+w keyring
-    cd rabbitmq-umbrella
-    { make dist '"$vars"' ERLANG_CLIENT_OTP_HOME=$HOME/otp-R12B-5 && touch dist.ok ; rm -rf '$topdir'/keyring ; } 2>&1 | tee dist.log ; test -e dist.ok
+    cd rabbitmq-public-umbrella
+    { make -f release.mk dist '"$vars"' ERLANG_CLIENT_OTP_HOME=$HOME/otp-R12B-5 && touch dist.ok ; rm -rf '$topdir'/keyring ; } 2>&1 | tee dist.log ; test -e dist.ok
 '
 
 # Copy everything back from the build host

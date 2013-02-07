@@ -33,7 +33,6 @@ REQUIRED_EMULATOR_VERSION=5.6.5
 ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
 
 REPOS:=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-test
-REPOS_WITH_PUBLIC:=$(REPOS) rabbitmq-public-umbrella
 
 HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
@@ -41,38 +40,9 @@ ifeq ($(HGREPOBASE),)
 HGREPOBASE=ssh://hg@hg.rabbitmq.com
 endif
 
-
 .PHONY: all
 all:
 	@echo Please choose a target from the Makefile.
-
-
-.PHONY: checkout
-checkout: $(foreach r,$(REPOS_WITH_PUBLIC),.$(r).checkout)
-
-.%.checkout:
-	[ -d $* ] || hg clone $(HG_OPTS) $(HGREPOBASE)/$*
-	touch $@
-
-.rabbitmq-public-umbrella.checkout:
-	[ -d rabbitmq-public-umbrella ] || hg clone $(HG_OPTS) $(HGREPOBASE)/rabbitmq-public-umbrella
-	$(MAKE) -C rabbitmq-public-umbrella checkout
-	touch $@
-
-.PHONY: named_update
-named_update: checkout
-	$(foreach r,. $(REPOS),hg pull -R $(r);hg update -R $(r) -C $(BRANCH);)
-	$(MAKE) -C rabbitmq-public-umbrella named_update BRANCH=$(BRANCH)
-
-.PHONY: tag
-tag: checkout
-	$(foreach r,. $(REPOS),hg tag -R $(r) $(TAG);)
-	$(MAKE) -C rabbitmq-public-umbrella tag TAG=$(TAG)
-
-.PHONY: push
-push: checkout
-	$(foreach r,. $(REPOS),hg push -R $(r) -f $(HG_OPTS);)
-	$(MAKE) -C rabbitmq-public-umbrella push
 
 .PHONY: dist
 ifeq "$(UNOFFICIAL_RELEASE)$(GNUPG_PATH)" ""
@@ -83,24 +53,15 @@ else
 dist: artifacts sign-artifacts
 endif
 
-
 .PHONY: clean
-clean: rabbitmq-umbrella-clean $(foreach r,$(REPOS_WITH_PUBLIC),$(r)-clean)
+clean: clean-packaging
+	$(MAKE) -C . clean
 
-.PHONY: rabbitmq-umbrella-clean
+.PHONY: clean-packaging
 	rm -rf $(PACKAGES_DIR) $(TMP_DIR) .*.checkout
 
-define clean-repo-template
-.PHONY: $(1)-clean
-$(1)-clean:
-	[ ! -d $(1) ] || $(MAKE) -C $(1) clean
-
-endef
-$(eval $(foreach r,$(filter-out rabbitmq-server,$(REPOS_WITH_PUBLIC)),$(call clean-repo-template,$(r))))
-
-
 .PHONY: prepare
-prepare: checkout
+prepare:
 	@[ "$(REQUIRED_EMULATOR_VERSION)" = "$(ACTUAL_EMULATOR_VERSION)" ] || \
 		(echo "You are trying to compile with the wrong Erlang/OTP release."; \
 		echo "Please use emulator version $(REQUIRED_EMULATOR_VERSION)."; \
@@ -118,9 +79,8 @@ ifeq ($(SKIP_DOTNET_CLIENT),)
 artifacts: rabbitmq-dotnet-artifacts
 endif
 artifacts: rabbitmq-erlang-client-artifacts
-artifacts: rabbitmq-public-umbrella-srcdist
-artifacts: rabbitmq-public-umbrella-artifacts
-
+artifacts: rabbitmq-plugins-srcdist
+artifacts: rabbitmq-plugins-artifacts
 
 .PHONY: rabbitmq-server-clean
 rabbitmq-server-clean:
@@ -143,7 +103,7 @@ rabbitmq-server-artifacts: rabbitmq-server-debian-packaging
 rabbitmq-server-artifacts: rabbitmq-server-rpm-packaging
 
 .PHONY: rabbitmq-server-srcdist
-rabbitmq-server-srcdist: prepare rabbitmq-public-umbrella-srcdist
+rabbitmq-server-srcdist: prepare rabbitmq-plugins-srcdist
 	$(MAKE) -C rabbitmq-server srcdist VERSION=$(VERSION) PLUGINS_SRC_DIR=$(ABSOLUTE_PLUGINS_SRC_DIR)
 	mkdir -p $(SERVER_PACKAGES_DIR)
 	cp rabbitmq-server/dist/rabbitmq-server-*.tar.gz rabbitmq-server/dist/rabbitmq-server-*.zip $(SERVER_PACKAGES_DIR)
@@ -223,20 +183,20 @@ rabbitmq-dotnet-artifacts: prepare
 
 .PHONY: rabbitmq-erlang-client-artifacts
 rabbitmq-erlang-client-artifacts: prepare
-	$(MAKE) -C rabbitmq-public-umbrella/rabbitmq-erlang-client distribution VERSION=$(VERSION)
+	$(MAKE) -C rabbitmq-erlang-client distribution VERSION=$(VERSION)
 	mkdir -p $(ERLANG_CLIENT_PACKAGES_DIR)
-	cp rabbitmq-public-umbrella/rabbitmq-erlang-client/dist/*.ez $(ERLANG_CLIENT_PACKAGES_DIR)
-	cp rabbitmq-public-umbrella/rabbitmq-erlang-client/dist/*.tar.gz $(ERLANG_CLIENT_PACKAGES_DIR)
-	cp -r rabbitmq-public-umbrella/rabbitmq-erlang-client/doc/ $(ERLANG_CLIENT_PACKAGES_DIR)
+	cp rabbitmq-erlang-client/dist/*.ez $(ERLANG_CLIENT_PACKAGES_DIR)
+	cp rabbitmq-erlang-client/dist/*.tar.gz $(ERLANG_CLIENT_PACKAGES_DIR)
+	cp -r rabbitmq-erlang-client/doc/ $(ERLANG_CLIENT_PACKAGES_DIR)
 
 
-.PHONY: rabbitmq-public-umbrella-artifacts
-rabbitmq-public-umbrella-artifacts:
-	$(MAKE) -C rabbitmq-public-umbrella plugins-dist PLUGINS_DIST_DIR=$(ABSOLUTE_PLUGINS_DIR) VERSION=$(VERSION)
+.PHONY: rabbitmq-plugins-artifacts
+rabbitmq-plugins-artifacts:
+	$(MAKE) -C . plugins-dist PLUGINS_DIST_DIR=$(ABSOLUTE_PLUGINS_DIR) VERSION=$(VERSION)
 
-.PHONY: rabbitmq-public-umbrella-srcdist
-rabbitmq-public-umbrella-srcdist:
-	$(MAKE) -C rabbitmq-public-umbrella plugins-srcdist PLUGINS_SRC_DIST_DIR=$(ABSOLUTE_PLUGINS_SRC_DIR) VERSION=$(VERSION)
+.PHONY: rabbitmq-plugins-srcdist
+rabbitmq-plugins-srcdist:
+	$(MAKE) -C . plugins-srcdist PLUGINS_SRC_DIST_DIR=$(ABSOLUTE_PLUGINS_SRC_DIR) VERSION=$(VERSION)
 
 .PHONY: sign-artifacts
 ifneq "$(UNOFFICIAL_RELEASE)" ""

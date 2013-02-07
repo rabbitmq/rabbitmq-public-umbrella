@@ -31,7 +31,7 @@ DEPLOY_USERHOST=
 # PATH on DEPLOY_USERHOST to deploy to.
 DEPLOY_PATH=/home/rabbitmq/extras/releases
 
-# Which rabbitmq-umbrella deploy target (of deploy, deploy-live) to invoke
+# Which rabbitmq-public-umbrella deploy target (of deploy, deploy-live) to invoke
 DEPLOY_TARGET=deploy
 
 # The directory on the local host to use for the build.  If not set,
@@ -67,7 +67,7 @@ if [ -n "$KEYSDIR" ] ; then
 fi
 
 # Build macports
-cd $TOPDIR/rabbitmq-umbrella
+cd $TOPDIR/rabbitmq-public-umbrella
 eval "make rabbitmq-server-macports-packaging $vars"
 
 # Finally, deploy
