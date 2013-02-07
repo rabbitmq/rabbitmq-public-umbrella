@@ -1,0 +1,70 @@
+#!/usr/bin/env escript
+%% -*- erlang -*-
+-mode(compile).
+
+%% The contents of this file are subject to the Mozilla Public License
+%% Version 1.1 (the "License"); you may not use this file except in
+%% compliance with the License. You may obtain a copy of the License
+%% at http://www.mozilla.org/MPL/
+%%
+%% Software distributed under the License is distributed on an "AS IS"
+%% basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
+%% the License for the specific language governing rights and
+%% limitations under the License.
+%%
+%% The Original Code is RabbitMQ.
+%%
+%% The Initial Developer of the Original Code is VMware, Inc.
+%% Copyright (c) 2010-2012 VMware, Inc.  All rights reserved.
+%%
+
+main([PackageDir, TmpDir]) ->
+    {ok, _Pid} = xref:start(?MODULE),
+    ok = xref:set_default(?MODULE, [{verbose,false}, {warnings,false}]),
+    {ok, PackageModules} = add_dir(PackageDir, "ebin"),
+    %% Remove them to avoid clash when we add them via the TmpDir
+    ok = xref:remove_module(?MODULE, PackageModules),
+    {ok, _} = xref:add_directory(?MODULE, TmpDir, {recurse, true}),
+    {ok, otp} = xref:add_release(?MODULE, code:lib_dir(), {name, otp}),
+
+    ModulesQ =
+        "(" ++ lists:nthtail(
+                 2, lists:flatten(
+                      [io_lib:format(" + \"~s\" : Mod", [atom_to_list(Mod)])
+                       || Mod <- PackageModules])) ++
+        ")",
+
+    %% 'U' is the set of unknown Functions
+    %% '*' is set intersection
+    %% 'range' takes the RHS in all call pairs (From, To)
+    %% 'closure' gives the transitive closure
+    %% 'E' is all edges (i.e. all calls)
+    %% '|' is the subset of calls from any of the vertices
+    %%
+    %% I.e. we construct the transitive closure of all calls from any
+    %% of the plugin's modules, look at the ranges there of
+    %% (i.e. callees, not callers), and see if they're unknown
+
+    Q = "U * range (closure E | " ++ ModulesQ ++")",
+    {ok, MFAs} = xref:q(?MODULE, Q),
+    case filter_noise(MFAs) of
+        []     -> ok;
+        PrMFAs -> io:format("Undefined functions:~n"),
+                  [io:format("\t~s:~s/~w~n", [M, F, A]) || {M, F, A} <- PrMFAs],
+                  exit(undefined_functions)
+    end.
+
+add_dir(PackageDir, Dir) ->
+    Path = filename:join(PackageDir, Dir),
+    case filelib:is_dir(Path) of
+        true  -> {ok, _} = xref:add_directory(?MODULE, Path, {recurse, true});
+        false -> {ok, []}
+    end.
+
+filter_noise(MFAs) ->
+    [MFA || MFA <- MFAs, is_interesting(MFA)].
+
+is_interesting({'$M_EXPR', _, _}) -> false;
+is_interesting({_, '$F_EXPR', _}) -> false;
+is_interesting({_, _, -1})        -> false;
+is_interesting(_)                 -> true.
