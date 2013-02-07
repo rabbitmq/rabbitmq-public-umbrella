@@ -1,0 +1,22 @@
+The distro-specific packaging targets are now integrated into the 
+top-level build system. You should need to do no more than:
+
+make VERSION=<Version> UNOFFICIAL_RELEASE=1 dist
+
+to build debs and rpms, along with the source and binary tarballs. If
+you just want to build one package, you can use the targets
+debian_packages, rpm_packages or java_packages in the top-level
+Makefile.
+
+You need to have cdbs installed to build the Debian packages, and rpm 
+for the Fedora packages.
+
+The property UNOFFICIAL_RELEASE is used to determine whether packages 
+should be signed - if the variable is set then they will not be 
+signed, otherwise they will be. The signing key ID is 056E8E56 and is 
+"owned" by simon@lshift.net.
+
+UNOFFICIAL_RELEASE is also used by the Debian target to determine 
+changelog behaviour. If it is not set, then debian/changelog must 
+contain an entry for the version string in <Version>. If it is set, 
+it creates a fake changelog entry.
