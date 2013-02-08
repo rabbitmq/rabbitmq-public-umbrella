@@ -22,7 +22,7 @@ PACKAGE_REPOS:=\
     rabbitmq-management-agent \
     rabbitmq-management-visualiser \
     rabbitmq-metronome \
-    rabbitmq-mochiweb \
+    rabbitmq-web-dispatch \
     rabbitmq-mqtt \
     rabbitmq-old-federation \
     rabbitmq-shovel \
