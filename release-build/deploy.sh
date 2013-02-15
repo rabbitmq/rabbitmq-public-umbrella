@@ -68,9 +68,9 @@ fi
 
 # Build macports
 cd $TOPDIR/rabbitmq-public-umbrella
-eval "make rabbitmq-server-macports-packaging $vars"
+eval "make -f release.mk rabbitmq-server-macports-packaging $vars"
 
 # Finally, deploy
 if [[ -n "$DEPLOY_USERHOST" ]] ; then
-    eval "make $DEPLOY_TARGET $vars"
+    eval "make -f release.mk $DEPLOY_TARGET $vars"
 fi
