@@ -549,8 +549,10 @@ $(PACKAGE_DIR)/dist/.done.$(VERSION): $(PACKAGE_DIR)/Makefile $(wildcard $(PACKA
 	mkdir -p $$(@D)
 	touch $$@
 
+# When building plugins-src we want to "make clean", but some
+# non-integrated packages will not be there. Don't fall over in that case.
 $(PACKAGE_DIR)+clean::
-	$$(MAKE) -C $(PACKAGE_DIR) clean
+	if [ -d $(PACKAGE_DIR) ] ; then $$(MAKE) -C $(PACKAGE_DIR) clean ; fi
 	rm -rf $(PACKAGE_DIR)/dist
 
 endef
