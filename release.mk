@@ -62,7 +62,7 @@ clean: clean-packaging
 	rm -rf $(PACKAGES_DIR) $(TMP_DIR) .*.checkout
 
 .PHONY: prepare
-prepare: checkout
+prepare:
 ifeq "$(SKIP_EMULATOR_VERSION_CHECK)" ""
 	@[ "$(REQUIRED_EMULATOR_VERSION)" = "$(ACTUAL_EMULATOR_VERSION)" ] || \
 		(echo "You are trying to compile with the wrong Erlang/OTP release."; \
