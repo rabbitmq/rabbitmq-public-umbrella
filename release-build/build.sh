@@ -296,7 +296,7 @@ if [ -n "$MAC_USERHOST" ] ; then
         PATH=$HOME/otp-'"$STANDALONE_OTP_VERSION"'/bin:$PATH
         cd '$topdir'
         cd rabbitmq-public-umbrella
-        { make rabbitmq-server-mac-standalone-packaging '"$macvars"' ; } 2>&1
+        { make -f release.mk rabbitmq-server-mac-standalone-packaging '"$macvars"' ; } 2>&1
     '
 
     # Copy everything back from the build host
