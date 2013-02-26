@@ -295,7 +295,7 @@ if [ -n "$MAC_USERHOST" ] ; then
         set -e -x
         PATH=$HOME/otp-'"$STANDALONE_OTP_VERSION"'/bin:$PATH
         cd '$topdir'
-        cd rabbitmq-umbrella
+        cd rabbitmq-public-umbrella
         { make rabbitmq-server-mac-standalone-packaging '"$macvars"' ; } 2>&1
     '
 
