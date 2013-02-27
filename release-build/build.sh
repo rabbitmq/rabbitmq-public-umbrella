@@ -282,6 +282,19 @@ else
 fi
 
 if [ -n "$MAC_USERHOST" ] ; then
+
+    ## check if the mac host has the required programs for the build
+    ssh $SSH_OPTS "$MAC_USERHOST" '
+        for p in "rsync xmlto wget java git hg"
+        do
+            which $p ;
+            if [ $? -ne 0 ]; then
+                echo "missing build dependency $p"
+                exit 1;
+            fi
+        done
+    '
+
     ## copy the umbrella to the MAC_USERHOST
     ssh $SSH_OPTS "$MAC_USERHOST" "mkdir -p $topdir"
     rsync -a $TOPDIR/ $MAC_USERHOST:$topdir
