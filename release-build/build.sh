@@ -39,11 +39,11 @@ SIGNING_PARAMS=
 # If empty, we start a local python web server.  Should include a
 # trailing slash.
 #
-# Make sure your proxy configuration for elinks on BUILD_USERHOST 
-# correctly includes or excludes the hostname of this URL. Using 
-# $(hostname -f) instead of $(hostname) when running a local python 
-# webserver may help. The symptom of a misconfiguration is an 
-# INSTALL file containing a proxy error message instead of 
+# Make sure your proxy configuration for elinks on BUILD_USERHOST
+# correctly includes or excludes the hostname of this URL. Using
+# $(hostname -f) instead of $(hostname) when running a local python
+# webserver may help. The symptom of a misconfiguration is an
+# INSTALL file containing a proxy error message instead of
 # installation instructions.
 WEB_URL=
 
@@ -257,7 +257,7 @@ if [ -n "$WIN_USERHOST" ] ; then
         # The PATH when you ssh in to the cygwin sshd is missing things
         PATH="$PATH:$(cygpath -p "$SYSTEMROOT\microsoft.net\framework\v3.5;$PROGRAMFILES\msival2;$PROGRAMFILES\wix;$PROGRAMFILES\Microsoft SDKs\Windows\v6.1\Bin")"
         cd '$dotnetdir'
-        { '"$winvars"' ./dist-msi.sh && touch dist-msi.ok ; } 2>&1 | tee dist-msi.log ; test -e dist-msi.ok 
+        { '"$winvars"' ./dist-msi.sh && touch dist-msi.ok ; } 2>&1 | tee dist-msi.log ; test -e dist-msi.ok
     '
 
     # The cygwin rsync sometimes hangs.  This rm works around it.
@@ -288,7 +288,7 @@ ssh $SSH_OPTS $BUILD_USERHOST '
 '
 
 # Copy everything back from the build host
-rsync -a $BUILD_USERHOST:$topdir/ $TOPDIR 
+rsync -a $BUILD_USERHOST:$topdir/ $TOPDIR
 ssh $SSH_OPTS $BUILD_USERHOST "rm -rf $topdir"
 
 echo "Build completed successfully (don't worry about the following kill)"
