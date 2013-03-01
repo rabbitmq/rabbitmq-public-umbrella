@@ -84,7 +84,7 @@ UMBRELLADIR=
 OTP_VERSION="R12B-5"
 
 # OTP version for the standalone package
-STANDALONE_OTP_VERSION="$OTP_VERSION"
+STANDALONE_OTP_VERSION=
 
 # Imitate make-style variable settings as arguments
 while [[ $# -gt 0 ]] ; do
