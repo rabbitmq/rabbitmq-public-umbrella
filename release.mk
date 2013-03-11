@@ -31,6 +31,7 @@ ABSOLUTE_PLUGINS_SRC_DIR=$(CURDIR)/$(PLUGINS_SRC_DIR)
 
 REQUIRED_EMULATOR_VERSION=5.6.5
 ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
+SKIP_EMULATOR_VERSION_CHECK=
 
 REPOS:=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-test
 
@@ -62,11 +63,13 @@ clean: clean-packaging
 
 .PHONY: prepare
 prepare:
+ifeq "$(SKIP_EMULATOR_VERSION_CHECK)" ""
 	@[ "$(REQUIRED_EMULATOR_VERSION)" = "$(ACTUAL_EMULATOR_VERSION)" ] || \
 		(echo "You are trying to compile with the wrong Erlang/OTP release."; \
 		echo "Please use emulator version $(REQUIRED_EMULATOR_VERSION)."; \
-		echo "Alternatively, set the makefile variable REQUIRED_EMULATOR_VERSION=$(ACTUAL_EMULATOR_VERSION) ."; \
+		echo "Or skip the version check by setting the variable SKIP_EMULATOR_VERSION_CHECK."; \
 		[ -n "$(UNOFFICIAL_RELEASE)" ] )
+endif
 	@echo Checking the presence of the tools necessary to build a release on a Debian based OS.
 	[ -f "/etc/debian_version" ] && dpkg -L cdbs elinks fakeroot findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip python-pexpect openssl xmlto xsltproc git-core nsis > /dev/null || echo Not a Debian system
 	@echo All required tools are installed, great!
@@ -118,6 +121,11 @@ rabbitmq-server-website-manpages: rabbitmq-server-srcdist
 rabbitmq-server-generic-unix-packaging: rabbitmq-server-srcdist
 	$(MAKE) -C rabbitmq-server/packaging/generic-unix dist VERSION=$(VERSION)
 	cp rabbitmq-server/packaging/generic-unix/rabbitmq-server-generic-unix-*.tar.gz $(SERVER_PACKAGES_DIR)
+
+.PHONY: rabbitmq-server-mac-standalone-packaging
+rabbitmq-server-mac-standalone-packaging: rabbitmq-server-srcdist
+	$(MAKE) -C rabbitmq-server/packaging/standalone dist VERSION=$(VERSION) OS=mac
+	cp rabbitmq-server/packaging/standalone/rabbitmq-server-mac-standalone-*.tar.gz $(SERVER_PACKAGES_DIR)
 
 .PHONY: rabbitmq-server-windows-packaging
 rabbitmq-server-windows-packaging: rabbitmq-server-srcdist
@@ -266,4 +274,3 @@ verify-signatures:
 
 deploy-maven: verify-signatures
 	$(MAKE) -C rabbitmq-java-client stage-and-promote-maven-bundle SIGNING_KEY=$(SIGNING_KEY) VERSION=$(VERSION) GNUPG_PATH=$(GNUPG_PATH)
-

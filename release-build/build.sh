@@ -17,6 +17,10 @@ BUILD_USERHOST=
 # it, the windows bits won't get built.
 WIN_USERHOST=
 
+# The Mac ssh user@host to use for the mac bits.  If you omit
+# it, the mac bits won't get built.
+MAC_USERHOST=
+
 # Setting the following variables is optional.
 
 # Options to pass to ssh commands.  '-i identity_file' is useful for
@@ -76,6 +80,12 @@ SCRIPTDIR=$(dirname $0)
 # the grandparent-directory of this script.
 UMBRELLADIR=
 
+# OTP version to build against
+OTP_VERSION="R12B-5"
+
+# OTP version for the standalone package
+STANDALONE_OTP_VERSION=
+
 # Imitate make-style variable settings as arguments
 while [[ $# -gt 0 ]] ; do
   declare "$1"
@@ -83,7 +93,7 @@ while [[ $# -gt 0 ]] ; do
 done
 
 mandatory_vars="VERSION BUILD_USERHOST"
-optional_vars="SSH_OPTS KEYSDIR SIGNING_PARAMS WEB_URL WEBSITE_REPO CHANGELOG_EMAIL CHANGELOG_FULLNAME CHANGELOG_COMMENT TOPDIR topdir REPOS SCRIPTDIR UMBRELLADIR WIN_USERHOST"
+optional_vars="SSH_OPTS KEYSDIR SIGNING_PARAMS WEB_URL WEBSITE_REPO CHANGELOG_EMAIL CHANGELOG_FULLNAME CHANGELOG_COMMENT TOPDIR topdir REPOS SCRIPTDIR UMBRELLADIR WIN_USERHOST MAC_USERHOST"
 
 . $SCRIPTDIR/utils.sh
 absolutify_scriptdir
@@ -110,6 +120,7 @@ set -e -x
 ssh $SSH_OPTS $BUILD_USERHOST 'true'
 ssh $SSH_OPTS $ROOT_USERHOST 'true'
 [ -n "$WIN_USERHOST" ] && ssh $SSH_OPTS "$WIN_USERHOST" 'true'
+[ -n "$MAC_USERHOST" ] && ssh $SSH_OPTS "$MAC_USERHOST" 'true'
 
 # Prepare the build host.  Debian etch needs some work to get it in shape
 ssh $SSH_OPTS $ROOT_USERHOST '
@@ -199,7 +210,7 @@ fi
 rsync -a $TOPDIR/ $BUILD_USERHOST:$topdir
 
 # Do per-user install of the required erlang/OTP versions
-ssh $SSH_OPTS $BUILD_USERHOST "$topdir/install-otp.sh R12B-5"
+ssh $SSH_OPTS $BUILD_USERHOST "$topdir/install-otp.sh $OTP_VERSION"
 
 if [ -z "$WEB_URL" ] ; then
     # Run the website under a local python process
@@ -270,21 +281,59 @@ else
     vars="SKIP_DOTNET_CLIENT=1"
 fi
 
+if [ -n "$MAC_USERHOST" ] ; then
+
+    ## check if the mac host has the required programs for the build
+    ssh $SSH_OPTS "$MAC_USERHOST" '
+        for p in "rsync xmlto wget java git hg"
+        do
+            which $p ;
+            if [ $? -ne 0 ]; then
+                echo "missing build dependency $p"
+                exit 1;
+            fi
+        done
+    '
+
+    ## copy the umbrella to the MAC_USERHOST
+    ssh $SSH_OPTS "$MAC_USERHOST" "mkdir -p $topdir"
+    rsync -a $TOPDIR/ $MAC_USERHOST:$topdir
+
+    ## Do per-user install of the required erlang/OTP versions
+    ssh $SSH_OPTS $MAC_USERHOST "$topdir/install-otp.sh $STANDALONE_OTP_VERSION"
+
+    ## build the mac standalone package
+    macvars="VERSION=$VERSION SKIP_EMULATOR_VERSION_CHECK=true"
+    ssh $SSH_OPTS "$MAC_USERHOST" '
+        set -e -x
+        PATH=$HOME/otp-'"$STANDALONE_OTP_VERSION"'/bin:$PATH
+        cd '$topdir'
+        cd rabbitmq-public-umbrella
+        { make -f release.mk rabbitmq-server-mac-standalone-packaging '"$macvars"' ; } 2>&1
+    '
+
+    # Copy everything back from the build host
+    rsync -a $MAC_USERHOST:$topdir/ $TOPDIR
+    ssh $SSH_OPTS $MAC_USERHOST "rm -rf $topdir"
+fi
+
 new_vars="$vars VERSION=$VERSION WEB_URL=\"$WEB_URL\" UNOFFICIAL_RELEASE=$UNOFFICIAL_RELEASE"
 
 if [ -n "$KEYSDIR" ] ; then
     # Set things up for signing
     rsync -r $KEYSDIR/keyring/ $BUILD_USERHOST:$topdir/keyring/
     vars="$new_vars GNUPG_PATH=$topdir/keyring $SIGNING_PARAMS"
+else
+    vars="$new_vars"
 fi
 
 ssh $SSH_OPTS $BUILD_USERHOST '
     set -e -x
-    PATH=$HOME/otp-R12B-5/bin:$PATH
+    PATH=$HOME/otp-'"$OTP_VERSION"'/bin:$PATH
     cd '$topdir'
     [ -d keyring ] && chmod -R a+rX,u+w keyring
     cd rabbitmq-public-umbrella
-    { make -f release.mk dist '"$vars"' ERLANG_CLIENT_OTP_HOME=$HOME/otp-R12B-5 && touch dist.ok ; rm -rf '$topdir'/keyring ; } 2>&1 | tee dist.log ; test -e dist.ok
+    { make -f release.mk dist '"$vars"' ERLANG_CLIENT_OTP_HOME=$HOME/otp-'"$OTP_VERSION"' && touch dist.ok ; rm -rf '$topdir'/keyring ; } 2>&1 | tee dist.log ; test -e dist.ok
 '
 
 # Copy everything back from the build host
