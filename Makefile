@@ -24,7 +24,6 @@ PACKAGE_REPOS:=\
     rabbitmq-metronome \
     rabbitmq-web-dispatch \
     rabbitmq-mqtt \
-    rabbitmq-old-federation \
     rabbitmq-shovel \
     rabbitmq-shovel-management \
     rabbitmq-stomp \
