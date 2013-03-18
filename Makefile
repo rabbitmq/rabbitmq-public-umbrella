@@ -12,7 +12,6 @@ PACKAGE_REPOS:=\
     rabbitmq-auth-mechanism-ssl \
     rabbitmq-consistent-hash-exchange \
     rabbitmq-erlang-client \
-    rabbitmq-external-exchange \
     rabbitmq-federation \
     rabbitmq-federation-management \
     rabbitmq-jsonrpc \
