@@ -8,6 +8,7 @@ PACKAGE_REPOS:=\
     erlang-rfc4627-wrapper \
     mochiweb-wrapper \
     sockjs-erlang-wrapper \
+    rabbitmq-amqp1.0 \
     rabbitmq-auth-backend-ldap \
     rabbitmq-auth-mechanism-ssl \
     rabbitmq-consistent-hash-exchange \
