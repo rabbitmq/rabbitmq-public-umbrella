@@ -1,98 +1,175 @@
-# The order of these repos is VERY important because some repos depend on
-# other repos, so be careful when playing with this
+.PHONY: default
+default:
+	@echo No default target && false
 
-# PLUGIN_REPOS = our plugins repos; what needs to be tagged at release time.
-# CORE_REPOS = PLUGIN_REPOS + server and codegen, i.e. everything we can hg
-# clone from http://hg.rabbitmq.com/.
-# REPOS = CORE_REPOS + external repos, i.e. everything we need to clone /
-# checkout in any way.
-# PLUGINS = PLUGIN_REPOS + external repos, i.e. every plugin we need to build.
+PACKAGE_REPOS:=\
+    cowboy-wrapper \
+    eldap-wrapper \
+    erlang-rfc4627-wrapper \
+    mochiweb-wrapper \
+    sockjs-erlang-wrapper \
+    rabbitmq-amqp1.0 \
+    rabbitmq-auth-backend-ldap \
+    rabbitmq-auth-mechanism-ssl \
+    rabbitmq-consistent-hash-exchange \
+    rabbitmq-erlang-client \
+    rabbitmq-federation \
+    rabbitmq-federation-management \
+    rabbitmq-jsonrpc \
+    rabbitmq-jsonrpc-channel \
+    rabbitmq-jsonrpc-channel-examples \
+    rabbitmq-management \
+    rabbitmq-management-agent \
+    rabbitmq-management-visualiser \
+    rabbitmq-metronome \
+    rabbitmq-web-dispatch \
+    rabbitmq-mqtt \
+    rabbitmq-shovel \
+    rabbitmq-shovel-management \
+    rabbitmq-stomp \
+    rabbitmq-toke \
+    rabbitmq-tracing \
+    rabbitmq-web-stomp \
+    rabbitmq-web-stomp-examples \
+    toke \
+    webmachine-wrapper
 
-PLUGIN_REPOS=rabbitmq-erlang-client \
-           rabbitmq-jsonrpc rabbitmq-mochiweb \
-           rabbitmq-jsonrpc-channel rabbitmq-management-agent \
-           rabbitmq-management rabbitmq-stomp rabbitmq-smtp rabbitmq-shovel
+REPOS:=rabbitmq-server rabbitmq-codegen rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-test $(PACKAGE_REPOS)
 
-CORE_REPOS=rabbitmq-server rabbitmq-codegen $(PLUGIN_REPOS)
-
-REPOS=$(CORE_REPOS) erlang-rfc4627
-BRANCH=default
-PLUGINS=rabbitmq-erlang-client rabbitmq-jsonrpc rabbitmq-mochiweb \
-	rabbitmq-jsonrpc-channel erlang-rfc4627 rabbitmq-smtp \
-	rabbitmq-stomp rabbitmq-shovel rabbitmq-management-agent \
-	rabbitmq-management
+BRANCH:=default
 
 HG_CORE_REPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
-
-ifeq ($(HG_CORE_REPOBASE),)
-HG_CORE_REPOBASE=http://hg.rabbitmq.com/
+ifndef HG_CORE_REPOBASE
+HG_CORE_REPOBASE:=http://hg.rabbitmq.com/
 endif
+
+VERSION:=0.0.0
 
 #----------------------------------
 
 all:
-	$(foreach DIR, $(REPOS), $(MAKE) -C $(DIR) all &&) true
+	$(MAKE) -f all-packages.mk all-packages VERSION=$(VERSION)
 
-package:
-	$(foreach DIR, $(PLUGINS), $(MAKE) -C $(DIR) package &&) true
+test:
+	$(MAKE) -f all-packages.mk test-all-packages VERSION=$(VERSION)
+
+release:
+	$(MAKE) -f all-packages.mk all-releasable VERSION=$(VERSION)
+
+clean:
+	$(MAKE) -f all-packages.mk clean-all-packages
+
+check-xref:
+	$(MAKE) -f all-packages.mk check-xref-packages
+
+plugins-dist: release
+	rm -rf $(PLUGINS_DIST_DIR)
+	mkdir -p $(PLUGINS_DIST_DIR)
+	$(MAKE) -f all-packages.mk copy-releasable VERSION=$(VERSION) PLUGINS_DIST_DIR=$(PLUGINS_DIST_DIR)
+
+plugins-srcdist:
+	rm -rf $(PLUGINS_SRC_DIST_DIR)
+	mkdir -p $(PLUGINS_SRC_DIST_DIR)/licensing
+
+	rsync -a --exclude '.hg*' rabbitmq-erlang-client $(PLUGINS_SRC_DIST_DIR)/
+	touch $(PLUGINS_SRC_DIST_DIR)/rabbitmq-erlang-client/.srcdist_done
+
+	rsync -a --exclude '.hg*' rabbitmq-server $(PLUGINS_SRC_DIST_DIR)/
+	touch $(PLUGINS_SRC_DIST_DIR)/rabbitmq-server/.srcdist_done
+
+	$(MAKE) -f all-packages.mk copy-srcdist VERSION=$(VERSION) PLUGINS_SRC_DIST_DIR=$(PLUGINS_SRC_DIST_DIR)
+	cp Makefile *.mk generate* $(PLUGINS_SRC_DIST_DIR)/
+	echo "This is the released version of rabbitmq-public-umbrella. \
+You can clone the full version with: hg clone http://hg.rabbitmq.com/rabbitmq-public-umbrella" > $(PLUGINS_SRC_DIST_DIR)/README
+
+	PRESERVE_CLONE_DIR=1 make -C $(PLUGINS_SRC_DIST_DIR) clean
+	rm -rf $(PLUGINS_SRC_DIST_DIR)/rabbitmq-server
 
 #----------------------------------
 # Convenience aliases
 
+.PHONY: co
 co: checkout
+
+.PHONY: ci
+ci: checkin
+
+.PHONY: up
 up: update
+
+.PHONY: st
+st: status
+
+.PHONY: up_c
+up_c: named_update
 
 #----------------------------------
 
-clean:
-	$(foreach DIR, $(REPOS), $(MAKE) -C $(DIR) clean;)
+$(REPOS):
+	hg clone $(HG_CORE_REPOBASE)/$@
 
-distclean:
-	$(foreach DIR, $(REPOS), $(MAKE) -C $(DIR) distclean;)
+.PHONY: checkout
+checkout: $(REPOS)
 
 #----------------------------------
 # Subrepository management
 
-$(CORE_REPOS):
-	hg clone $(HG_CORE_REPOBASE)/$@
 
-erlang-rfc4627:
-	git clone http://github.com/tonyg/erlang-rfc4627.git
+# $(1) is the target
+# $(2) is the target dependency. Can use % to get current REPO
+# $(3) is the target body. Can use % to get current REPO
+define repo_target
 
-checkout: $(REPOS)
+.PHONY: $(1)
+$(1): $(2)
+	$(3)
 
-st: checkout
-	$(foreach DIR,. $(REPOS),(cd $(DIR); hg st -mad) &&) true
+endef
 
-pull: checkout
-	$(foreach DIR,. $(REPOS),(cd $(DIR); hg pull) &&) true
+# $(1) is the list of repos
+# $(2) is the suffix
+# $(3) is the target dependency. Can use % to get current REPO
+# $(4) is the target body. Can use % to get current REPO
+define repo_targets
+$(foreach REPO,$(1),$(call repo_target,$(REPO)+$(2),\
+	$(patsubst %,$(3),$(REPO)),$(patsubst %,$(4),$(REPO))))
+endef
 
-update: pull
-	$(foreach DIR,. $(REPOS),(cd $(DIR); hg up) &&) true
+# Do not allow status to fork with -j otherwise output will be garbled
+.PHONY: status
+status: checkout
+	$(foreach DIR,. $(REPOS), \
+		(cd $(DIR); OUT=$$(hg st -mad); \
+		if \[ ! -z "$$OUT" \]; then echo "\n$(DIR):\n$$OUT"; fi) &&) true
 
-named_update: checkout
-	$(foreach DIR,. $(CORE_REPOS),(cd $(DIR); hg up -C $(BRANCH));)
+.PHONY: pull
+pull: $(foreach DIR,. $(REPOS),$(DIR)+pull)
 
-tag: checkout
-	$(foreach DIR,. $(PLUGIN_REPOS),(cd $(DIR); hg tag $(TAG));)
+$(eval $(call repo_targets,. $(REPOS),pull,| %,(cd % && hg pull)))
 
-push: checkout
-	$(foreach DIR,. $(PLUGIN_REPOS),(cd $(DIR); hg push -f);)
+.PHONY: update
+update: $(foreach DIR,. $(REPOS),$(DIR)+update)
 
-#----------------------------------
-# Plugin management
-attach_plugins:
-	mkdir -p rabbitmq-server/plugins
-	rm -f rabbitmq-server/plugins/*
-	$(foreach DIR, $(PLUGINS), (cd rabbitmq-server/plugins; ln -sf ../../$(DIR)) &&) true
-	$(foreach DIR, $(PLUGINS), $(foreach DEP, $(shell make -s -C $(DIR) list-deps), (cd rabbitmq-server/plugins; ln -sf ../../$(DIR)/$(DEP)) &&)) true
-	rabbitmq-server/scripts/rabbitmq-activate-plugins
+$(eval $(call repo_targets,. $(REPOS),update,%+pull,(cd % && hg up)))
 
-plugins-dist: package
-	rm -rf $(PLUGINS_DIST_DIR)
-	mkdir -p $(PLUGINS_DIST_DIR)
-	find . -name '*.ez' -exec cp -f {} $(PLUGINS_DIST_DIR) \;
-	for file in $(PLUGINS_DIST_DIR)/*.ez ; \
-	  do mv $${file} \
-	    $$(dirname $${file})/$$(basename $${file} .ez)-$(VERSION).ez ; \
-	  done
+.PHONY: named_update
+named_update: $(foreach DIR,. $(REPOS),$(DIR)+named_update)
+
+$(eval $(call repo_targets,. $(REPOS),named_update,%+pull,\
+	(cd % && hg up -C $(BRANCH))))
+
+.PHONY: tag
+tag: $(foreach DIR,. $(PACKAGE_REPOS),$(DIR)+tag)
+
+$(eval $(call repo_targets,. $(PACKAGE_REPOS),tag,| %,(cd % && hg tag $(TAG))))
+
+.PHONY: push
+push: $(foreach DIR,. $(REPOS),$(DIR)+push)
+
+# "|| true" sicne hg push fails if there are no changes
+$(eval $(call repo_targets,. $(REPOS),push,| %,(cd % && hg push -f || true)))
+
+.PHONY: checkin
+checkin: $(foreach DIR,. $(REPOS),$(DIR)+checkin)
+
+$(eval $(call repo_targets,. $(REPOS),checkin,| %,(cd % && hg ci)))

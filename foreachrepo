@@ -1,0 +1,8 @@
+#!/bin/sh
+for hgdir in $(find . -type d -name .hg)
+do
+	repo=$(dirname $hgdir)
+	echo "===== $repo"
+	(cd $repo; "$@")
+	echo
+done
