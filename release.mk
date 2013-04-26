@@ -51,7 +51,14 @@ dist:
 	@echo "You must specify one of UNOFFICIAL_RELEASE (to true, if you don't want to sign packages) or GNUPG_PATH (to the location of the RabbitMQ keyring) when making dist."
 	@false
 else
-dist: artifacts sign-artifacts
+dist: rabbitmq-server-artifacts
+dist: rabbitmq-java-artifacts
+ifeq ($(SKIP_DOTNET_CLIENT),)
+dist: rabbitmq-dotnet-artifacts
+endif
+dist: rabbitmq-erlang-client-artifacts
+dist: rabbitmq-plugins-srcdist
+dist: rabbitmq-plugins-artifacts
 endif
 
 .PHONY: clean
@@ -73,17 +80,6 @@ endif
 	@echo Checking the presence of the tools necessary to build a release on a Debian based OS.
 	[ -f "/etc/debian_version" ] && dpkg -L cdbs elinks fakeroot findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip python-pexpect openssl xmlto xsltproc git-core nsis > /dev/null || echo Not a Debian system
 	@echo All required tools are installed, great!
-
-
-.PHONY: artifacts
-artifacts: rabbitmq-server-artifacts
-artifacts: rabbitmq-java-artifacts
-ifeq ($(SKIP_DOTNET_CLIENT),)
-artifacts: rabbitmq-dotnet-artifacts
-endif
-artifacts: rabbitmq-erlang-client-artifacts
-artifacts: rabbitmq-plugins-srcdist
-artifacts: rabbitmq-plugins-artifacts
 
 .PHONY: rabbitmq-server-clean
 rabbitmq-server-clean:
