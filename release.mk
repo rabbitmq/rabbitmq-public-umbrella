@@ -207,7 +207,7 @@ ifneq "$(UNOFFICIAL_RELEASE)" ""
 sign-artifacts:
 	true
 else
-sign-artifacts: artifacts
+sign-artifacts:
 	python util/nopassphrase.py \
             rpm --addsign \
 		--define '_signature gpg' \
