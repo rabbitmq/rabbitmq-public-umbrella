@@ -116,6 +116,16 @@ check_vars
 
 set -e -x
 
+# Check that a few more obscure bits we need on the master are present
+if ! python -c "import pexpect" >/dev/null 2>&1 ; then
+    echo ERROR: python-pexpect missing
+    exit 1
+fi
+if ! rpm --help >/dev/null 2>&1 ; then
+    echo ERROR: rpm missing
+    exit 1
+fi
+
 # Verify that we can ssh into the hosts, just in case
 ssh $SSH_OPTS $BUILD_USERHOST 'true'
 ssh $SSH_OPTS $ROOT_USERHOST 'true'
