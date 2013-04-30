@@ -37,7 +37,9 @@ KEYSDIR=
 # Other signing parameters to pass to the rabbitmq-public-umbrella Makefile.
 # If KEYSDIR isn't pointing to the release keys, you will need to
 # supply something here to set the Makefile's SIGNING_* vars.
-SIGNING_PARAMS=
+SIGNING_KEY=
+SIGNING_USER_EMAIL=
+SIGNING_USER_ID=
 
 # The base URL of the rabbitmq website used to retrieve documentation.
 # If empty, we start a local python web server.  Should include a
@@ -93,7 +95,7 @@ while [[ $# -gt 0 ]] ; do
 done
 
 mandatory_vars="VERSION BUILD_USERHOST"
-optional_vars="SSH_OPTS KEYSDIR SIGNING_PARAMS WEB_URL WEBSITE_REPO CHANGELOG_EMAIL CHANGELOG_FULLNAME CHANGELOG_COMMENT TOPDIR topdir REPOS SCRIPTDIR UMBRELLADIR WIN_USERHOST MAC_USERHOST"
+optional_vars="SSH_OPTS KEYSDIR SIGNING_KEY SIGNING_USER_EMAIL SIGNING_USER_ID WEB_URL WEBSITE_REPO CHANGELOG_EMAIL CHANGELOG_FULLNAME CHANGELOG_COMMENT TOPDIR topdir REPOS SCRIPTDIR UMBRELLADIR WIN_USERHOST MAC_USERHOST"
 
 . $SCRIPTDIR/utils.sh
 absolutify_scriptdir
@@ -332,7 +334,7 @@ new_vars="$vars VERSION=$VERSION WEB_URL=\"$WEB_URL\" UNOFFICIAL_RELEASE=$UNOFFI
 if [ -n "$KEYSDIR" ] ; then
     # Set things up for signing
     rsync -r $KEYSDIR/keyring/ $BUILD_USERHOST:$topdir/keyring/
-    vars="$new_vars GNUPG_PATH=$topdir/keyring $SIGNING_PARAMS"
+    vars="$new_vars GNUPG_PATH=$topdir/keyring SIGNING_KEY=$SIGNING_KEY SIGNING_USER_EMAIL=$SIGNING_USER_EMAIL SIGNING_USER_ID=\"$SIGNING_USER_ID\""
 else
     vars="$new_vars"
 fi
@@ -352,8 +354,7 @@ ssh $SSH_OPTS $BUILD_USERHOST "rm -rf $topdir"
 
 # Sign everything
 if [ -n "$KEYSDIR" ] ; then
-    SIGNING_PARAMS1="$SIGNING_PARAMS"
-    make -C $TOPDIR/rabbitmq-public-umbrella -f release.mk sign-artifacts GNUPG_PATH=$KEYSDIR/keyring "$SIGNING_PARAMS1" VERSION=$VERSION
+    make -C $TOPDIR/rabbitmq-public-umbrella -f release.mk sign-artifacts GNUPG_PATH=$KEYSDIR/keyring VERSION=$VERSION SIGNING_KEY=$SIGNING_KEY SIGNING_USER_EMAIL=$SIGNING_USER_EMAIL SIGNING_USER_ID="$SIGNING_USER_ID"
 fi
 
 echo "Build completed successfully (don't worry about the following kill)"
