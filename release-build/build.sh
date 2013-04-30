@@ -334,7 +334,11 @@ new_vars="$vars VERSION=$VERSION WEB_URL=\"$WEB_URL\" UNOFFICIAL_RELEASE=$UNOFFI
 if [ -n "$KEYSDIR" ] ; then
     # Set things up for signing
     rsync -r $KEYSDIR/keyring/ $BUILD_USERHOST:$topdir/keyring/
-    vars="$new_vars GNUPG_PATH=$topdir/keyring SIGNING_KEY=$SIGNING_KEY SIGNING_USER_EMAIL=$SIGNING_USER_EMAIL SIGNING_USER_ID=\"$SIGNING_USER_ID\""
+    if [ -n "$SIGNING_KEY" ] ; then
+        vars="$new_vars GNUPG_PATH=$topdir/keyring SIGNING_KEY=$SIGNING_KEY SIGNING_USER_EMAIL=$SIGNING_USER_EMAIL SIGNING_USER_ID=\"$SIGNING_USER_ID\""
+    else
+        vars="$new_vars GNUPG_PATH=$topdir/keyring"
+    fi
 else
     vars="$new_vars"
 fi
