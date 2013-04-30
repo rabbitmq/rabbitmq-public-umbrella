@@ -352,7 +352,8 @@ ssh $SSH_OPTS $BUILD_USERHOST "rm -rf $topdir"
 
 # Sign everything
 if [ -n "$KEYSDIR" ] ; then
-    make -C $TOPDIR/rabbitmq-public-umbrella -f release.mk sign-artifacts GNUPG_PATH=$KEYSDIR/keyring "$SIGNING_PARAMS" VERSION=$VERSION
+    SIGNING_PARAMS1="$SIGNING_PARAMS"
+    make -C $TOPDIR/rabbitmq-public-umbrella -f release.mk sign-artifacts GNUPG_PATH=$KEYSDIR/keyring "$SIGNING_PARAMS1" VERSION=$VERSION
 fi
 
 echo "Build completed successfully (don't worry about the following kill)"
