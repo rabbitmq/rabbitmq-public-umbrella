@@ -159,7 +159,7 @@ $(eval $(call repo_targets,. $(REPOS),named_update,%+pull,\
 	(cd % && hg up -C $(BRANCH))))
 
 .PHONY: tag
-tag: $(foreach DIR,. $(PACKAGE_REPOS),$(DIR)+tag)
+tag: $(foreach DIR,. $(REPOS),$(DIR)+tag)
 
 $(eval $(call repo_targets,. $(PACKAGE_REPOS),tag,| %,(cd % && hg tag $(TAG))))
 
