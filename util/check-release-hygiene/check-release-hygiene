@@ -67,12 +67,12 @@ rm *.bugs-merged
 cat *.bugs-unmerged | sort | uniq > all-bugs-unmerged
 rm *.bugs-unmerged
 
+# Dodgy bugs that break XML-RPC or exist in hg but not bz.
+cat all-bugs-unmerged | grep -v 21899 | grep -v 22019 > all-bugs-unmerged0 && mv all-bugs-unmerged0 all-bugs-unmerged
+
 echo Pulling from bugzilla...
 
 perl bz.pl --login $2 --rememberlogin --bug_id "`cat all-bugs-merged | tr '\n' ' '`" > bz-merged
-
-# Dodgy bugs that break XML-RPC or exist in hg but not bz.
-cat all-bugs-unmerged | grep -v 21899 | grep -v 22019 > all-bugs-unmerged0 && mv all-bugs-unmerged0 all-bugs-unmerged
 
 perl bz.pl --login $2 --rememberlogin --bug_id "`cat all-bugs-unmerged | tr '\n' ' '`" > bz-unmerged
 
