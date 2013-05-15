@@ -7,15 +7,20 @@ if [ "x$1" = "x" -o "x$2" = "x" ]; then
 fi
 
 # C+P this from rabbitmq-public-umbrella Makefile
-# last updated for release 2.7.1
+# last updated for release 3.1.0
 PLUGIN_REPOS="\
+              cowboy-wrapper \
+              eldap-wrapper \
+              erlang-rfc4627-wrapper \
+              mochiweb-wrapper \
+              sockjs-erlang-wrapper \
+              rabbitmq-amqp1.0 \
               rabbitmq-auth-backend-ldap \
               rabbitmq-auth-mechanism-ssl \
               rabbitmq-consistent-hash-exchange \
               rabbitmq-erlang-client \
-              rabbitmq-external-exchange \
               rabbitmq-federation \
-              rabbitmq-ha-test \
+              rabbitmq-federation-management \
               rabbitmq-jsonrpc \
               rabbitmq-jsonrpc-channel \
               rabbitmq-jsonrpc-channel-examples \
@@ -23,15 +28,19 @@ PLUGIN_REPOS="\
               rabbitmq-management-agent \
               rabbitmq-management-visualiser \
               rabbitmq-metronome \
-              rabbitmq-mochiweb \
+              rabbitmq-web-dispatch \
+              rabbitmq-mqtt \
               rabbitmq-shovel \
               rabbitmq-shovel-management \
               rabbitmq-stomp \
               rabbitmq-toke \
-              rabbitmq-tracing"
+              rabbitmq-tracing \
+              rabbitmq-web-stomp \
+              rabbitmq-web-stomp-examples \
+              toke \
+              webmachine-wrapper"
 
 REPOS="rabbitmq-public-umbrella \
-       rabbitmq-umbrella \
        rabbitmq-java-client \
        rabbitmq-dotnet-client \
        rabbitmq-server \
