@@ -65,7 +65,7 @@ CHANGELOG_EMAIL=packaging@rabbitmq.com
 CHANGELOG_FULLNAME="RabbitMQ Team"
 
 # The comment for changelog entires
-CHANGELOG_COMMENT="Test release"
+CHANGELOG_COMMENT="New upstream release"
 
 # The directory on the local host to use for the build.  If not set,
 # we will use a uniquely-named directory in /var/tmp.
