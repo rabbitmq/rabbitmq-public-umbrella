@@ -12,7 +12,6 @@ REPOS:= \
     eldap-wrapper \
     erlang-rfc4627-wrapper \
     mochiweb-wrapper \
-    sockjs-erlang-wrapper \
     rabbitmq-amqp1.0 \
     rabbitmq-auth-backend-ldap \
     rabbitmq-auth-mechanism-ssl \
@@ -36,6 +35,7 @@ REPOS:= \
     rabbitmq-tracing \
     rabbitmq-web-stomp \
     rabbitmq-web-stomp-examples \
+    sockjs-erlang-wrapper \
     toke \
     webmachine-wrapper
 
