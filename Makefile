@@ -2,7 +2,12 @@
 default:
 	@echo No default target && false
 
-PACKAGE_REPOS:=\
+REPOS:= \
+    rabbitmq-server \
+    rabbitmq-codegen \
+    rabbitmq-java-client \
+    rabbitmq-dotnet-client \
+    rabbitmq-test \
     cowboy-wrapper \
     eldap-wrapper \
     erlang-rfc4627-wrapper \
@@ -33,8 +38,6 @@ PACKAGE_REPOS:=\
     rabbitmq-web-stomp-examples \
     toke \
     webmachine-wrapper
-
-REPOS:=rabbitmq-server rabbitmq-codegen rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-test $(PACKAGE_REPOS)
 
 BRANCH:=default
 
