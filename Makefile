@@ -25,6 +25,7 @@ REPOS:= \
     rabbitmq-management \
     rabbitmq-management-agent \
     rabbitmq-management-visualiser \
+    rabbitmq-message-groups \
     rabbitmq-metronome \
     rabbitmq-web-dispatch \
     rabbitmq-mqtt \
