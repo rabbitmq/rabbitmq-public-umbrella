@@ -134,21 +134,10 @@ ssh $SSH_OPTS $ROOT_USERHOST 'true'
 [ -n "$WIN_USERHOST" ] && ssh $SSH_OPTS "$WIN_USERHOST" 'true'
 [ -n "$MAC_USERHOST" ] && ssh $SSH_OPTS "$MAC_USERHOST" 'true'
 
-# Prepare the build host.  Debian etch needs some work to get it in shape
+# Prepare the build host.
 ssh $SSH_OPTS $ROOT_USERHOST '
     set -e -x
     case "$(cat /etc/debian_version)" in
-    4.0*)
-        echo "deb http://ftp.uk.debian.org/debian/ etch-proposed-updates main" >/etc/apt/sources.list.d/proposed-updates.list
-        java_package=sun-java5-jdk
-        ;;
-    5.0*)
-        java_package=openjdk-6-jdk
-        uja_command="update-java-alternatives -s java-6-openjdk"
-        echo "deb http://backports.debian.org/debian-backports lenny-backports main" > /etc/apt/sources.list.d/backports-for-mercurial-for-rabbit-build.list
-        apt-get -y update
-        apt-get -y -t lenny-backports install mercurial git
-        ;;
     6.0*)
         java_package=openjdk-6-jdk
         uja_command="update-java-alternatives -s java-6-openjdk"
