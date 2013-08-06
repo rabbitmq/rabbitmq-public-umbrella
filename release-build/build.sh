@@ -151,7 +151,7 @@ ssh $SSH_OPTS $ROOT_USERHOST '
         ;;
     6.0*)
         java_package=openjdk-6-jdk
-        uja_command="update-java-alternatives -s java-6-openjdk"
+        uja_command="update-java-alternatives -s java-1.6.0-openjdk"
         echo "deb http://backports.debian.org/debian-backports squeeze-backports main" > /etc/apt/sources.list.d/backports-for-mercurial-for-rabbit-build.list
         apt-get -y update
         apt-get -y -t squeeze-backports install mercurial
