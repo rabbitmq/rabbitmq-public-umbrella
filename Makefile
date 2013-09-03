@@ -37,7 +37,10 @@ REPOS:= \
     rabbitmq-web-stomp-examples \
     sockjs-erlang-wrapper \
     toke \
-    webmachine-wrapper
+    webmachine-wrapper \
+    niceopt-wrapper \
+    parse-trans-wrapper \
+    systest-wrapper
 
 BRANCH:=default
 
