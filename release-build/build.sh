@@ -83,7 +83,7 @@ SCRIPTDIR=$(dirname $0)
 UMBRELLADIR=
 
 # OTP version to build against
-OTP_VERSION="R12B-5"
+OTP_VERSION="R13B03"
 
 # OTP version for the standalone package
 STANDALONE_OTP_VERSION=
@@ -134,21 +134,10 @@ ssh $SSH_OPTS $ROOT_USERHOST 'true'
 [ -n "$WIN_USERHOST" ] && ssh $SSH_OPTS "$WIN_USERHOST" 'true'
 [ -n "$MAC_USERHOST" ] && ssh $SSH_OPTS "$MAC_USERHOST" 'true'
 
-# Prepare the build host.  Debian etch needs some work to get it in shape
+# Prepare the build host.
 ssh $SSH_OPTS $ROOT_USERHOST '
     set -e -x
     case "$(cat /etc/debian_version)" in
-    4.0*)
-        echo "deb http://ftp.uk.debian.org/debian/ etch-proposed-updates main" >/etc/apt/sources.list.d/proposed-updates.list
-        java_package=sun-java5-jdk
-        ;;
-    5.0*)
-        java_package=openjdk-6-jdk
-        uja_command="update-java-alternatives -s java-6-openjdk"
-        echo "deb http://backports.debian.org/debian-backports lenny-backports main" > /etc/apt/sources.list.d/backports-for-mercurial-for-rabbit-build.list
-        apt-get -y update
-        apt-get -y -t lenny-backports install mercurial git
-        ;;
     6.0*)
         java_package=openjdk-6-jdk
         uja_command="update-java-alternatives -s java-1.6.0-openjdk"
@@ -173,16 +162,10 @@ ssh $SSH_OPTS $ROOT_USERHOST '
         exit 1
     esac
 
-    if [ "$(dpkg-query --showformat="\${Version} \${Status}\n" -W nsis)" != "2.46-2 install ok installed" ]; then
-        # Pull NSIS 2.46 from squeeze
-        wget http://ftp.uk.debian.org/debian/pool/main/n/nsis/nsis_2.46-2_${ARCH}.deb
-        dpkg -i nsis_2.46-2_${ARCH}.deb
-    fi
-
     DEBIAN_FRONTEND=noninteractive ; export DEBIAN_FRONTEND
     apt-get -y update
     apt-get -y dist-upgrade
-    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm reprepro tofrodos zip unzip ant $java_package htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev erlang-nox erlang-src python-pexpect openssl s3cmd fakeroot git-core m4 xmlto mercurial xsltproc
+    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm reprepro tofrodos zip unzip ant $java_package htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev erlang-nox erlang-src python-pexpect openssl s3cmd fakeroot git-core m4 xmlto mercurial xsltproc nsis
     [ -n "$uja_command" ] && eval $uja_command
 '
 

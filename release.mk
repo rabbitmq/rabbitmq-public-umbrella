@@ -29,8 +29,8 @@ PLUGINS_SRC_DIR=$(TMP_DIR)/plugins-src/$(VDIR)
 ABSOLUTE_PLUGINS_DIR=$(CURDIR)/$(PLUGINS_DIR)
 ABSOLUTE_PLUGINS_SRC_DIR=$(CURDIR)/$(PLUGINS_SRC_DIR)
 
-REQUIRED_EMULATOR_VERSION=5.6.5
-ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
+REQUIRED_EMULATOR_VERSION=R13B03
+ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(otp_release)]),init:stop().')
 SKIP_EMULATOR_VERSION_CHECK=
 
 REPOS:=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-test
