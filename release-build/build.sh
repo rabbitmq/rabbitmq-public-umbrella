@@ -28,7 +28,7 @@ MAC_USERHOST=
 SSH_OPTS=
 
 # Optional custom hg url base.  Useful if you're builiding remotely
-# and tunneling into rabbit-hg.
+# and tunneling into rabbit-hg-private.
 HGREPOBASE=
 
 # Where the keys live.  If not set, we will do an "unofficial release"
