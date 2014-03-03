@@ -111,7 +111,7 @@ absolutify_scriptdir
 topdir=/var/tmp/rabbit-build.$$
 [[ -z "$TOPDIR" ]] && TOPDIR="$topdir"
 
-[[ -n "$HGREPOBASE" ]] || HGREPOBASE="ssh://hg@rabbit-hg"
+[[ -n "$HGREPOBASE" ]] || HGREPOBASE="ssh://hg@rabbit-hg-private"
 
 
 check_vars
