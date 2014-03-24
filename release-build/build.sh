@@ -295,7 +295,7 @@ if [ -n "$MAC_USERHOST" ] ; then
     rsync -a $TOPDIR/ $MAC_USERHOST:$topdir
 
     ## Do per-user install of the required erlang/OTP versions
-    ssh $SSH_OPTS $MAC_USERHOST "$topdir/install-otp.sh $STANDALONE_OTP_VERSION"
+    ssh $SSH_OPTS $MAC_USERHOST "$topdir/install-otp.sh $STANDALONE_OTP_VERSION --enable-darwin-64bit"
 
     ## build the mac standalone package
     macvars="VERSION=$VERSION SKIP_EMULATOR_VERSION_CHECK=true"
