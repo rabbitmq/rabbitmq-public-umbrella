@@ -23,7 +23,7 @@ REAL_WEB_URL=http://www.rabbitmq.com/
 
 # The Apple Mac OS host with macports installed used for generating
 # the macports artifacts
-MACPORTS_USERHOST=
+MAC_USERHOST=
 
 # RSync user/host to deploy to.  If empty, we don't deploy.
 DEPLOY_USERHOST=
@@ -31,7 +31,7 @@ DEPLOY_USERHOST=
 # PATH on DEPLOY_USERHOST to deploy to.
 DEPLOY_PATH=/home/rabbitmq/extras/releases
 
-# Which rabbitmq-umbrella deploy target (of deploy, deploy-live) to invoke
+# Which rabbitmq-public-umbrella deploy target (of deploy, deploy-live) to invoke
 DEPLOY_TARGET=deploy
 
 # The directory on the local host to use for the build.  If not set,
@@ -48,7 +48,7 @@ while [[ $# -gt 0 ]] ; do
 done
 
 mandatory_vars="VERSION"
-optional_vars="SSH_OPTS KEYSDIR REAL_WEB_URL MACPORTS_USERHOST DEPLOY_USERHOST TOPDIR DEPLOY_TARGET SCRIPTDIR"
+optional_vars="SSH_OPTS KEYSDIR REAL_WEB_URL MAC_USERHOST DEPLOY_USERHOST TOPDIR DEPLOY_TARGET SCRIPTDIR"
 
 . $SCRIPTDIR/utils.sh
 absolutify_scriptdir
@@ -59,7 +59,7 @@ check_vars
 
 set -e -x
 
-vars="VERSION=$VERSION REAL_WEB_URL=$REAL_WEB_URL MACPORTS_USERHOST=\"$MACPORTS_USERHOST\" SSH_OPTS=\"$SSH_OPTS\" DEPLOY_HOST=\"$DEPLOY_USERHOST\" DEPLOY_PATH=\"$DEPLOY_PATH\" GNUPG_PATH=$KEYSDIR/keyring"
+vars="VERSION=$VERSION REAL_WEB_URL=$REAL_WEB_URL MAC_USERHOST=\"$MAC_USERHOST\" SSH_OPTS=\"$SSH_OPTS\" DEPLOY_HOST=\"$DEPLOY_USERHOST\" DEPLOY_PATH=\"$DEPLOY_PATH\" GNUPG_PATH=$KEYSDIR/keyring"
 
 # The maven deployment bits need access to credentials under KEYSDIR
 if [ -n "$KEYSDIR" ] ; then
@@ -67,10 +67,10 @@ if [ -n "$KEYSDIR" ] ; then
 fi
 
 # Build macports
-cd $TOPDIR/rabbitmq-umbrella
-eval "make rabbitmq-server-macports-packaging $vars"
+cd $TOPDIR/rabbitmq-public-umbrella
+#eval "make -f release.mk rabbitmq-server-macports-packaging $vars"
 
 # Finally, deploy
 if [[ -n "$DEPLOY_USERHOST" ]] ; then
-    eval "make $DEPLOY_TARGET $vars"
+    eval "make -f release.mk $DEPLOY_TARGET $vars"
 fi

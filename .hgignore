@@ -1,0 +1,4 @@
+~$
+\.beam$
+^coverage/build/
+^coverage/dist/

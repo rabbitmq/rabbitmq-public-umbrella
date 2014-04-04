@@ -29,11 +29,11 @@ PLUGINS_SRC_DIR=$(TMP_DIR)/plugins-src/$(VDIR)
 ABSOLUTE_PLUGINS_DIR=$(CURDIR)/$(PLUGINS_DIR)
 ABSOLUTE_PLUGINS_SRC_DIR=$(CURDIR)/$(PLUGINS_SRC_DIR)
 
-REQUIRED_EMULATOR_VERSION=5.6.5
-ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(version)]),init:stop().')
+REQUIRED_EMULATOR_VERSION=R13B03
+ACTUAL_EMULATOR_VERSION=$(shell erl -noshell -eval 'io:format("~s",[erlang:system_info(otp_release)]),init:stop().')
+SKIP_EMULATOR_VERSION_CHECK=
 
-REPOS:=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client
-REPOS_WITH_PUBLIC:=$(REPOS) rabbitmq-public-umbrella
+REPOS:=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-test
 
 HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
 
@@ -41,38 +41,9 @@ ifeq ($(HGREPOBASE),)
 HGREPOBASE=ssh://hg@hg.rabbitmq.com
 endif
 
-
 .PHONY: all
 all:
 	@echo Please choose a target from the Makefile.
-
-
-.PHONY: checkout
-checkout: $(foreach r,$(REPOS_WITH_PUBLIC),.$(r).checkout)
-
-.%.checkout:
-	[ -d $* ] || hg clone $(HG_OPTS) $(HGREPOBASE)/$*
-	touch $@
-
-.rabbitmq-public-umbrella.checkout:
-	[ -d rabbitmq-public-umbrella ] || hg clone $(HG_OPTS) $(HGREPOBASE)/rabbitmq-public-umbrella
-	$(MAKE) -C rabbitmq-public-umbrella checkout
-	touch $@
-
-.PHONY: named_update
-named_update: checkout
-	$(foreach r,. $(REPOS),hg pull -R $(r);hg update -R $(r) -C $(BRANCH);)
-	$(MAKE) -C rabbitmq-public-umbrella named_update BRANCH=$(BRANCH)
-
-.PHONY: tag
-tag: checkout
-	$(foreach r,. $(REPOS),hg tag -R $(r) $(TAG);)
-	$(MAKE) -C rabbitmq-public-umbrella tag TAG=$(TAG)
-
-.PHONY: push
-push: checkout
-	$(foreach r,. $(REPOS),hg push -R $(r) -f $(HG_OPTS);)
-	$(MAKE) -C rabbitmq-public-umbrella push
 
 .PHONY: dist
 ifeq "$(UNOFFICIAL_RELEASE)$(GNUPG_PATH)" ""
@@ -80,47 +51,35 @@ dist:
 	@echo "You must specify one of UNOFFICIAL_RELEASE (to true, if you don't want to sign packages) or GNUPG_PATH (to the location of the RabbitMQ keyring) when making dist."
 	@false
 else
-dist: artifacts sign-artifacts
+dist: rabbitmq-server-artifacts
+dist: rabbitmq-java-artifacts
+ifeq ($(SKIP_DOTNET_CLIENT),)
+dist: rabbitmq-dotnet-artifacts
+endif
+dist: rabbitmq-erlang-client-artifacts
+dist: rabbitmq-plugins-srcdist
+dist: rabbitmq-plugins-artifacts
 endif
 
-
 .PHONY: clean
-clean: rabbitmq-umbrella-clean $(foreach r,$(REPOS_WITH_PUBLIC),$(r)-clean)
+clean: clean-packaging
+	$(MAKE) -C . clean
 
-.PHONY: rabbitmq-umbrella-clean
+.PHONY: clean-packaging
 	rm -rf $(PACKAGES_DIR) $(TMP_DIR) .*.checkout
 
-define clean-repo-template
-.PHONY: $(1)-clean
-$(1)-clean:
-	[ ! -d $(1) ] || $(MAKE) -C $(1) clean
-
-endef
-$(eval $(foreach r,$(filter-out rabbitmq-server,$(REPOS_WITH_PUBLIC)),$(call clean-repo-template,$(r))))
-
-
 .PHONY: prepare
-prepare: checkout
+prepare:
+ifeq "$(SKIP_EMULATOR_VERSION_CHECK)" ""
 	@[ "$(REQUIRED_EMULATOR_VERSION)" = "$(ACTUAL_EMULATOR_VERSION)" ] || \
 		(echo "You are trying to compile with the wrong Erlang/OTP release."; \
 		echo "Please use emulator version $(REQUIRED_EMULATOR_VERSION)."; \
-		echo "Alternatively, set the makefile variable REQUIRED_EMULATOR_VERSION=$(ACTUAL_EMULATOR_VERSION) ."; \
+		echo "Or skip the version check by setting the variable SKIP_EMULATOR_VERSION_CHECK."; \
 		[ -n "$(UNOFFICIAL_RELEASE)" ] )
+endif
 	@echo Checking the presence of the tools necessary to build a release on a Debian based OS.
 	[ -f "/etc/debian_version" ] && dpkg -L cdbs elinks fakeroot findutils gnupg gzip perl python python-simplejson rpm rsync wget reprepro tar tofrodos zip python-pexpect openssl xmlto xsltproc git-core nsis > /dev/null || echo Not a Debian system
 	@echo All required tools are installed, great!
-
-
-.PHONY: artifacts
-artifacts: rabbitmq-server-artifacts
-artifacts: rabbitmq-java-artifacts
-ifeq ($(SKIP_DOTNET_CLIENT),)
-artifacts: rabbitmq-dotnet-artifacts
-endif
-artifacts: rabbitmq-erlang-client-artifacts
-artifacts: rabbitmq-public-umbrella-srcdist
-artifacts: rabbitmq-public-umbrella-artifacts
-
 
 .PHONY: rabbitmq-server-clean
 rabbitmq-server-clean:
@@ -143,7 +102,7 @@ rabbitmq-server-artifacts: rabbitmq-server-debian-packaging
 rabbitmq-server-artifacts: rabbitmq-server-rpm-packaging
 
 .PHONY: rabbitmq-server-srcdist
-rabbitmq-server-srcdist: prepare rabbitmq-public-umbrella-srcdist
+rabbitmq-server-srcdist: prepare rabbitmq-plugins-srcdist
 	$(MAKE) -C rabbitmq-server srcdist VERSION=$(VERSION) PLUGINS_SRC_DIR=$(ABSOLUTE_PLUGINS_SRC_DIR)
 	mkdir -p $(SERVER_PACKAGES_DIR)
 	cp rabbitmq-server/dist/rabbitmq-server-*.tar.gz rabbitmq-server/dist/rabbitmq-server-*.zip $(SERVER_PACKAGES_DIR)
@@ -158,6 +117,11 @@ rabbitmq-server-website-manpages: rabbitmq-server-srcdist
 rabbitmq-server-generic-unix-packaging: rabbitmq-server-srcdist
 	$(MAKE) -C rabbitmq-server/packaging/generic-unix dist VERSION=$(VERSION)
 	cp rabbitmq-server/packaging/generic-unix/rabbitmq-server-generic-unix-*.tar.gz $(SERVER_PACKAGES_DIR)
+
+.PHONY: rabbitmq-server-mac-standalone-packaging
+rabbitmq-server-mac-standalone-packaging: rabbitmq-server-srcdist
+	$(MAKE) -C rabbitmq-server/packaging/standalone dist VERSION=$(VERSION) OS=mac
+	cp rabbitmq-server/packaging/standalone/rabbitmq-server-mac-standalone-*.tar.gz $(SERVER_PACKAGES_DIR)
 
 .PHONY: rabbitmq-server-windows-packaging
 rabbitmq-server-windows-packaging: rabbitmq-server-srcdist
@@ -223,27 +187,27 @@ rabbitmq-dotnet-artifacts: prepare
 
 .PHONY: rabbitmq-erlang-client-artifacts
 rabbitmq-erlang-client-artifacts: prepare
-	$(MAKE) -C rabbitmq-public-umbrella/rabbitmq-erlang-client distribution VERSION=$(VERSION)
+	$(MAKE) -C rabbitmq-erlang-client distribution VERSION=$(VERSION)
 	mkdir -p $(ERLANG_CLIENT_PACKAGES_DIR)
-	cp rabbitmq-public-umbrella/rabbitmq-erlang-client/dist/*.ez $(ERLANG_CLIENT_PACKAGES_DIR)
-	cp rabbitmq-public-umbrella/rabbitmq-erlang-client/dist/*.tar.gz $(ERLANG_CLIENT_PACKAGES_DIR)
-	cp -r rabbitmq-public-umbrella/rabbitmq-erlang-client/doc/ $(ERLANG_CLIENT_PACKAGES_DIR)
+	cp rabbitmq-erlang-client/dist/*.ez $(ERLANG_CLIENT_PACKAGES_DIR)
+	cp rabbitmq-erlang-client/dist/*.tar.gz $(ERLANG_CLIENT_PACKAGES_DIR)
+	cp -r rabbitmq-erlang-client/doc/ $(ERLANG_CLIENT_PACKAGES_DIR)
 
 
-.PHONY: rabbitmq-public-umbrella-artifacts
-rabbitmq-public-umbrella-artifacts:
-	$(MAKE) -C rabbitmq-public-umbrella plugins-dist PLUGINS_DIST_DIR=$(ABSOLUTE_PLUGINS_DIR) VERSION=$(VERSION)
+.PHONY: rabbitmq-plugins-artifacts
+rabbitmq-plugins-artifacts:
+	$(MAKE) -C . plugins-dist PLUGINS_DIST_DIR=$(ABSOLUTE_PLUGINS_DIR) VERSION=$(VERSION)
 
-.PHONY: rabbitmq-public-umbrella-srcdist
-rabbitmq-public-umbrella-srcdist:
-	$(MAKE) -C rabbitmq-public-umbrella plugins-srcdist PLUGINS_SRC_DIST_DIR=$(ABSOLUTE_PLUGINS_SRC_DIR) VERSION=$(VERSION)
+.PHONY: rabbitmq-plugins-srcdist
+rabbitmq-plugins-srcdist:
+	$(MAKE) -C . plugins-srcdist PLUGINS_SRC_DIST_DIR=$(ABSOLUTE_PLUGINS_SRC_DIR) VERSION=$(VERSION)
 
 .PHONY: sign-artifacts
 ifneq "$(UNOFFICIAL_RELEASE)" ""
 sign-artifacts:
 	true
 else
-sign-artifacts: artifacts
+sign-artifacts:
 	python util/nopassphrase.py \
             rpm --addsign \
 		--define '_signature gpg' \
@@ -277,7 +241,7 @@ DEPLOY_RSYNC_CMDS=\
 		$(RSYNC_CMD) $(PACKAGES_DIR)/$$subdirectory/* \
 		    $(DEPLOY_DEST)/$$subdirectory ; \
 	done; \
-	for subdirectory in debian macports ; do \
+	for subdirectory in debian ; do \
 		$(RSYNC_CMD) $(PACKAGES_DIR)/$$subdirectory \
 	    	    $(DEPLOY_DEST); \
 	done; \
@@ -306,4 +270,3 @@ verify-signatures:
 
 deploy-maven: verify-signatures
 	$(MAKE) -C rabbitmq-java-client stage-and-promote-maven-bundle SIGNING_KEY=$(SIGNING_KEY) VERSION=$(VERSION) GNUPG_PATH=$(GNUPG_PATH)
-
