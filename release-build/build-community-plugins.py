@@ -118,11 +118,13 @@ def build((plugin, details), tag):
         plugin_version = server_version()
     do("make", "-j", "VERSION={0}".format(plugin_version), "srcdist")
     do("make", "-j", "VERSION={0}".format(plugin_version), "dist")
+    dest_dir = os.path.join(BUILD_DIR, "plugins", server_version())
+    ensure_dir(dest_dir)
     do("cp",
        find_package("{0}/srcdist/".format(CURRENT_DIR), plugin, ".tar.bz2"),
-       "{0}/plugins".format(BUILD_DIR))
+       dest_dir)
     do("cp", find_package("{0}/dist/".format(CURRENT_DIR), plugin, ".ez"),
-       "{0}/plugins".format(BUILD_DIR))
+       dest_dir)
 
 def find_package(dir, prefix, suffix):
     for f in os.listdir(dir):
