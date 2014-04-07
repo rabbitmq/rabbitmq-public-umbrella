@@ -106,9 +106,6 @@ def build((plugin, details), tag):
         version_add_hash = True
     do("git", "clone", "-q", url)
     checkout_dir = url.split("/")[-1].split(".")[0]
-    hash = do("git", "--git-dir={0}/.git".format(checkout_dir),
-              "rev-parse", "HEAD")[0:8]
-    plugin_version = "{0}-{1}".format(server_version(), hash)
     cd(CURRENT_DIR + "/" + checkout_dir)
     if tag is None:
         do("git", "checkout", "master")
