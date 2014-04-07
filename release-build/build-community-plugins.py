@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 from optparse import OptionParser
-import sys, subprocess, os, copy
+from subprocess import Popen, PIPE
+import sys, os, copy
 
 # There is no real dependency management here, if there are
 # dependencies between community plugins list them in order.
@@ -104,7 +105,7 @@ def build((plugin, details), tag):
         version_add_hash = details['version-add-hash']
     else:
         version_add_hash = True
-    do("git", "clone", "-q", url)
+    do("git", "clone", url)
     checkout_dir = url.split("/")[-1].split(".")[0]
     cd(CURRENT_DIR + "/" + checkout_dir)
     if tag is None:
@@ -136,7 +137,14 @@ def do(*args):
     path = os.environ['PATH']
     env = copy.deepcopy(os.environ)
     env['PATH'] = "{0}/bin:{1}".format(otp_dir(), path)
-    return subprocess.check_output(args, cwd = CURRENT_DIR,env = env)
+    proc = Popen(args, cwd = CURRENT_DIR, env = env,
+                 stdout = PIPE, stderr = PIPE)
+    (stdout, stderr) = proc.communicate()
+    ret = proc.poll()
+    if ret == 0:
+        return stdout
+    else:
+        raise ('proc_failed', ret, stdout, stderr)
 
 def cd(d):
     global CURRENT_DIR
