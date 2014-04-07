@@ -107,7 +107,11 @@ def build(plugin):
               "rev-parse", "HEAD")[0:8]
     plugin_version = "{0}-{1}".format(server_version(), hash)
     cd(CURRENT_DIR + "/" + checkout_dir)
-    do("make", "-j", "VERSION={0}".format(plugin_version))
+    do("make", "-j", "VERSION={0}".format(plugin_version), "srcdist")
+    do("make", "-j", "VERSION={0}".format(plugin_version), "dist")
+    do("cp", "{0}/srcdist/{1}-{2}-src.tar.bz2".format(CURRENT_DIR, plugin,
+                                                      plugin_version),
+       "{0}/plugins".format(BUILD_DIR))
     do("cp", "{0}/dist/{1}-{2}.ez".format(CURRENT_DIR, plugin, plugin_version),
        "{0}/plugins".format(BUILD_DIR))
 

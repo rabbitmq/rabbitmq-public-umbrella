@@ -437,7 +437,7 @@ $(PACKAGE_DIR)/srcdist/.done.$(PACKAGE_VERSION):
 	mkdir -p $(PACKAGE_DIR)/build/srcdist/
 	rsync -a --exclude '.hg*' --exclude '.git*' --exclude 'build' $(PACKAGE_DIR) $(PACKAGE_DIR)/build/srcdist/$(APP_NAME)-$(PACKAGE_VERSION)
 	mkdir -p $(PACKAGE_DIR)/srcdist/
-	tar cjf $(PACKAGE_DIR)/srcdist/$(APP_NAME)-$(PACKAGE_VERSION).tar.bz2 -C $(PACKAGE_DIR)/build/srcdist/ $(APP_NAME)-$(PACKAGE_VERSION)
+	tar cjf $(PACKAGE_DIR)/srcdist/$(APP_NAME)-$(PACKAGE_VERSION)-src.tar.bz2 -C $(PACKAGE_DIR)/build/srcdist/ $(APP_NAME)-$(PACKAGE_VERSION)
 	touch $$@
 
 $(PACKAGE_DIR)+clean::
