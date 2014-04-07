@@ -27,10 +27,13 @@ def main():
                       help="build a single plugin")
     parser.add_option("-t", "--server-tag",
                       dest="server_tag",
-                      help="build against specific server tag ")
+                      help="build against specific server tag")
     parser.add_option("-T", "--plugin-tag",
                       dest="plugin_tag",
-                      help="build against specific server tag ")
+                      help="build against specific plugin tag")
+    parser.add_option("-R", "--repo-base",
+                      dest="repo_base",
+                      help="clone from alternative hg repository base URL")
     (options, args) = parser.parse_args()
     if options.plugin is None:
         plugins = PLUGINS.keys()
@@ -40,12 +43,22 @@ def main():
         else:
             print "Plugin {0} not found".format(options.plugin)
             sys.exit(1)
-    ensure_otp()
+    if options.repo_base is not None:
+        global HGREPOBASE
+        HGREPOBASE = options.repo_base
     print "Using: {0}".format(BUILD_DIR)
+    if os.path.exists(BUILD_DIR):
+        print "Error: {0} exists. Not building.".format(BUILD_DIR)
+        sys.exit(1)
     os.makedirs("{0}/plugins".format(BUILD_DIR))
+    ensure_otp()
     checkout(options.server_tag)
     print "Building..."
     [build(p) for p in plugins]
+
+def ensure_dir(d):
+    if not os.path.exists(d):
+        os.makedirs(d)
 
 def ensure_otp():
     cd(BUILD_DIR)
