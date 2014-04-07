@@ -13,6 +13,8 @@ DONE_$(PACKAGE_DIR):=true
 
 $(PACKAGE_DIR)+dist:: $(PACKAGE_DIR)/dist/.done
 
+$(PACKAGE_DIR)+srcdist:: $(PACKAGE_DIR)/srcdist/.done
+
 $(PACKAGE_DIR)+clean::
 
 $(PACKAGE_DIR)+clean-with-deps:: $(PACKAGE_DIR)+clean
@@ -428,8 +430,18 @@ $(DEPS_FILE): $(SOURCE_ERLS) $(INCLUDE_HRLS) $(TEST_SOURCE_ERLS)
 
 $(eval $(call safe_include,$(DEPS_FILE)))
 
+$(PACKAGE_DIR)/srcdist/.done: $(PACKAGE_DIR)/srcdist/.done.$(PACKAGE_VERSION)
+	touch $$@
+
+$(PACKAGE_DIR)/srcdist/.done.$(PACKAGE_VERSION):
+	mkdir -p $(PACKAGE_DIR)/build/srcdist/
+	rsync -a --exclude '.hg*' --exclude '.git*' --exclude 'build' $(PACKAGE_DIR) $(PACKAGE_DIR)/build/srcdist/$(APP_NAME)-$(PACKAGE_VERSION)
+	mkdir -p $(PACKAGE_DIR)/srcdist/
+	tar cvjf $(PACKAGE_DIR)/srcdist/$(APP_NAME)-$(PACKAGE_VERSION).tar.bz2 -C $(PACKAGE_DIR)/build/srcdist/ $(APP_NAME)-$(PACKAGE_VERSION)
+	touch $$@
+
 $(PACKAGE_DIR)+clean::
-	rm -rf $(EBIN_DIR)/*.beam $(TEST_EBIN_DIR)/*.beam $(PACKAGE_DIR)/dist $(PACKAGE_DIR)/build $(PACKAGE_DIR)/erl_crash.dump
+	rm -rf $(EBIN_DIR)/*.beam $(TEST_EBIN_DIR)/*.beam $(PACKAGE_DIR)/dist $(PACKAGE_DIR)/srcdist $(PACKAGE_DIR)/build $(PACKAGE_DIR)/erl_crash.dump
 
 $(PACKAGE_DIR)+clean-with-deps:: $(foreach P,$(DEP_PATHS),$(P)+clean-with-deps)
 
