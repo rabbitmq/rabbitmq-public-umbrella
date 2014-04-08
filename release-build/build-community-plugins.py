@@ -150,7 +150,7 @@ def find_package(dir, prefix, suffix):
     for f in os.listdir(dir):
         if f.startswith(prefix) and f.endswith(suffix):
             return os.path.join(dir, f)
-    raise ('no_package', dir, prefix, suffix)
+    raise BuildError(['no_package', dir, prefix, suffix])
 
 def do(*args):
     path = os.environ['PATH']
@@ -163,11 +163,23 @@ def do(*args):
     if ret == 0:
         return stdout
     else:
-        raise ('proc_failed', ret, stdout, stderr)
+        raise BuildError(['proc_failed', ret, stdout, stderr])
 
 def cd(d):
     global CURRENT_DIR
     CURRENT_DIR = d
 
+class BuildError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except BuildError as e:
+        print "BUILD FAILED\n============"
+        for elem in e.value:
+            print elem
+        exit(1)
