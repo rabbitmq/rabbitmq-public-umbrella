@@ -55,6 +55,9 @@ def main():
     parser.add_option("-R", "--repo-base",
                       dest="repo_base",
                       help="clone from alternative hg repository base URL")
+    parser.add_option("-d", "--build-dir",
+                      dest="build_dir",
+                      help="build directory")
     (options, args) = parser.parse_args()
     if options.plugin is None:
         plugins = PLUGINS
@@ -66,6 +69,9 @@ def main():
     if options.repo_base is not None:
         global HGREPOBASE
         HGREPOBASE = options.repo_base
+    if options.build_dir is not None:
+        global BUILD_DIR
+        BUILD_DIR = options.build_dir
     print "Using: {0}".format(BUILD_DIR)
     if os.path.exists(BUILD_DIR):
         print "Error: {0} exists. Not building.".format(BUILD_DIR)
@@ -114,7 +120,7 @@ def get_tag(lines):
     return None
 
 def server_version():
-    return RABBITMQ_TAG[10:].replace('_', '.')
+    return RABBITMQ_TAG[10:].replace('_', '.')[:-1] + "x"
 
 def build((plugin, details), tag):
     print " * {0}".format(plugin)
@@ -138,13 +144,15 @@ def build((plugin, details), tag):
         plugin_version = server_version()
     do("make", "-j", "VERSION={0}".format(plugin_version), "srcdist")
     do("make", "-j", "VERSION={0}".format(plugin_version), "dist")
-    dest_dir = os.path.join(BUILD_DIR, "plugins", server_version())
+    dest_dir = os.path.join(BUILD_DIR, "plugins", "v" + server_version())
+    dest_src_dir = os.path.join(dest_dir, "src")
     ensure_dir(dest_dir)
-    do("cp",
-       find_package("{0}/srcdist/".format(CURRENT_DIR), plugin, ".tar.bz2"),
-       dest_dir)
+    ensure_dir(dest_src_dir)
     do("cp", find_package("{0}/dist/".format(CURRENT_DIR), plugin, ".ez"),
        dest_dir)
+    do("cp",
+       find_package("{0}/srcdist/".format(CURRENT_DIR), plugin, ".tar.bz2"),
+       dest_src_dir)
 
 def find_package(dir, prefix, suffix):
     for f in os.listdir(dir):
