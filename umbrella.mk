@@ -12,6 +12,10 @@ PACKAGE_DIR:=$(call canonical_path,.)
 .PHONY: dist
 dist: $(PACKAGE_DIR)+dist
 
+# Produce a source tarball for this package
+.PHONY: srcdist
+srcdist: $(PACKAGE_DIR)+srcdist
+
 # Clean the package and all its dependencies
 .PHONY: clean
 clean: $(PACKAGE_DIR)+clean-with-deps
