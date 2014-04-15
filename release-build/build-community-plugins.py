@@ -29,23 +29,28 @@ PLUGINS = [
 
     # Protocols
     ('rfc4627_jsonrpc',                   {'url': 'https://github.com/rabbitmq/erlang-rfc4627-wrapper',
-                                          'version-add-hash': False}),
+                                           'version-add-hash': False}),
     ('rabbitmq_jsonrpc',                  {'url': 'https://github.com/rabbitmq/rabbitmq-jsonrpc'}),
     ('rabbitmq_jsonrpc_channel',          {'url': 'https://github.com/rabbitmq/rabbitmq-jsonrpc-channel'}),
     ('rabbitmq_jsonrpc_channel_examples', {'url': 'https://github.com/rabbitmq/rabbitmq-jsonrpc-channel-examples'}),
+    ('epgsql',                            {'url': 'https://github.com/gmr/epgsql-wrapper',
+                                           'version-add-hash': False}),
+    ('pgsql_listen_exchange',             {'url': 'https://github.com/aweber/pgsql-listen-exchange',
+                                           'erlang': 'R16B'}),
 ]
 
-OTP_VERSION="R13B03"
+DEFAULT_OTP_VERSION="R13B03"
 BUILD_DIR = "/var/tmp/plugins-build/"
-CURRENT_DIR = ""
+CURRENT_DIR = os.getcwd()
 RABBITMQ_TAG = ""
 HGREPOBASE="ssh://hg@rabbit-hg-private"
 
 def main():
-    parser = OptionParser()
+    parser = OptionParser(usage=sys.argv[0])
     parser.add_option("-p", "--plugin",
-                      dest="plugin",
-                      help="build a single plugin")
+                      dest="plugins",
+                      action="append",
+                      help="build a specific plugin. Can be given multiple times.")
     parser.add_option("-t", "--server-tag",
                       dest="server_tag",
                       help="build against specific server tag")
@@ -59,26 +64,28 @@ def main():
                       dest="build_dir",
                       help="build directory")
     (options, args) = parser.parse_args()
-    if options.plugin is None:
+    if options.plugins is None:
         plugins = PLUGINS
     else:
-        plugins = [(k, v) for (k, v) in PLUGINS if k == options.plugin]
+        plugins = [(k, v) for (k, v) in PLUGINS if k in options.plugins]
         if len(plugins) == 0:
             print "Plugin {0} not found".format(options.plugin)
             sys.exit(1)
+        print "Building    : {0}".format(", ".join(options.plugins))
     if options.repo_base is not None:
         global HGREPOBASE
         HGREPOBASE = options.repo_base
     if options.build_dir is not None:
         global BUILD_DIR
         BUILD_DIR = options.build_dir
-    print "Using: {0}".format(BUILD_DIR)
+    print "Destination : {0}".format(BUILD_DIR)
     if os.path.exists(BUILD_DIR):
-        print "Error: {0} exists. Not building.".format(BUILD_DIR)
+        print "\nError: {0} exists. Not building.".format(BUILD_DIR)
         sys.exit(1)
     os.makedirs("{0}/plugins".format(BUILD_DIR))
-    ensure_otp()
+    ensure_otp(DEFAULT_OTP_VERSION)
     checkout(options.server_tag)
+    print "Version     : {0}\n".format(server_version())
     print "Building..."
     [build(p, options.plugin_tag) for p in plugins]
 
@@ -86,17 +93,16 @@ def ensure_dir(d):
     if not os.path.exists(d):
         os.makedirs(d)
 
-def ensure_otp():
-    cd(BUILD_DIR)
+def ensure_otp(version_wanted):
     erl_cmd = 'io:format("~s~n", [erlang:system_info(otp_release)]), halt().'
-    erl_ver = do("erl", "-noshell", "-eval", erl_cmd).rstrip()
-    if erl_ver != OTP_VERSION:
-        print "Erlang {0} found, not {1}".format(erl_ver, OTP_VERSION)
-        print "Suggestion: ./install-otp.sh {0}".format(OTP_VERSION)
+    erl_ver = do("erl", "-noshell", "-eval", erl_cmd, erlang=version_wanted, skip_ensure=True).rstrip()
+    if erl_ver != version_wanted:
+        print "Erlang {0} found, not {1}".format(erl_ver, version_wanted)
+        print "Suggestion: ./install-otp.sh {0}".format(version_wanted)
         exit(1)
 
-def otp_dir():
-    return "{0}/otp-{1}".format(os.environ["HOME"], OTP_VERSION)
+def otp_dir(version):
+    return "{0}/otp-{1}".format(os.environ["HOME"], version)
 
 def checkout(opt_tag):
     global RABBITMQ_TAG
@@ -130,6 +136,10 @@ def build((plugin, details), tag):
         version_add_hash = details['version-add-hash']
     else:
         version_add_hash = True
+    if 'erlang' in details:
+        erlang_version = details['erlang']
+    else:
+        erlang_version = DEFAULT_OTP_VERSION
     do("git", "clone", url)
     checkout_dir = url.split("/")[-1].split(".")[0]
     cd(CURRENT_DIR + "/" + checkout_dir)
@@ -142,8 +152,8 @@ def build((plugin, details), tag):
         plugin_version = "{0}-{1}".format(server_version(), hash)
     else:
         plugin_version = server_version()
-    do("make", "-j", "VERSION={0}".format(plugin_version), "srcdist")
-    do("make", "-j", "VERSION={0}".format(plugin_version), "dist")
+    do("make", "-j", "VERSION={0}".format(plugin_version), "srcdist", erlang=erlang_version)
+    do("make", "-j", "VERSION={0}".format(plugin_version), "dist", erlang=erlang_version)
     dest_dir = os.path.join(BUILD_DIR, "plugins", "v" + server_version())
     dest_src_dir = os.path.join(dest_dir, "src")
     ensure_dir(dest_dir)
@@ -160,10 +170,15 @@ def find_package(dir, prefix, suffix):
             return os.path.join(dir, f)
     raise BuildError(['no_package', dir, prefix, suffix])
 
-def do(*args):
+def do(*args, **kwargs):
     path = os.environ['PATH']
     env = copy.deepcopy(os.environ)
-    env['PATH'] = "{0}/bin:{1}".format(otp_dir(), path)
+    erlang_version = DEFAULT_OTP_VERSION
+    if 'erlang' in kwargs:
+        erlang_version = kwargs['erlang']
+        if not 'skip_ensure' in kwargs:
+            ensure_otp(erlang_version)
+    env['PATH'] = "{0}/bin:{1}".format(otp_dir(erlang_version), path)
     proc = Popen(args, cwd = CURRENT_DIR, env = env,
                  stdout = PIPE, stderr = PIPE)
     (stdout, stderr) = proc.communicate()
@@ -171,7 +186,7 @@ def do(*args):
     if ret == 0:
         return stdout
     else:
-        raise BuildError(['proc_failed', ret, stdout, stderr])
+        raise BuildError(['proc_failed', {'return': ret, 'current_dir': CURRENT_DIR, 'args': args, 'output': [stdout, stderr]}])
 
 def cd(d):
     global CURRENT_DIR
