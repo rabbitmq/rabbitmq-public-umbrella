@@ -24,6 +24,10 @@ PLUGINS = [
     ('rabbitmq_management_exchange',      {'url': 'https://github.com/simonmacmullen/rabbitmq-management-exchange'}),
     ('rabbitmq_event_exchange',           {'url': 'https://github.com/simonmacmullen/rabbitmq-event-exchange'}),
 
+    # Logging
+    ('lager',                             {'url': 'https://github.com/hyperthunk/rabbitmq-lager',
+                                           'version-add-hash': False}),
+
     # Distribution
     ('rabbitmq_sharding',                 {'url': 'https://github.com/rabbitmq/rabbitmq-sharding'}),
 
