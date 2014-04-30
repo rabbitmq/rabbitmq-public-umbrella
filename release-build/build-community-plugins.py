@@ -72,8 +72,10 @@ def main():
         plugins = PLUGINS
     else:
         plugins = [(k, v) for (k, v) in PLUGINS if k in options.plugins]
-        if len(plugins) == 0:
-            print "Plugin {0} not found".format(options.plugin)
+        if len(plugins) != len(options.plugins):
+            print "Some plugins not found!"
+            print "Requested: {0}".format(options.plugins)
+            print "Available: {0}".format([k for (k, v) in PLUGINS])
             sys.exit(1)
         print "Building    : {0}".format(", ".join(options.plugins))
     if options.repo_base is not None:
