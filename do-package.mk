@@ -48,7 +48,8 @@ ORIGINAL_APP_SOURCE=$(PACKAGE_DIR)/src/$(APP_NAME).app.src
 DO_NOT_GENERATE_APP_FILE:=
 
 # Should the .ez files for this package, its dependencies, and its
-# source distribution be included in RabbitMQ releases?
+# source distribution be included in RabbitMQ releases, and should we test
+# this plugin when invoking "make test" in the umbrella?
 RELEASABLE:=
 
 # The options to pass to erlc when compiling .erl files in this
@@ -486,7 +487,7 @@ $(PACKAGE_DIR)+pre-test::
 # Runs the package's tests that operate within (or in conjuction with)
 # a running broker.
 .PHONY: $(PACKAGE_DIR)+in-broker-test
-$(PACKAGE_DIR)+in-broker-test: $(PACKAGE_DIR)/dist/.done $(RABBITMQ_SERVER_PATH)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test $(call chain_test,$(PACKAGE_DIR)+in-broker-test)
+$(PACKAGE_DIR)+in-broker-test: $(PACKAGE_DIR)/dist/.done $(RABBITMQ_SERVER_PATH)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test $(if $(RELEASABLE),$(call chain_test,$(PACKAGE_DIR)+in-broker-test))
 	$(call run_with_broker_tests)
 
 # Running the coverage tests requires Erlang/OTP R14. Note that
@@ -497,7 +498,7 @@ $(PACKAGE_DIR)+coverage: $(PACKAGE_DIR)/dist/.done $(COVERAGE_PATH)/dist/.done $
 
 # Runs the package's tests that don't need a running broker
 .PHONY: $(PACKAGE_DIR)+standalone-test
-$(PACKAGE_DIR)+standalone-test: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test $(call chain_test,$(PACKAGE_DIR)+standalone-test)
+$(PACKAGE_DIR)+standalone-test: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test $(if $(RELEASABLE),$(call chain_test,$(PACKAGE_DIR)+standalone-test))
 	$$(if $(STANDALONE_TEST_COMMANDS),\
 	  $$(foreach CMD,$(STANDALONE_TEST_COMMANDS),\
 	    ERL_LIBS=$(PACKAGE_DIR)/dist $(ERL) -noinput $(ERL_OPTS) -pa $(TEST_EBIN_DIR) -eval "init:stop(case $$(CMD) of ok -> 0; passed -> 0; _Else -> 1 end)" &&\

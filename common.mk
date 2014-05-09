@@ -88,7 +88,6 @@ NON_INTEGRATED_$(call package_to_path,rabbitmq-server):=true
 NON_INTEGRATED_$(call package_to_path,rabbitmq-erlang-client):=true
 NON_INTEGRATED_$(call package_to_path,rabbitmq-java-client):=true
 NON_INTEGRATED_$(call package_to_path,rabbitmq-dotnet-client):=true
-NON_INTEGRATED_$(call package_to_path,rabbitmq-test):=true
 NON_INTEGRATED_DEPS_$(call package_to_path,rabbitmq-erlang-client):=rabbitmq-server
 
 # Where the coverage package lives
