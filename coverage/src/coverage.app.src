@@ -1,0 +1,6 @@
+{application, coverage,
+ [{description, "Enables code coverage"},
+  {vsn, "%%VSN%%"},
+  {modules, []},
+  {registered, []},
+  {applications, [kernel, stdlib]}]}.
