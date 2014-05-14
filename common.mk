@@ -80,7 +80,7 @@ endef
 # This is used to chain test rules, so that test-all-packages works in
 # the presence of 'make -j'
 define chain_test
-$(if $(CHAIN_TESTS),$(CHAINED_TESTS)$(eval CHAINED_TESTS+=$(1)))
+$(CHAINED_TESTS)$(eval CHAINED_TESTS+=$(1))
 endef
 
 # Mark the non-integrated repos
