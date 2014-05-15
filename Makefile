@@ -10,7 +10,6 @@ REPOS:= \
     rabbitmq-test \
     cowboy-wrapper \
     eldap-wrapper \
-    erlang-rfc4627-wrapper \
     mochiweb-wrapper \
     rabbitmq-amqp1.0 \
     rabbitmq-auth-backend-ldap \
@@ -19,9 +18,6 @@ REPOS:= \
     rabbitmq-erlang-client \
     rabbitmq-federation \
     rabbitmq-federation-management \
-    rabbitmq-jsonrpc \
-    rabbitmq-jsonrpc-channel \
-    rabbitmq-jsonrpc-channel-examples \
     rabbitmq-management \
     rabbitmq-management-agent \
     rabbitmq-management-visualiser \

@@ -28,7 +28,7 @@ MAC_USERHOST=
 SSH_OPTS=
 
 # Optional custom hg url base.  Useful if you're builiding remotely
-# and tunneling into rabbit-hg.
+# and tunneling into rabbit-hg-private.
 HGREPOBASE=
 
 # Where the keys live.  If not set, we will do an "unofficial release"
@@ -86,7 +86,7 @@ UMBRELLADIR=
 OTP_VERSION="R13B03"
 
 # OTP version for the standalone package
-STANDALONE_OTP_VERSION=
+STANDALONE_OTP_VERSION="R16B02"
 
 # Imitate make-style variable settings as arguments
 while [[ $# -gt 0 ]] ; do
@@ -111,7 +111,7 @@ absolutify_scriptdir
 topdir=/var/tmp/rabbit-build.$$
 [[ -z "$TOPDIR" ]] && TOPDIR="$topdir"
 
-[[ -n "$HGREPOBASE" ]] || HGREPOBASE="ssh://hg@rabbit-hg"
+[[ -n "$HGREPOBASE" ]] || HGREPOBASE="ssh://hg@rabbit-hg-private"
 
 
 check_vars
@@ -295,7 +295,7 @@ if [ -n "$MAC_USERHOST" ] ; then
     rsync -a $TOPDIR/ $MAC_USERHOST:$topdir
 
     ## Do per-user install of the required erlang/OTP versions
-    ssh $SSH_OPTS $MAC_USERHOST "$topdir/install-otp.sh $STANDALONE_OTP_VERSION"
+    ssh $SSH_OPTS $MAC_USERHOST "$topdir/install-otp.sh $STANDALONE_OTP_VERSION --enable-darwin-64bit"
 
     ## build the mac standalone package
     macvars="VERSION=$VERSION SKIP_EMULATOR_VERSION_CHECK=true"

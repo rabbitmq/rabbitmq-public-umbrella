@@ -6,6 +6,7 @@
 set -e -x
 
 version=$1
+extras=$2
 
 if [ ! -f $HOME/otp-$version/.ok ] ; then
     rm -rf $HOME/otp-$version/.ok
@@ -15,7 +16,7 @@ if [ ! -f $HOME/otp-$version/.ok ] ; then
     rm -rf otp_src_$version
     tar xzf otp_src_$version.tar.gz
     cd otp_src_$version
-    { ./configure --prefix=$HOME/otp-$version 2>&1 && touch .configure-ok ; } | tee $HOME/tmp-otp-build/otp-$version.log
+    { ./configure --prefix=$HOME/otp-$version $extras 2>&1 && touch .configure-ok ; } | tee $HOME/tmp-otp-build/otp-$version.log
     test -e .configure-ok
     { make 2>&1 && touch .make-ok ; } | tee -a $HOME/tmp-otp-build/otp-$version.log
     test -e .make-ok

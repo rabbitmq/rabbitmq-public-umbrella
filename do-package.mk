@@ -13,6 +13,8 @@ DONE_$(PACKAGE_DIR):=true
 
 $(PACKAGE_DIR)+dist:: $(PACKAGE_DIR)/dist/.done
 
+$(PACKAGE_DIR)+srcdist:: $(PACKAGE_DIR)/srcdist/.done
+
 $(PACKAGE_DIR)+clean::
 
 $(PACKAGE_DIR)+clean-with-deps:: $(PACKAGE_DIR)+clean
@@ -46,7 +48,8 @@ ORIGINAL_APP_SOURCE=$(PACKAGE_DIR)/src/$(APP_NAME).app.src
 DO_NOT_GENERATE_APP_FILE:=
 
 # Should the .ez files for this package, its dependencies, and its
-# source distribution be included in RabbitMQ releases?
+# source distribution be included in RabbitMQ releases, and should we test
+# this plugin when invoking "make test" in the umbrella?
 RELEASABLE:=
 
 # The options to pass to erlc when compiling .erl files in this
@@ -428,8 +431,18 @@ $(DEPS_FILE): $(SOURCE_ERLS) $(INCLUDE_HRLS) $(TEST_SOURCE_ERLS)
 
 $(eval $(call safe_include,$(DEPS_FILE)))
 
+$(PACKAGE_DIR)/srcdist/.done: $(PACKAGE_DIR)/srcdist/.done.$(PACKAGE_VERSION)
+	touch $$@
+
+$(PACKAGE_DIR)/srcdist/.done.$(PACKAGE_VERSION):
+	mkdir -p $(PACKAGE_DIR)/build/srcdist/
+	rsync -a --exclude '.hg*' --exclude '.git*' --exclude 'build' $(PACKAGE_DIR) $(PACKAGE_DIR)/build/srcdist/$(APP_NAME)-$(PACKAGE_VERSION)
+	mkdir -p $(PACKAGE_DIR)/srcdist/
+	tar cjf $(PACKAGE_DIR)/srcdist/$(APP_NAME)-$(PACKAGE_VERSION)-src.tar.bz2 -C $(PACKAGE_DIR)/build/srcdist/ $(APP_NAME)-$(PACKAGE_VERSION)
+	touch $$@
+
 $(PACKAGE_DIR)+clean::
-	rm -rf $(EBIN_DIR)/*.beam $(TEST_EBIN_DIR)/*.beam $(PACKAGE_DIR)/dist $(PACKAGE_DIR)/build $(PACKAGE_DIR)/erl_crash.dump
+	rm -rf $(EBIN_DIR)/*.beam $(TEST_EBIN_DIR)/*.beam $(PACKAGE_DIR)/dist $(PACKAGE_DIR)/srcdist $(PACKAGE_DIR)/build $(PACKAGE_DIR)/erl_crash.dump
 
 $(PACKAGE_DIR)+clean-with-deps:: $(foreach P,$(DEP_PATHS),$(P)+clean-with-deps)
 
@@ -474,7 +487,7 @@ $(PACKAGE_DIR)+pre-test::
 # Runs the package's tests that operate within (or in conjuction with)
 # a running broker.
 .PHONY: $(PACKAGE_DIR)+in-broker-test
-$(PACKAGE_DIR)+in-broker-test: $(PACKAGE_DIR)/dist/.done $(RABBITMQ_SERVER_PATH)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test $(call chain_test,$(PACKAGE_DIR)+in-broker-test)
+$(PACKAGE_DIR)+in-broker-test: $(PACKAGE_DIR)/dist/.done $(RABBITMQ_SERVER_PATH)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test $(if $(RELEASABLE),$(call chain_test,$(PACKAGE_DIR)+in-broker-test))
 	$(call run_with_broker_tests)
 
 # Running the coverage tests requires Erlang/OTP R14. Note that
@@ -485,7 +498,7 @@ $(PACKAGE_DIR)+coverage: $(PACKAGE_DIR)/dist/.done $(COVERAGE_PATH)/dist/.done $
 
 # Runs the package's tests that don't need a running broker
 .PHONY: $(PACKAGE_DIR)+standalone-test
-$(PACKAGE_DIR)+standalone-test: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test $(call chain_test,$(PACKAGE_DIR)+standalone-test)
+$(PACKAGE_DIR)+standalone-test: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test $(if $(RELEASABLE),$(call chain_test,$(PACKAGE_DIR)+standalone-test))
 	$$(if $(STANDALONE_TEST_COMMANDS),\
 	  $$(foreach CMD,$(STANDALONE_TEST_COMMANDS),\
 	    ERL_LIBS=$(abspath $(PACKAGE_DIR)/dist) $(ERL) -noinput $(ERL_OPTS) -pa $(TEST_EBIN_DIR) -eval "init:stop(case $$(CMD) of ok -> 0; passed -> 0; _Else -> 1 end)" &&\
