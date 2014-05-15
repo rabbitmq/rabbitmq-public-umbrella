@@ -70,4 +70,8 @@ is_interesting({_, _, -1},         _Ms) -> false;
 %% Erlang. However it is guarded by a call to
 %% erlang:function_exported/3.
 is_interesting({file, sendfile, 2}, Ms) -> not lists:member(cowboy, Ms);
+%% Tests need this function, which technically makes it part of a
+%% plugin. But it's only in newer Erlangs than we test with.
+is_interesting({cover, flush, 1}, Ms)   -> not lists:member(
+                                                 rabbit_test_runner, Ms);
 is_interesting(_,                  _Ms) -> true.
