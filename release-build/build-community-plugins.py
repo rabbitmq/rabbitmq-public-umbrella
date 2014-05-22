@@ -28,7 +28,8 @@ PLUGINS = [
     ('lager',                             {'url': 'https://github.com/hyperthunk/rabbitmq-lager',
                                            'version-add-hash': False}),
 
-    # Distribution
+    # Queues
+    ('rabbitmq_priority_queue',           {'url': 'https://github.com/rabbitmq/rabbitmq-priority-queue'}),
     ('rabbitmq_sharding',                 {'url': 'https://github.com/rabbitmq/rabbitmq-sharding'}),
 
     # Protocols
