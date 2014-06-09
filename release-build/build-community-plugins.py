@@ -159,6 +159,7 @@ def build((plugin, details), tag):
         plugin_version = "{0}-{1}".format(server_version(), hash)
     else:
         plugin_version = server_version()
+    do("make", "-j", "VERSION={0}".format(plugin_version), "test", erlang=erlang_version)
     do("make", "-j", "VERSION={0}".format(plugin_version), "srcdist", erlang=erlang_version)
     do("make", "-j", "VERSION={0}".format(plugin_version), "dist", erlang=erlang_version)
     dest_dir = os.path.join(BUILD_DIR, "plugins", "v" + server_version())
