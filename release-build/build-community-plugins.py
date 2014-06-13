@@ -16,16 +16,19 @@ PLUGINS = [
     ('rabbitmq_recent_history_exchange',  {'url': 'https://github.com/videlalvaro/rabbitmq-recent-history-exchange'}),
 
     # Auth
-    ('rabbitmq_auth_backend_http',        {'url': 'https://github.com/simonmacmullen/rabbitmq-auth-backend-http'}),
+    ('rabbitmq_auth_backend_http',        {'url': 'https://github.com/simonmacmullen/rabbitmq-auth-backend-http',
+                                           'erlang': 'R14B'}),
     ('rabbitmq_auth_backend_amqp',        {'url': 'https://github.com/simonmacmullen/rabbitmq-auth-backend-amqp'}),
 
     # Management
     ('rabbitmq_top',                      {'url': 'https://github.com/simonmacmullen/rabbitmq-top'}),
-    ('rabbitmq_management_exchange',      {'url': 'https://github.com/simonmacmullen/rabbitmq-management-exchange'}),
+    ('rabbitmq_management_exchange',      {'url': 'https://github.com/simonmacmullen/rabbitmq-management-exchange',
+                                           'erlang': 'R14B'}),
     ('rabbitmq_event_exchange',           {'url': 'https://github.com/simonmacmullen/rabbitmq-event-exchange'}),
 
     # Logging
     ('lager',                             {'url': 'https://github.com/hyperthunk/rabbitmq-lager',
+                                           'erlang': 'R14B',
                                            'version-add-hash': False}),
 
     # Queues
