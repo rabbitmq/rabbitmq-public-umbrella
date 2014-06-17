@@ -306,7 +306,7 @@ define run_broker
 	    RABBITMQ_PLUGINS_DIR=$(TEST_TMPDIR)/plugins \
 	    RABBITMQ_ENABLED_PLUGINS_FILE=$(TEST_TMPDIR)/enabled_plugins \
 	    $(UMBRELLA_BASE_DIR)/rabbitmq-server/scripts/rabbitmq-plugins \
-	    enable $$$$plugin; \
+	    enable --offline $$$$plugin; \
 	done
 	RABBITMQ_PLUGINS_DIR=$(TEST_TMPDIR)/plugins \
 	  RABBITMQ_ENABLED_PLUGINS_FILE=$(TEST_TMPDIR)/enabled_plugins \
