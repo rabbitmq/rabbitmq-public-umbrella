@@ -487,7 +487,7 @@ $(PACKAGE_DIR)+pre-test::
 # Runs the package's tests that operate within (or in conjuction with)
 # a running broker.
 .PHONY: $(PACKAGE_DIR)+in-broker-test
-$(PACKAGE_DIR)+in-broker-test: $(PACKAGE_DIR)/dist/.done $(RABBITMQ_SERVER_PATH)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test $(if $(RELEASABLE),$(call chain_test,$(PACKAGE_DIR)+in-broker-test))
+$(PACKAGE_DIR)+in-broker-test: $(PACKAGE_DIR)/dist/.done $(RABBITMQ_SERVER_PATH)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test $(PACKAGE_DIR)+standalone-test $(if $(RELEASABLE),$(call chain_test,$(PACKAGE_DIR)+in-broker-test))
 	$(call run_with_broker_tests)
 
 # Running the coverage tests requires Erlang/OTP R14. Note that
@@ -501,7 +501,7 @@ $(PACKAGE_DIR)+coverage: $(PACKAGE_DIR)/dist/.done $(COVERAGE_PATH)/dist/.done $
 $(PACKAGE_DIR)+standalone-test: $(PACKAGE_DIR)/dist/.done $(TEST_EBIN_BEAMS) $(PACKAGE_DIR)+pre-test $(if $(RELEASABLE),$(call chain_test,$(PACKAGE_DIR)+standalone-test))
 	$$(if $(STANDALONE_TEST_COMMANDS),\
 	  $$(foreach CMD,$(STANDALONE_TEST_COMMANDS),\
-	    ERL_LIBS=$(PACKAGE_DIR)/dist $(ERL) -noinput $(ERL_OPTS) -pa $(TEST_EBIN_DIR) -eval "init:stop(case $$(CMD) of ok -> 0; passed -> 0; _Else -> 1 end)" &&\
+	    ERL_LIBS=$(PACKAGE_DIR)/dist $(ERL) -noinput $(ERL_OPTS) -pa $(TEST_EBIN_DIR) -sname standalone_test -eval "init:stop(case $$(CMD) of ok -> 0; passed -> 0; _Else -> 1 end)" &&\
 	  )\
 	:)
 	$$(if $(STANDALONE_TEST_SCRIPTS),$$(foreach SCRIPT,$(STANDALONE_TEST_SCRIPTS),$$(SCRIPT) &&) :)
