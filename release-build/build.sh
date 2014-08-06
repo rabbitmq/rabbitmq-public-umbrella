@@ -190,6 +190,17 @@ if [[ -n "$CHANGELOG_EMAIL" ]] ; then
     # Tweak changelogs
     ( cd rabbitmq-server/packaging/debs/Debian/debian ; DEBFULLNAME="$CHANGELOG_FULLNAME" DEBEMAIL="$CHANGELOG_EMAIL" \
       dch -v ${VERSION}-1 --check-dirname-level 0 --distribution unstable --force-distribution "$CHANGELOG_COMMENT" )
+    # Append additional debian changelog comments into above entry
+    if [ -f rabbitmq-server/packaging/debs/Debian/changelog_comments/additional_changelog_comments_${VERSION} ]; then
+        while read ADDTNL_COMMENTS; do
+           # skip shell comments
+           if [ `echo $ADDTNL_COMMENTS | grep -c ^#` -eq "0" ]; then
+               ( cd rabbitmq-server/packaging/debs/Debian/debian ; \
+                DEBFULLNAME="$CHANGELOG_FULLNAME" DEBEMAIL="$CHANGELOG_EMAIL" \
+                dch --append --check-dirname-level 0 --distribution unstable --force-distribution "$ADDTNL_COMMENTS" )
+           fi
+        done < rabbitmq-server/packaging/debs/Debian/changelog_comments/additional_changelog_comments_${VERSION}
+    fi
 
     spec=rabbitmq-server/packaging/RPMS/Fedora/rabbitmq-server.spec
     mv $spec $spec~
