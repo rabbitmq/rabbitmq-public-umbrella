@@ -138,6 +138,10 @@ ssh $SSH_OPTS $ROOT_USERHOST 'true'
 ssh $SSH_OPTS $ROOT_USERHOST '
     set -e -x
     case "$(cat /etc/debian_version)" in
+    7.*)
+        java_package=openjdk-6-jdk
+        uja_command="update-java-alternatives -s java-1.6.0-openjdk"
+        ;;
     6.0*)
         java_package=openjdk-6-jdk
         uja_command="update-java-alternatives -s java-1.6.0-openjdk"
