@@ -299,15 +299,12 @@ define run_broker
 	cp -p $(PACKAGE_DIR)/dist/*.ez $(TEST_TMPDIR)/plugins
 	$(call copy,$(3),$(TEST_TMPDIR)/plugins)
 	rm -f $(TEST_TMPDIR)/plugins/rabbit_common*.ez
-	for plugin in \
-	  $$$$(RABBITMQ_PLUGINS_DIR=$(TEST_TMPDIR)/plugins \
-            RABBITMQ_ENABLED_PLUGINS_FILE=$(TEST_TMPDIR)/enabled_plugins \
-	    $(UMBRELLA_BASE_DIR)/rabbitmq-server/scripts/rabbitmq-plugins list -m); do \
-	    RABBITMQ_PLUGINS_DIR=$(TEST_TMPDIR)/plugins \
+	RABBITMQ_PLUGINS_DIR=$(TEST_TMPDIR)/plugins \
 	    RABBITMQ_ENABLED_PLUGINS_FILE=$(TEST_TMPDIR)/enabled_plugins \
 	    $(UMBRELLA_BASE_DIR)/rabbitmq-server/scripts/rabbitmq-plugins \
-	    enable $$$$plugin; \
-	done
+	    set --offline $$$$(RABBITMQ_PLUGINS_DIR=$(TEST_TMPDIR)/plugins \
+            RABBITMQ_ENABLED_PLUGINS_FILE=$(TEST_TMPDIR)/enabled_plugins \
+	    $(UMBRELLA_BASE_DIR)/rabbitmq-server/scripts/rabbitmq-plugins list -m | tr '\n' ' ')
 	RABBITMQ_PLUGINS_DIR=$(TEST_TMPDIR)/plugins \
 	  RABBITMQ_ENABLED_PLUGINS_FILE=$(TEST_TMPDIR)/enabled_plugins \
 	  RABBITMQ_LOG_BASE=$(TEST_TMPDIR)/log \
