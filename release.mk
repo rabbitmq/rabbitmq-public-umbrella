@@ -148,8 +148,9 @@ rabbitmq-server-debian-packaging: rabbitmq-server-srcdist
 	$(MAKE) -C rabbitmq-server/packaging/debs/apt-repository all \
 		UNOFFICIAL_RELEASE=$(UNOFFICIAL_RELEASE) \
 		GNUPG_PATH=$(GNUPG_PATH) \
-		SIGNING_USER_EMAIL=$(SIGNING_USER_EMAIL)
-	cp -r rabbitmq-server/packaging/debs/apt-repository/debian $(PACKAGES_DIR)
+		SIGNING_KEY=$(SIGNING_KEY) \
+		DEPLOY_HOST=$(DEPLOY_HOST) \
+		DEPLOY_PATH=$(DEPLOY_PATH)
 
 .PHONY: rabbitmq-server-rpm-packaging
 rabbitmq-server-rpm-packaging: rabbitmq-server-srcdist
