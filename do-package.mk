@@ -227,6 +227,9 @@ INCLUDE_DIRS+=$(UPSTREAM_INCLUDE_DIRS)
 
 define package_rules
 
+# We use --no-backup-if-mismatch to prevent .orig files ending up in
+# source builds and causing warnings on Debian if the patches have
+# fuzz.
 ifdef UPSTREAM_GIT
 $(CLONE_DIR)/.done:
 	rm -rf $(CLONE_DIR)
