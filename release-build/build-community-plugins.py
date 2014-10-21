@@ -52,7 +52,7 @@ DEFAULT_OTP_VERSION="R13B03"
 BUILD_DIR = "/var/tmp/plugins-build/"
 CURRENT_DIR = os.getcwd()
 RABBITMQ_TAG = ""
-HGREPOBASE="ssh://hg@rabbit-hg-private"
+HGREPOBASE="ssh://hg@rabbit-hg-private.lon.pivotallabs.com"
 
 def main():
     parser = OptionParser(usage=sys.argv[0])
