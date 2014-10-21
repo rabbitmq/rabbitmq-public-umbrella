@@ -2,7 +2,7 @@
 
 from optparse import OptionParser
 from subprocess import Popen, PIPE
-import sys, os, copy
+import sys, os, copy, pprint
 
 # There is no real dependency management here, if there are
 # dependencies between community plugins list them in order.
@@ -206,7 +206,7 @@ def do(*args, **kwargs):
     if ret == 0:
         return stdout
     else:
-        raise BuildError(['proc_failed', {'return': ret, 'current_dir': CURRENT_DIR, 'args': args, 'output': [stdout, stderr]}])
+        raise BuildError(['proc_failed', pprint.pformat({'return': ret, 'current_dir': CURRENT_DIR, 'args': args}), stdout, stderr])
 
 def cd(d):
     global CURRENT_DIR
