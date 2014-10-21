@@ -139,7 +139,18 @@ def server_version():
     return RABBITMQ_TAG[10:].replace('_', '.')[:-1] + "x"
 
 def build((plugin, details), tag):
-    print " * {0}".format(plugin)
+    sys.stdout.write(" * {0}".format(plugin))
+    sys.stdout.flush()
+    try:
+        do_build(plugin, details, tag)
+        print ''
+    except BuildError as e:
+        print " FAILED"
+        with open(plugin + '.err', 'w') as f:
+            for elem in e.value:
+                f.write("{0}".format(elem))
+
+def do_build(plugin, details, tag):
     cd(BUILD_DIR + "/rabbitmq-public-umbrella")
     url = details['url']
     if 'version-add-hash' in details:
