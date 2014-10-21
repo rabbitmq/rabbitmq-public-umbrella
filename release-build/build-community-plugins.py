@@ -32,7 +32,8 @@ PLUGINS = [
                                            'version-add-hash': False}),
 
     # Queues
-    ('rabbitmq_priority_queue',           {'url': 'https://github.com/rabbitmq/rabbitmq-priority-queue'}),
+    ('rabbitmq_priority_queue',           {'url': 'https://github.com/rabbitmq/rabbitmq-priority-queue',
+                                           'erlang': 'R15B'}),
     ('rabbitmq_sharding',                 {'url': 'https://github.com/rabbitmq/rabbitmq-sharding'}),
 
     # Protocols
