@@ -2,7 +2,7 @@
 
 from optparse import OptionParser
 from subprocess import Popen, PIPE
-import sys, os, copy
+import sys, os, copy, pprint
 
 # There is no real dependency management here, if there are
 # dependencies between community plugins list them in order.
@@ -16,15 +16,24 @@ PLUGINS = [
     ('rabbitmq_recent_history_exchange',  {'url': 'https://github.com/videlalvaro/rabbitmq-recent-history-exchange'}),
 
     # Auth
-    ('rabbitmq_auth_backend_http',        {'url': 'https://github.com/simonmacmullen/rabbitmq-auth-backend-http'}),
+    ('rabbitmq_auth_backend_http',        {'url': 'https://github.com/simonmacmullen/rabbitmq-auth-backend-http',
+                                           'erlang': 'R14B'}),
     ('rabbitmq_auth_backend_amqp',        {'url': 'https://github.com/simonmacmullen/rabbitmq-auth-backend-amqp'}),
 
     # Management
     ('rabbitmq_top',                      {'url': 'https://github.com/simonmacmullen/rabbitmq-top'}),
-    ('rabbitmq_management_exchange',      {'url': 'https://github.com/simonmacmullen/rabbitmq-management-exchange'}),
+    ('rabbitmq_management_exchange',      {'url': 'https://github.com/simonmacmullen/rabbitmq-management-exchange',
+                                           'erlang': 'R14B'}),
     ('rabbitmq_event_exchange',           {'url': 'https://github.com/simonmacmullen/rabbitmq-event-exchange'}),
 
-    # Distribution
+    # Logging
+    ('lager',                             {'url': 'https://github.com/hyperthunk/rabbitmq-lager',
+                                           'erlang': 'R14B',
+                                           'version-add-hash': False}),
+
+    # Queues
+    ('rabbitmq_priority_queue',           {'url': 'https://github.com/rabbitmq/rabbitmq-priority-queue',
+                                           'erlang': 'R15B'}),
     ('rabbitmq_sharding',                 {'url': 'https://github.com/rabbitmq/rabbitmq-sharding'}),
 
     # Protocols
@@ -43,7 +52,7 @@ DEFAULT_OTP_VERSION="R13B03"
 BUILD_DIR = "/var/tmp/plugins-build/"
 CURRENT_DIR = os.getcwd()
 RABBITMQ_TAG = ""
-HGREPOBASE="ssh://hg@rabbit-hg-private"
+HGREPOBASE="ssh://hg@rabbit-hg-private.lon.pivotallabs.com"
 
 def main():
     parser = OptionParser(usage=sys.argv[0])
@@ -68,8 +77,10 @@ def main():
         plugins = PLUGINS
     else:
         plugins = [(k, v) for (k, v) in PLUGINS if k in options.plugins]
-        if len(plugins) == 0:
-            print "Plugin {0} not found".format(options.plugin)
+        if len(plugins) != len(options.plugins):
+            print "Some plugins not found!"
+            print "Requested: {0}".format(options.plugins)
+            print "Available: {0}".format([k for (k, v) in PLUGINS])
             sys.exit(1)
         print "Building    : {0}".format(", ".join(options.plugins))
     if options.repo_base is not None:
@@ -129,7 +140,18 @@ def server_version():
     return RABBITMQ_TAG[10:].replace('_', '.')[:-1] + "x"
 
 def build((plugin, details), tag):
-    print " * {0}".format(plugin)
+    sys.stdout.write(" * {0}".format(plugin))
+    sys.stdout.flush()
+    try:
+        do_build(plugin, details, tag)
+        print ''
+    except BuildError as e:
+        print " FAILED"
+        with open(plugin + '.err', 'w') as f:
+            for elem in e.value:
+                f.write("{0}".format(elem))
+
+def do_build(plugin, details, tag):
     cd(BUILD_DIR + "/rabbitmq-public-umbrella")
     url = details['url']
     if 'version-add-hash' in details:
@@ -152,8 +174,7 @@ def build((plugin, details), tag):
         plugin_version = "{0}-{1}".format(server_version(), hash)
     else:
         plugin_version = server_version()
-    do("make", "-j", "VERSION={0}".format(plugin_version), "srcdist", erlang=erlang_version)
-    do("make", "-j", "VERSION={0}".format(plugin_version), "dist", erlang=erlang_version)
+    [do("make", "-j", "VERSION={0}".format(plugin_version), target, erlang=erlang_version) for target in ["check-xref", "test", "srcdist", "dist"]]
     dest_dir = os.path.join(BUILD_DIR, "plugins", "v" + server_version())
     dest_src_dir = os.path.join(dest_dir, "src")
     ensure_dir(dest_dir)
@@ -186,7 +207,7 @@ def do(*args, **kwargs):
     if ret == 0:
         return stdout
     else:
-        raise BuildError(['proc_failed', {'return': ret, 'current_dir': CURRENT_DIR, 'args': args, 'output': [stdout, stderr]}])
+        raise BuildError(['proc_failed', pprint.pformat({'return': ret, 'current_dir': CURRENT_DIR, 'args': args}), stdout, stderr])
 
 def cd(d):
     global CURRENT_DIR
