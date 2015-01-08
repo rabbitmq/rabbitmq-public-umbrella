@@ -295,7 +295,7 @@ if [ -n "$MAC_USERHOST" ] ; then
 
     ## check if the mac host has the required programs for the build
     ssh $SSH_OPTS "$MAC_USERHOST" '
-        for p in "rsync xmlto wget java git hg"
+        for p in rsync xmlto wget java git hg
         do
             which $p ;
             if [ $? -ne 0 ]; then
