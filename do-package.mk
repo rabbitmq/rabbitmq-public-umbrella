@@ -237,7 +237,8 @@ $(CLONE_DIR)/.done:
 	# Work around weird github breakage (bug 25264)
 	cd $(CLONE_DIR) && git pull
 	$(if $(UPSTREAM_REVISION),cd $(CLONE_DIR) && git checkout $(UPSTREAM_REVISION))
-	$(if $(WRAPPER_PATCHES),$(foreach F,$(WRAPPER_PATCHES),patch --no-backup-if-mismatch -d $(CLONE_DIR) -p1 <$(PACKAGE_DIR)/$(F) &&) :)
+	$(if $(WRAPPER_PATCHES),$(foreach F,$(WRAPPER_PATCHES),patch -E -z .umbrella-orig -d $(CLONE_DIR) -p1 <$(PACKAGE_DIR)/$(F) &&) :)
+	find $(CLONE_DIR) -name "*.umbrella-orig" -delete
 	touch $$@
 endif # UPSTREAM_GIT
 
@@ -245,7 +246,8 @@ ifdef UPSTREAM_HG
 $(CLONE_DIR)/.done:
 	rm -rf $(CLONE_DIR)
 	hg clone -r $(or $(UPSTREAM_REVISION),default) $(UPSTREAM_HG) $(CLONE_DIR)
-	$(if $(WRAPPER_PATCHES),$(foreach F,$(WRAPPER_PATCHES),patch --no-backup-if-mismatch -d $(CLONE_DIR) -p1 <$(PACKAGE_DIR)/$(F) &&) :)
+	$(if $(WRAPPER_PATCHES),$(foreach F,$(WRAPPER_PATCHES),patch -E -z .umbrella-orig -d $(CLONE_DIR) -p1 <$(PACKAGE_DIR)/$(F) &&) :)
+	find $(CLONE_DIR) -name "*.umbrella-orig" -delete
 	touch $$@
 endif # UPSTREAM_HG
 
