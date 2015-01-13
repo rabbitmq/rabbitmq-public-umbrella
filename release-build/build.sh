@@ -276,7 +276,7 @@ if [ -n "$WIN_USERHOST" ] ; then
     ssh $SSH_OPTS "$WIN_USERHOST" '
         set -e -x
         # The PATH when you ssh in to the cygwin sshd is missing things
-        PATH="$PATH:$(cygpath -p "$SYSTEMROOT\microsoft.net\framework\v3.5;$PROGRAMFILES\msival2;$PROGRAMFILES\wix;$PROGRAMFILES\Microsoft SDKs\Windows\v6.1\Bin")"
+        PATH="$PATH:$(cygpath -p "$SYSTEMROOT\microsoft.net\framework\v4.0.30319;$PROGRAMFILES\msival2;$PROGRAMFILES\wix;$PROGRAMFILES\Microsoft SDKs\Windows\v6.1\Bin")"
         cd '$dotnetdir'
     '
 
