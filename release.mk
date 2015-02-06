@@ -130,6 +130,7 @@ rabbitmq-server-windows-packaging: rabbitmq-server-srcdist
 
 .PHONY: rabbitmq-server-windows-exe-packaging
 rabbitmq-server-windows-exe-packaging: rabbitmq-server-windows-packaging
+	$(MAKE) -C rabbitmq-server/packaging/windows-exe clean
 	$(MAKE) -C rabbitmq-server/packaging/windows-exe dist VERSION=$(VERSION)
 	cp rabbitmq-server/packaging/windows-exe/rabbitmq-server-*.exe $(SERVER_PACKAGES_DIR)
 
