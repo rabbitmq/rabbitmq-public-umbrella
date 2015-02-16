@@ -35,11 +35,24 @@ REPOS:= \
     toke \
     webmachine-wrapper
 
-BRANCH:=default
+BRANCH:=master
 
-HG_CORE_REPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
-ifndef HG_CORE_REPOBASE
-HG_CORE_REPOBASE:=http://hg.rabbitmq.com/
+UMBRELLA_REPO_FETCH:=$(shell git remote -v 2>/dev/null | awk '/^origin\t.+ \(fetch\)$$/ { print $$2; }')
+ifdef UMBRELLA_REPO_FETCH
+GIT_CORE_REPOBASE_FETCH:=$(shell dirname $(UMBRELLA_REPO_FETCH))
+GIT_CORE_SUFFIX_FETCH:=$(suffix $(UMBRELLA_REPO_FETCH))
+else
+GIT_CORE_REPOBASE_FETCH:=https://github.com/rabbitmq
+GIT_CORE_SUFFIX_FETCH:=.git
+endif
+
+UMBRELLA_REPO_PUSH:=$(shell git remote -v 2>/dev/null | awk '/^origin\t.+ \(push\)$$/ { print $$2; }')
+ifdef UMBRELLA_REPO_PUSH
+GIT_CORE_REPOBASE_PUSH:=$(shell dirname $(UMBRELLA_REPO_PUSH))
+GIT_CORE_SUFFIX_PUSH:=$(suffix $(UMBRELLA_REPO_PUSH))
+else
+GIT_CORE_REPOBASE_PUSH:=git@github.com:rabbitmq
+GIT_CORE_SUFFIX_PUSH:=.git
 endif
 
 VERSION:=0.0.0
@@ -70,16 +83,16 @@ plugins-srcdist:
 	rm -rf $(PLUGINS_SRC_DIST_DIR)
 	mkdir -p $(PLUGINS_SRC_DIST_DIR)/licensing
 
-	rsync -a --exclude '.hg*' rabbitmq-erlang-client $(PLUGINS_SRC_DIST_DIR)/
+	rsync -a --exclude '.git*' rabbitmq-erlang-client $(PLUGINS_SRC_DIST_DIR)/
 	touch $(PLUGINS_SRC_DIST_DIR)/rabbitmq-erlang-client/.srcdist_done
 
-	rsync -a --exclude '.hg*' rabbitmq-server $(PLUGINS_SRC_DIST_DIR)/
+	rsync -a --exclude '.git*' rabbitmq-server $(PLUGINS_SRC_DIST_DIR)/
 	touch $(PLUGINS_SRC_DIST_DIR)/rabbitmq-server/.srcdist_done
 
 	$(MAKE) -f all-packages.mk copy-srcdist VERSION=$(VERSION) PLUGINS_SRC_DIST_DIR=$(PLUGINS_SRC_DIST_DIR)
 	cp Makefile *.mk generate* $(PLUGINS_SRC_DIST_DIR)/
 	echo "This is the released version of rabbitmq-public-umbrella. \
-You can clone the full version with: hg clone http://hg.rabbitmq.com/rabbitmq-public-umbrella" > $(PLUGINS_SRC_DIST_DIR)/README
+You can clone the full version with: git clone https://github.com/rabbitmq/rabbitmq-public-umbrella.git" > $(PLUGINS_SRC_DIST_DIR)/README
 
 	PRESERVE_CLONE_DIR=1 make -C $(PLUGINS_SRC_DIST_DIR) clean
 	rm -rf $(PLUGINS_SRC_DIST_DIR)/rabbitmq-server
@@ -105,7 +118,8 @@ up_c: named_update
 #----------------------------------
 
 $(REPOS):
-	hg clone $(HG_CORE_REPOBASE)/$@
+	git clone $(GIT_CORE_REPOBASE_FETCH)/$@$(GIT_CORE_SUFFIX_FETCH)
+	git -C $@ remote set-url --push origin $(GIT_CORE_REPOBASE_PUSH)/$@$(GIT_CORE_SUFFIX_FETCH)
 
 .PHONY: checkout
 checkout: $(REPOS)
@@ -137,38 +151,40 @@ endef
 # Do not allow status to fork with -j otherwise output will be garbled
 .PHONY: status
 status: checkout
-	$(foreach DIR,. $(REPOS), \
-		(cd $(DIR); OUT=$$(hg st -mad); \
-		if \[ ! -z "$$OUT" \]; then echo "\n$(DIR):\n$$OUT"; fi) &&) true
+	@for repo in . $(REPOS); do \
+		echo "$$repo:"; \
+		git -C "$$repo" status -s; \
+	done
 
 .PHONY: pull
 pull: $(foreach DIR,. $(REPOS),$(DIR)+pull)
 
-$(eval $(call repo_targets,. $(REPOS),pull,| %,(cd % && hg pull)))
+$(eval $(call repo_targets,. $(REPOS),pull,| %,\
+	(cd % && git pull --ff-only)))
 
 .PHONY: update
-update: $(foreach DIR,. $(REPOS),$(DIR)+update)
-
-$(eval $(call repo_targets,. $(REPOS),update,%+pull,(cd % && hg up)))
+update: pull
 
 .PHONY: named_update
 named_update: $(foreach DIR,. $(REPOS),$(DIR)+named_update)
 
 $(eval $(call repo_targets,. $(REPOS),named_update,%+pull,\
-	(cd % && hg up -C $(BRANCH))))
+	(cd % && git checkout $(BRANCH) && git pull --ff-only)))
 
 .PHONY: tag
 tag: $(foreach DIR,. $(REPOS),$(DIR)+tag)
 
-$(eval $(call repo_targets,. $(REPOS),tag,| %,(cd % && hg tag $(TAG))))
+$(eval $(call repo_targets,. $(REPOS),tag,| %,\
+	(cd % && git tag $(TAG))))
 
 .PHONY: push
 push: $(foreach DIR,. $(REPOS),$(DIR)+push)
 
-# "|| true" sicne hg push fails if there are no changes
-$(eval $(call repo_targets,. $(REPOS),push,| %,(cd % && hg push -f || true)))
+$(eval $(call repo_targets,. $(REPOS),push,| %,\
+	(cd % && git push && git push --tags)))
 
 .PHONY: checkin
 checkin: $(foreach DIR,. $(REPOS),$(DIR)+checkin)
 
-$(eval $(call repo_targets,. $(REPOS),checkin,| %,(cd % && hg ci)))
+$(eval $(call repo_targets,. $(REPOS),checkin,| %,\
+	(cd % && (test -z $$$$(git status -s -uno) || git commit -a))))
