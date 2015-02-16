@@ -119,7 +119,7 @@ up_c: named_update
 
 $(REPOS):
 	git clone $(GIT_CORE_REPOBASE_FETCH)/$@$(GIT_CORE_SUFFIX_FETCH)
-	git -C $@ remote set-url --push origin $(GIT_CORE_REPOBASE_PUSH)/$@$(GIT_CORE_SUFFIX_FETCH)
+	cd $@ && git remote set-url --push origin $(GIT_CORE_REPOBASE_PUSH)/$@$(GIT_CORE_SUFFIX_FETCH)
 
 .PHONY: checkout
 checkout: $(REPOS)
@@ -153,7 +153,7 @@ endef
 status: checkout
 	@for repo in . $(REPOS); do \
 		echo "$$repo:"; \
-		git -C "$$repo" status -s; \
+		cd "$$repo" && git status -s; \
 	done
 
 .PHONY: pull
