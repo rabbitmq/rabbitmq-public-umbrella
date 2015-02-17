@@ -10,8 +10,8 @@ SIGNING_KEY=056E8E56
 SIGNING_USER_EMAIL=info@rabbitmq.com
 SIGNING_USER_ID=RabbitMQ Release Signing Key <info@rabbitmq.com>
 
-# Misc options to pass to hg commands
-HG_OPTS=
+# Misc options to pass to git commands
+GIT_OPTS=
 
 # Misc options to pass to ssh commands
 SSH_OPTS=
@@ -35,10 +35,10 @@ SKIP_EMULATOR_VERSION_CHECK=
 
 REPOS:=rabbitmq-codegen rabbitmq-server rabbitmq-java-client rabbitmq-dotnet-client rabbitmq-test
 
-HGREPOBASE:=$(shell dirname `hg paths default 2>/dev/null` 2>/dev/null)
+GITREPOBASE:=$(shell dirname `git remote -v 2>/dev/null | awk '/^origin\t.+ \(fetch\)$$/ { print $$2; }'` 2>/dev/null)
 
-ifeq ($(HGREPOBASE),)
-HGREPOBASE=ssh://hg@hg.rabbitmq.com
+ifeq ($(GITREPOBASE),)
+GITREPOBASE=https://github.com/rabbitmq
 endif
 
 .PHONY: all

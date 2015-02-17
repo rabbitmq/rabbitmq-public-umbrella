@@ -52,7 +52,7 @@ DEFAULT_OTP_VERSION="R13B03"
 BUILD_DIR = "/var/tmp/plugins-build/"
 CURRENT_DIR = os.getcwd()
 RABBITMQ_TAG = ""
-HGREPOBASE="ssh://hg@rabbit-hg-private.lon.pivotallabs.com"
+GITREPOBASE="https://github.com/rabbitmq"
 
 def main():
     parser = OptionParser(usage=sys.argv[0])
@@ -68,7 +68,7 @@ def main():
                       help="build against specific plugin tag")
     parser.add_option("-R", "--repo-base",
                       dest="repo_base",
-                      help="clone from alternative hg repository base URL")
+                      help="clone from alternative git repository base URL")
     parser.add_option("-d", "--build-dir",
                       dest="build_dir",
                       help="build directory")
@@ -84,8 +84,8 @@ def main():
             sys.exit(1)
         print "Building    : {0}".format(", ".join(options.plugins))
     if options.repo_base is not None:
-        global HGREPOBASE
-        HGREPOBASE = options.repo_base
+        global GITREPOBASE
+        GITREPOBASE = options.repo_base
     if options.build_dir is not None:
         global BUILD_DIR
         BUILD_DIR = options.build_dir
@@ -119,21 +119,21 @@ def checkout(opt_tag):
     global RABBITMQ_TAG
     print "Checking out umbrella..."
     cd(BUILD_DIR)
-    do("hg", "clone", HGREPOBASE + "/rabbitmq-public-umbrella")
+    do("git", "clone", GITREPOBASE + "/rabbitmq-public-umbrella.git")
     cd(CURRENT_DIR + "/rabbitmq-public-umbrella")
     if opt_tag is None:
-        RABBITMQ_TAG = get_tag(do("hg", "tags").split('\n'))
+        RABBITMQ_TAG = get_tag(do("git", "tag", "--sort=-version:refname").split('\n'))
         do("make", "checkout")
     else:
         RABBITMQ_TAG = opt_tag
-        do("hg", "up", "-r", RABBITMQ_TAG)
+        do("git", "checkout", RABBITMQ_TAG)
         do("make", "checkout")
-        do("./foreachrepo", "hg", "up", "-r", RABBITMQ_TAG)
+        do("./foreachrepo", "git", "checkout", RABBITMQ_TAG)
 
 def get_tag(lines):
     for line in lines:
         if line.startswith('rabbitmq'):
-            return line.split(' ')[0]
+            return line
     return None
 
 def server_version():
