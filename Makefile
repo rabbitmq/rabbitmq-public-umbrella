@@ -119,10 +119,22 @@ up_c: named_update
 
 $(REPOS):
 	git clone $(GIT_CORE_REPOBASE_FETCH)/$@$(GIT_CORE_SUFFIX_FETCH)
-	cd $@ && git remote set-url --push origin $(GIT_CORE_REPOBASE_PUSH)/$@$(GIT_CORE_SUFFIX_FETCH)
+	global_user_name="$$(git config --global user.name)"; \
+	global_user_email="$$(git config --global user.email)"; \
+	user_name="$$(git config user.name)"; \
+	user_email="$$(git config user.email)"; \
+	cd $@ && \
+	git remote set-url --push origin $(GIT_CORE_REPOBASE_PUSH)/$@$(GIT_CORE_SUFFIX_FETCH) && \
+	if test "$$global_user_name" != "$$user_name"; then git config user.name "$$user_name"; fi && \
+	if test "$$global_user_email" != "$$user_email"; then git config user.email "$$user_email"; fi
+
 
 .PHONY: checkout
 checkout: $(REPOS)
+
+.PHONY: list-repos
+list-repos:
+	@for repo in $(REPOS); do echo $$repo; done
 
 #----------------------------------
 # Subrepository management
