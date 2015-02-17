@@ -17,7 +17,7 @@ A number of hosts are involved in the build process.  You probably
 should use your favourite full-system virtualization technology to run
 some of these as guest VMs.
 
-- Master host: Runs the build.sh script, performs the hg commands,
+- Master host: Runs the build.sh script, performs the git commands,
   ssh's into the other hosts to make the build happen, signs the
   results of the build, deploys them, and generally runs the show.
   Any Linux should be suitable. There are few otherwise-inessential

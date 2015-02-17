@@ -3,7 +3,7 @@ Quick start
 
 From the rabbitmq-public-umbrella directory:
 
-- To get all packages provided by the RabbitMQ team from Mercurial:
+- To get all packages provided by the RabbitMQ team from GitHub:
 
     make co
 
@@ -81,7 +81,7 @@ rabbitmq-public-umbrella.  Any other packages that it depends on
 should also go there.
 
 Packages that are maintained by the RabbitMQ team live in their own
-Mercurial repositories on hg.rabbitmq.com.  You can obtain them
+Git repositories on https://github.com/rabbitmq/. You can obtain them
 invidually by cloning the relevant repositories. Or, to make it easy
 to obtain all the packages and their depencies, the top-level
 rabbitmq-public-umbrella Makefile has a target to obtain them all:

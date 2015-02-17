@@ -27,8 +27,10 @@ MAC_USERHOST=
 # using a special ssh key.
 SSH_OPTS=
 
-# Optional custom hg url base.  Useful if you're builiding remotely
-# and tunneling into rabbit-hg-private.
+# Optional custom git url base.
+GITREPOBASE=
+
+# Optional custom hg url base.
 HGREPOBASE=
 
 # Where the keys live.  If not set, we will do an "unofficial release"
@@ -71,7 +73,7 @@ CHANGELOG_COMMENT="New upstream release"
 # we will use a uniquely-named directory in /var/tmp.
 TOPDIR=
 
-# Which existing hg repos to copy into rabbitmq-public-umbrella, instead of
+# Which existing git repos to copy into rabbitmq-public-umbrella, instead of
 # letting it clone them.
 REPOS=
 
@@ -111,8 +113,10 @@ absolutify_scriptdir
 topdir=/var/tmp/rabbit-build.$$
 [[ -z "$TOPDIR" ]] && TOPDIR="$topdir"
 
-[[ -n "$HGREPOBASE" ]] || HGREPOBASE="ssh://hg@rabbit-hg-private"
+[[ -n "$GITREPOBASE" ]] || GITREPOBASE="https://github.com/rabbitmq"
 
+# We still need an access to the website's hg repository, until it's moved.
+[[ -n "$HGREPOBASE" ]] || HGREPOBASE="ssh://hg@rabbit-hg-private"
 
 check_vars
 
@@ -187,7 +191,7 @@ for repo in $REPOS ; do
     cp -a $repo .
 done
 
-make checkout HG_OPTS="-e 'ssh $SSH_OPTS'" HGREPOBASE="$HGREPOBASE"
+make checkout GIT_OPTS="-e 'ssh $SSH_OPTS'" GITREPOBASE="$GITREPOBASE"
 make clean
 
 if [[ -n "$CHANGELOG_EMAIL" ]] ; then
@@ -228,6 +232,9 @@ if [ -z "$WEB_URL" ] ; then
         cd $WEBSITE_REPO
     else
         cd $TOPDIR
+        # FIXME
+        #GIT_SSH_COMMAND="ssh $SSH_OPTS" \
+        #git clone -b next "$GITREPOBASE/rabbitmq-website.git"
         hg clone -e "ssh $SSH_OPTS" -r next "$HGREPOBASE/rabbitmq-website"
         cd rabbitmq-website
     fi
