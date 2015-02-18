@@ -166,6 +166,7 @@ status: checkout
 	@for repo in . $(REPOS); do \
 		echo "$$repo:"; \
 		cd "$$repo" && git status -s; \
+		cd -; \
 	done
 
 .PHONY: pull
