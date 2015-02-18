@@ -2,7 +2,8 @@
 
 from optparse import OptionParser
 from subprocess import Popen, PIPE
-import sys, os, copy, pprint
+import sys, os, copy, pprint, re
+from distutils.version import StrictVersion
 
 # There is no real dependency management here, if there are
 # dependencies between community plugins list them in order.
@@ -120,7 +121,7 @@ def checkout(opt_tag):
     do("git", "clone", GITREPOBASE + "/rabbitmq-public-umbrella.git")
     cd(CURRENT_DIR + "/rabbitmq-public-umbrella")
     if opt_tag is None:
-        RABBITMQ_TAG = get_tag(do("git", "tag", "--sort=-version:refname").split('\n'))
+        RABBITMQ_TAG = get_tag(do("git", "tag", "-l", "rabbitmq*").split('\n'))
         do("make", "checkout")
     else:
         RABBITMQ_TAG = opt_tag
@@ -129,10 +130,19 @@ def checkout(opt_tag):
         do("./foreachrepo", "git", "checkout", RABBITMQ_TAG)
 
 def get_tag(lines):
-    for line in lines:
-        if line.startswith('rabbitmq'):
-            return line
-    return None
+    highest_tag = lines[0]
+    highest_version = tag_to_version(highest_tag)
+    for tag in lines:
+        if not tag:
+            continue
+        version = tag_to_version(tag)
+        if StrictVersion(version) >= StrictVersion(highest_version):
+            highest_tag = tag
+            highest_version = version
+    return highest_tag
+
+def tag_to_version(tag):
+    return re.sub(r'_', '.', re.sub(r'^rabbitmq_v', '', tag))
 
 def server_version():
     return RABBITMQ_TAG[10:].replace('_', '.')[:-1] + "x"
