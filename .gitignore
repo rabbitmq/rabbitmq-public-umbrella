@@ -37,3 +37,6 @@
 /sockjs-erlang-wrapper/
 /toke/
 /webmachine-wrapper/
+tmp/*
+*.hg
+packages/*
