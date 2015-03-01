@@ -33,12 +33,9 @@ some of these as guest VMs.
   root's authorized_keys file on the build host.
 
 - Windows host: Used for the Windows-only bits of the
-  rabbitmq-dotnet-client build.  There are a number of prerequisite
-  packages that have to be installed by hand for this; see
-  <http://moshi.lshift.net/RabbitMQDotnetClientReleaseProcess>.  You
+  rabbitmq-dotnet-client build. .NET 4.0 or later and Visual Studio 2013 Community edition must be installed.  You
   will also need to have various cygwin packages installed, in
-  particular the ssh server (see
-  <http://moshi.lshift.net/CygwinSshd>).
+  particular the ssh server.
 
 - Deployment host: Once the build is complete, the rabbitmq-umbrella
   Makefile will deploy the resulting artifacts to the
