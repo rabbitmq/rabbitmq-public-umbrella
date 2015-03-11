@@ -37,3 +37,8 @@
 /sockjs-erlang-wrapper/
 /toke/
 /webmachine-wrapper/
+eleveldb*
+msg_store*
+tmp/*
+*.hg
+packages/*

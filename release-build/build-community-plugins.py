@@ -33,11 +33,13 @@ PLUGINS = [
                                            'version-add-hash': False}),
 
     # Queues
-    ('rabbitmq_priority_queue',           {'url': 'https://github.com/rabbitmq/rabbitmq-priority-queue',
-                                           'erlang': 'R15B'}),
     ('rabbitmq_sharding',                 {'url': 'https://github.com/rabbitmq/rabbitmq-sharding'}),
 
     # Protocols
+    ('gen_smtp',                          {'url': 'https://github.com/gotthardp/rabbitmq-gen-smtp',
+                                           'erlang': 'R16B'}),
+    ('rabbitmq_email',                    {'url': 'https://github.com/gotthardp/rabbitmq-email',
+                                           'erlang': 'R16B'}),
     ('rfc4627_jsonrpc',                   {'url': 'https://github.com/rabbitmq/erlang-rfc4627-wrapper',
                                            'version-add-hash': False}),
     ('rabbitmq_jsonrpc',                  {'url': 'https://github.com/rabbitmq/rabbitmq-jsonrpc'}),
