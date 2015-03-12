@@ -20,6 +20,8 @@ PLUGINS = [
     ('rabbitmq_auth_backend_http',        {'url': 'https://github.com/simonmacmullen/rabbitmq-auth-backend-http',
                                            'erlang': 'R14B'}),
     ('rabbitmq_auth_backend_amqp',        {'url': 'https://github.com/simonmacmullen/rabbitmq-auth-backend-amqp'}),
+    ('rabbitmq_auth_backend_ip_range',    {'url': 'https://github.com/gotthardp/rabbitmq-auth-backend-ip-range',
+                                           'erlang': '17'}),
 
     # Management
     ('rabbitmq_top',                      {'url': 'https://github.com/simonmacmullen/rabbitmq-top'}),

@@ -124,7 +124,7 @@ $(REPOS):
 	user_name="$$(git config user.name)"; \
 	user_email="$$(git config user.email)"; \
 	cd $@ && \
-	git remote set-url --push origin $(GIT_CORE_REPOBASE_PUSH)/$@$(GIT_CORE_SUFFIX_FETCH) && \
+	git remote set-url --push origin $(GIT_CORE_REPOBASE_PUSH)/$@$(GIT_CORE_SUFFIX_PUSH) && \
 	if test "$$global_user_name" != "$$user_name"; then git config user.name "$$user_name"; fi && \
 	if test "$$global_user_email" != "$$user_email"; then git config user.email "$$user_email"; fi
 
@@ -135,6 +135,28 @@ checkout: $(REPOS)
 .PHONY: list-repos
 list-repos:
 	@for repo in $(REPOS); do echo $$repo; done
+
+.PHONY: sync-gituser
+sync-gituser:
+	@global_user_name="$$(git config --global user.name)"; \
+	global_user_email="$$(git config --global user.email)"; \
+	user_name="$$(git config user.name)"; \
+	user_email="$$(git config user.email)"; \
+	for repo in $(REPOS); do \
+	cd $$repo && \
+	git config --unset user.name && \
+	git config --unset user.email && \
+	if test "$$global_user_name" != "$$user_name"; then git config user.name "$$user_name"; fi && \
+	if test "$$global_user_email" != "$$user_email"; then git config user.email "$$user_email"; fi && \
+	cd ..; done
+
+.PHONY: sync-gitremote
+sync-gitremote:
+	@for repo in $(REPOS); do \
+	cd $$repo && \
+	git remote set-url --fetch origin $(GIT_CORE_REPOBASE_FETCH)/$$repo$(GIT_CORE_SUFFIX_FETCH) && \
+	git remote set-url --push origin $(GIT_CORE_REPOBASE_PUSH)/$$repo$(GIT_CORE_SUFFIX_PUSH) && \
+	cd ..; done
 
 #----------------------------------
 # Subrepository management
@@ -166,7 +188,7 @@ status: checkout
 	@for repo in . $(REPOS); do \
 		echo "$$repo:"; \
 		cd "$$repo" && git status -s; \
-		cd -; \
+		cd ..; \
 	done
 
 .PHONY: pull
@@ -181,8 +203,10 @@ update: pull
 .PHONY: named_update
 named_update: $(foreach DIR,. $(REPOS),$(DIR)+named_update)
 
-$(eval $(call repo_targets,. $(REPOS),named_update,%+pull,\
-	(cd % && git checkout $(BRANCH) && git pull --ff-only)))
+$(eval $(call repo_targets,. $(REPOS),named_update,| %,\
+	(cd % && git fetch -p --all && git checkout $(BRANCH) && \
+	 (test "$$$$(git branch | grep '^*')" = "* (detached from $(BRANCH))" || \
+	 git pull --ff-only))))
 
 .PHONY: tag
 tag: $(foreach DIR,. $(REPOS),$(DIR)+tag)
@@ -200,4 +224,4 @@ $(eval $(call repo_targets,. $(REPOS),push,| %,\
 checkin: $(foreach DIR,. $(REPOS),$(DIR)+checkin)
 
 $(eval $(call repo_targets,. $(REPOS),checkin,| %,\
-	(cd % && (test -z $$$$(git status -s -uno) || git commit -a))))
+	(cd % && (test -z "$$$$(git status -s -uno)" || git commit -a))))
