@@ -203,8 +203,10 @@ update: pull
 .PHONY: named_update
 named_update: $(foreach DIR,. $(REPOS),$(DIR)+named_update)
 
-$(eval $(call repo_targets,. $(REPOS),named_update,%+pull,\
-	(cd % && git checkout $(BRANCH) && git pull --ff-only)))
+$(eval $(call repo_targets,. $(REPOS),named_update,| %,\
+	(cd % && git fetch -p --all && git checkout $(BRANCH) && \
+	 (test "$$$$(git branch | grep '^*')" = "* (detached from $(BRANCH))" || \
+	 git pull --ff-only))))
 
 .PHONY: tag
 tag: $(foreach DIR,. $(REPOS),$(DIR)+tag)
@@ -222,4 +224,4 @@ $(eval $(call repo_targets,. $(REPOS),push,| %,\
 checkin: $(foreach DIR,. $(REPOS),$(DIR)+checkin)
 
 $(eval $(call repo_targets,. $(REPOS),checkin,| %,\
-	(cd % && (test -z $$$$(git status -s -uno) || git commit -a))))
+	(cd % && (test -z "$$$$(git status -s -uno)" || git commit -a))))
