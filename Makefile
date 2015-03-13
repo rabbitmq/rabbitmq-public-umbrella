@@ -187,8 +187,7 @@ endef
 status: checkout
 	@for repo in . $(REPOS); do \
 		echo "$$repo:"; \
-		cd "$$repo" && git status -s; \
-		cd ..; \
+		cd "$$repo" && git status -s && cd - >/dev/null; \
 	done
 
 .PHONY: pull
