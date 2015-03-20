@@ -1,5 +1,5 @@
 #!/bin/sh
-for gitdir in $(find . -maxdepth 2 -type d -name .git)
+for gitdir in $(find . -maxdepth 2 -type d -name .git | env LC_ALL=C sort)
 do
 	repo=$(dirname $gitdir)
 	echo "===== $repo"
