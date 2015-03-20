@@ -29,9 +29,7 @@ SSH_OPTS=
 
 # Optional custom git url base.
 GITREPOBASE=
-
-# Optional custom hg url base.
-HGREPOBASE=
+GITREPOBASE_PRIV=
 
 # Where the keys live.  If not set, we will do an "unofficial release"
 KEYSDIR=
@@ -114,9 +112,7 @@ topdir=/var/tmp/rabbit-build.$$
 [[ -z "$TOPDIR" ]] && TOPDIR="$topdir"
 
 [[ -n "$GITREPOBASE" ]] || GITREPOBASE="https://github.com/rabbitmq"
-
-# We still need an access to the website's hg repository, until it's moved.
-[[ -n "$HGREPOBASE" ]] || HGREPOBASE="ssh://hg@rabbit-hg-private"
+[[ -n "$GITREPOBASE_PRIV" ]] || GITREPOBASE_PRIV="git@github.com:rabbitmq"
 
 check_vars
 
@@ -232,10 +228,12 @@ if [ -z "$WEB_URL" ] ; then
         cd $WEBSITE_REPO
     else
         cd $TOPDIR
-        # FIXME
-        #GIT_SSH_COMMAND="ssh $SSH_OPTS" \
-        #git clone -b next "$GITREPOBASE/rabbitmq-website.git"
-        hg clone -e "ssh $SSH_OPTS" -r next "$HGREPOBASE/rabbitmq-website"
+        # The "--depth 1" flag is here to save bandwidth by only
+        # checking out the last revision of the "next" branch. At the
+        # time of this writing, this means we download 60 MiB instead of
+        # 95 MiB.
+        GIT_SSH_COMMAND="ssh $SSH_OPTS" \
+        git clone -b next --depth 1 "$GITREPOBASE_PRIV/rabbitmq-website.git"
         cd rabbitmq-website
     fi
 
