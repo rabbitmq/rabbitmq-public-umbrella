@@ -118,7 +118,13 @@ up_c: named_update
 #----------------------------------
 
 $(REPOS):
-	git clone $(GIT_CORE_REPOBASE_FETCH)/$@$(GIT_CORE_SUFFIX_FETCH)
+	retries=5; \
+	while ! git clone $(GIT_CORE_REPOBASE_FETCH)/$@$(GIT_CORE_SUFFIX_FETCH); do \
+	  retries=$$((retries - 1)); \
+	  if test "$$retries" = 0; then break; fi; \
+	  sleep 1; \
+	done
+	test -d $@
 	global_user_name="$$(git config --global user.name)"; \
 	global_user_email="$$(git config --global user.email)"; \
 	user_name="$$(git config user.name)"; \
