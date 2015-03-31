@@ -51,7 +51,7 @@ SIGNING_USER_ID=
 # webserver may help. The symptom of a misconfiguration is an
 # INSTALL file containing a proxy error message instead of
 # installation instructions.
-WEB_URL=
+# WEB_URL=
 
 # The directory in which the rabbitmq-website repo lives.  If empty,
 # we will do a fresh clone of the 'next' branch
