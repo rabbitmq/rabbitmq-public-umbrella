@@ -94,7 +94,7 @@ plugins-srcdist:
 	echo "This is the released version of rabbitmq-public-umbrella. \
 You can clone the full version with: git clone https://github.com/rabbitmq/rabbitmq-public-umbrella.git" > $(PLUGINS_SRC_DIST_DIR)/README
 
-	PRESERVE_CLONE_DIR=1 make -C $(PLUGINS_SRC_DIST_DIR) clean
+	PRESERVE_CLONE_DIR=1 $(MAKE) -C $(PLUGINS_SRC_DIST_DIR) clean
 	rm -rf $(PLUGINS_SRC_DIST_DIR)/rabbitmq-server
 
 #----------------------------------
