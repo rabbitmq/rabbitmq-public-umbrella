@@ -14,6 +14,7 @@
 /rabbitmq-auth-mechanism-ssl/
 /rabbitmq-codegen/
 /rabbitmq-consistent-hash-exchange/
+/rabbitmq-clusterer/
 /rabbitmq-dotnet-client/
 /rabbitmq-erlang-client/
 /rabbitmq-federation-management/
