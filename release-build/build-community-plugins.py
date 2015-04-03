@@ -12,22 +12,23 @@ from distutils.version import StrictVersion
 
 PLUGINS = [
     # Routing
-    ('rabbitmq_lvc',                      {'url': 'https://github.com/simonmacmullen/rabbitmq-lvc-plugin'}),
+    ('rabbitmq_lvc',                      {'url': 'https://github.com/rabbitmq/rabbitmq-lvc-plugin'}),
     ('rabbitmq_rtopic_exchange',          {'url': 'https://github.com/videlalvaro/rabbitmq-rtopic-exchange'}),
     ('rabbitmq_recent_history_exchange',  {'url': 'https://github.com/videlalvaro/rabbitmq-recent-history-exchange'}),
 
     # Auth
-    ('rabbitmq_auth_backend_http',        {'url': 'https://github.com/simonmacmullen/rabbitmq-auth-backend-http',
+    ('rabbitmq_auth_backend_http',        {'url': 'https://github.com/rabbitmq/rabbitmq-auth-backend-http',
                                            'erlang': 'R14B'}),
-    ('rabbitmq_auth_backend_amqp',        {'url': 'https://github.com/simonmacmullen/rabbitmq-auth-backend-amqp'}),
+    ('rabbitmq_auth_backend_amqp',        {'url': 'https://github.com/rabbitmq/rabbitmq-auth-backend-amqp'}),
     ('rabbitmq_auth_backend_ip_range',    {'url': 'https://github.com/gotthardp/rabbitmq-auth-backend-ip-range',
                                            'erlang': '17'}),
 
     # Management
-    ('rabbitmq_top',                      {'url': 'https://github.com/simonmacmullen/rabbitmq-top'}),
-    ('rabbitmq_management_exchange',      {'url': 'https://github.com/simonmacmullen/rabbitmq-management-exchange',
+    ('rabbitmq_top',                      {'url': 'https://github.com/rabbitmq/rabbitmq-top'}),
+    ('rabbitmq_management_exchange',      {'url': 'https://github.com/rabbitmq/rabbitmq-management-exchange',
                                            'erlang': 'R14B'}),
-    ('rabbitmq_event_exchange',           {'url': 'https://github.com/simonmacmullen/rabbitmq-event-exchange'}),
+    ('rabbitmq_event_exchange',           {'url': 'https://github.com/rabbitmq/rabbitmq-event-exchange'}),
+    ('rabbitmq_management_themes',        {'url': 'https://github.com/rabbitmq/rabbitmq-management-themes'}),
 
     # Logging
     ('lager',                             {'url': 'https://github.com/hyperthunk/rabbitmq-lager',
