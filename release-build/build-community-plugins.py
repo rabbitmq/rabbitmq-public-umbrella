@@ -28,6 +28,7 @@ PLUGINS = [
     ('rabbitmq_management_exchange',      {'url': 'https://github.com/rabbitmq/rabbitmq-management-exchange',
                                            'erlang': 'R14B'}),
     ('rabbitmq_event_exchange',           {'url': 'https://github.com/rabbitmq/rabbitmq-event-exchange'}),
+    ('rabbitmq_management_themes',        {'url': 'https://github.com/rabbitmq/rabbitmq-management-themes'}),
 
     # Logging
     ('lager',                             {'url': 'https://github.com/hyperthunk/rabbitmq-lager',
