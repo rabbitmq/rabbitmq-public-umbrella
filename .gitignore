@@ -4,6 +4,7 @@
 .*.sw?
 /coverage/build/
 /coverage/dist/
+/coverage/ebin/
 
 # Sub-repositories.
 /cowboy-wrapper/
