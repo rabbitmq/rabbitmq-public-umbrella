@@ -40,6 +40,7 @@ PLUGINS = [
 
     # Protocols
     ('gen_smtp',                          {'url': 'https://github.com/gotthardp/rabbitmq-gen-smtp',
+                                           'version-add-hash': False,
                                            'erlang': 'R16B'}),
     ('rabbitmq_email',                    {'url': 'https://github.com/gotthardp/rabbitmq-email',
                                            'erlang': 'R16B'}),
