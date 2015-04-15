@@ -15,6 +15,7 @@ PLUGINS = [
     ('rabbitmq_lvc',                      {'url': 'https://github.com/rabbitmq/rabbitmq-lvc-plugin'}),
     ('rabbitmq_rtopic_exchange',          {'url': 'https://github.com/videlalvaro/rabbitmq-rtopic-exchange'}),
     ('rabbitmq_recent_history_exchange',  {'url': 'https://github.com/videlalvaro/rabbitmq-recent-history-exchange'}),
+    ('rabbitmq_delayed_message_exchange', {'url': 'https://github.com/rabbitmq/rabbitmq-delayed-message-exchange'}),
 
     # Auth
     ('rabbitmq_auth_backend_http',        {'url': 'https://github.com/rabbitmq/rabbitmq-auth-backend-http',
@@ -29,6 +30,8 @@ PLUGINS = [
                                            'erlang': 'R14B'}),
     ('rabbitmq_event_exchange',           {'url': 'https://github.com/rabbitmq/rabbitmq-event-exchange'}),
     ('rabbitmq_management_themes',        {'url': 'https://github.com/rabbitmq/rabbitmq-management-themes'}),
+    ('rabbitmq_autocluster_consul',       {'url': 'https://github.com/aweber/rabbitmq-autocluster-consul',
+                                           'erlang': 'R15B'}),
 
     # Logging
     ('lager',                             {'url': 'https://github.com/hyperthunk/rabbitmq-lager',
@@ -40,6 +43,7 @@ PLUGINS = [
 
     # Protocols
     ('gen_smtp',                          {'url': 'https://github.com/gotthardp/rabbitmq-gen-smtp',
+                                           'version-add-hash': False,
                                            'erlang': 'R16B'}),
     ('rabbitmq_email',                    {'url': 'https://github.com/gotthardp/rabbitmq-email',
                                            'erlang': 'R16B'}),
