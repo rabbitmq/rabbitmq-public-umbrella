@@ -310,7 +310,8 @@ define run_broker
 	    set --offline $$$$(RABBITMQ_PLUGINS_DIR=$(TEST_TMPDIR)/plugins \
             RABBITMQ_ENABLED_PLUGINS_FILE=$(TEST_TMPDIR)/enabled_plugins \
 	    $(UMBRELLA_BASE_DIR)/rabbitmq-server/scripts/rabbitmq-plugins list -m | tr '\n' ' ')
-	RABBITMQ_PLUGINS_DIR=$(TEST_TMPDIR)/plugins \
+	MAKE="$(MAKE)" \
+	  RABBITMQ_PLUGINS_DIR=$(TEST_TMPDIR)/plugins \
 	  RABBITMQ_ENABLED_PLUGINS_FILE=$(TEST_TMPDIR)/enabled_plugins \
 	  RABBITMQ_LOG_BASE=$(TEST_TMPDIR)/log \
 	  RABBITMQ_MNESIA_BASE=$(TEST_TMPDIR)/$(NODENAME) \
@@ -339,7 +340,8 @@ define run_with_broker_tests_aux
                | $(ERL_CALL) $(ERL_CALL_OPTS) \
                | tee -a $(TEST_TMPDIR)/rabbit-test-output \
                | egrep "{ok, (ok|passed)}" >/dev/null &&) \
-	    $(foreach SCRIPT,$(WITH_BROKER_TEST_SCRIPTS),$(SCRIPT) &&) : ; \
+	    MAKE="$(MAKE)" \
+	      $(foreach SCRIPT,$(WITH_BROKER_TEST_SCRIPTS),$(SCRIPT) &&) : ; \
         then \
 	  touch $(TEST_TMPDIR)/.passed ; \
 	  echo "\nPASSED\n" ; \
