@@ -160,7 +160,7 @@ sync-gituser:
 sync-gitremote:
 	@for repo in $(REPOS); do \
 	cd $$repo && \
-	git remote set-url --fetch origin $(GIT_CORE_REPOBASE_FETCH)/$$repo$(GIT_CORE_SUFFIX_FETCH) && \
+	git remote set-url origin $(GIT_CORE_REPOBASE_FETCH)/$$repo$(GIT_CORE_SUFFIX_FETCH) && \
 	git remote set-url --push origin $(GIT_CORE_REPOBASE_PUSH)/$$repo$(GIT_CORE_SUFFIX_PUSH) && \
 	cd ..; done
 
