@@ -35,4 +35,4 @@ check_vars
 
 set -e -x
 
-rsync -rpl $BUILD_DIR/plugins/ $DEPLOY_USERHOST:$DEPLOY_PATH
+rsync -rl $BUILD_DIR/plugins/ $DEPLOY_USERHOST:$DEPLOY_PATH
