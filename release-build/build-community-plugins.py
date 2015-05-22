@@ -193,7 +193,7 @@ def do_build(plugin, details, tag):
         plugin_version = "{0}-{1}".format(server_version(), hash)
     else:
         plugin_version = server_version()
-    [do("make", "-j", "VERSION={0}".format(plugin_version), target, erlang=erlang_version) for target in ["check-xref", "test", "srcdist", "dist"]]
+    [do("make", "-j2", "VERSION={0}".format(plugin_version), target, erlang=erlang_version) for target in ["check-xref", "test", "srcdist", "dist"]]
     dest_dir = os.path.join(BUILD_DIR, "plugins", "v" + server_version())
     dest_src_dir = os.path.join(dest_dir, "src")
     ensure_dir(dest_dir)
