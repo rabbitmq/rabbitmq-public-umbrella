@@ -119,7 +119,11 @@ up_c: named_update
 
 $(REPOS):
 	retries=5; \
-	while ! git clone $(GIT_CORE_REPOBASE_FETCH)/$@$(GIT_CORE_SUFFIX_FETCH); do \
+	umbrella_branch="$$(git branch | awk '/^* / { print $$2; }')"; \
+	if test "$$umbrella_branch" = "stable"; then \
+	  branch_arg="-b $$umbrella_branch"; \
+	fi; \
+	while ! git clone $$branch_arg $(GIT_CORE_REPOBASE_FETCH)/$@$(GIT_CORE_SUFFIX_FETCH); do \
 	  retries=$$((retries - 1)); \
 	  if test "$$retries" = 0; then break; fi; \
 	  sleep 1; \
