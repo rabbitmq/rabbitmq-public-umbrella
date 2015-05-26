@@ -29,7 +29,6 @@ SSH_OPTS=
 
 # Optional custom git url base.
 GITREPOBASE=
-GITREPOBASE_PRIV=
 
 # Where the keys live.  If not set, we will do an "unofficial release"
 KEYSDIR=
@@ -112,7 +111,6 @@ topdir=/var/tmp/rabbit-build.$$
 [[ -z "$TOPDIR" ]] && TOPDIR="$topdir"
 
 [[ -n "$GITREPOBASE" ]] || GITREPOBASE="https://github.com/rabbitmq"
-[[ -n "$GITREPOBASE_PRIV" ]] || GITREPOBASE_PRIV="git@github.com:rabbitmq"
 
 check_vars
 
@@ -233,7 +231,7 @@ if [ -z "$WEB_URL" ] ; then
         # time of this writing, this means we download 60 MiB instead of
         # 95 MiB.
         GIT_SSH_COMMAND="ssh $SSH_OPTS" \
-        git clone -b next --depth 1 "$GITREPOBASE_PRIV/rabbitmq-website.git"
+        git clone -b next --depth 1 "$GITREPOBASE/rabbitmq-website.git"
         cd rabbitmq-website
     fi
 
