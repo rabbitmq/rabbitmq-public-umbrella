@@ -57,6 +57,10 @@ endif
 
 VERSION:=0.0.0
 
+ifndef VERBOSE
+QUIET:=@
+endif
+
 #----------------------------------
 
 all:
@@ -118,7 +122,7 @@ up_c: named_update
 #----------------------------------
 
 $(REPOS):
-	retries=5; \
+	$(QUIET)retries=5; \
 	umbrella_branch="$$(git branch | awk '/^\* / { print $$2; }')"; \
 	if test "$$umbrella_branch" = "stable"; then \
 	  branch_arg="-b $$umbrella_branch"; \
@@ -128,8 +132,8 @@ $(REPOS):
 	  if test "$$retries" = 0; then break; fi; \
 	  sleep 1; \
 	done
-	test -d $@
-	global_user_name="$$(git config --global user.name)"; \
+	$(QUIET)test -d $@
+	$(QUIET)global_user_name="$$(git config --global user.name)"; \
 	global_user_email="$$(git config --global user.email)"; \
 	user_name="$$(git config user.name)"; \
 	user_email="$$(git config user.email)"; \
