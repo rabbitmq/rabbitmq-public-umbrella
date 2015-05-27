@@ -119,7 +119,7 @@ up_c: named_update
 
 $(REPOS):
 	retries=5; \
-	umbrella_branch="$$(git branch | awk '/^* / { print $$2; }')"; \
+	umbrella_branch="$$(git branch | awk '/^\* / { print $$2; }')"; \
 	if test "$$umbrella_branch" = "stable"; then \
 	  branch_arg="-b $$umbrella_branch"; \
 	fi; \
