@@ -230,8 +230,14 @@ if [ -z "$WEB_URL" ] ; then
         # checking out the last revision of the "next" branch. At the
         # time of this writing, this means we download 60 MiB instead of
         # 95 MiB.
+        umbrella_branch="$(git branch | awk '/^\* / { print $2; }')"
+        if [ "$umbrella_branch" = 'stable' -o "$umbrella_branch" = 'master' ]; then
+            website_branch=$umbrella_branch
+        else
+            website_branch='live'
+        fi
         GIT_SSH_COMMAND="ssh $SSH_OPTS" \
-        git clone -b next --depth 1 "$GITREPOBASE/rabbitmq-website.git"
+        git clone -b "$website_branch" --depth 1 "$GITREPOBASE/rabbitmq-website.git"
         cd rabbitmq-website
     fi
 
