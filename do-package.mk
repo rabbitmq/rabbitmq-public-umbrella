@@ -340,14 +340,14 @@ define run_with_broker_tests_aux
                | $(ERL_CALL) $(ERL_CALL_OPTS) \
                | tee -a $(TEST_TMPDIR)/rabbit-test-output \
                | egrep "{ok, (ok|passed)}" >/dev/null &&) \
-	    MAKE="$(MAKE)" \
+	    MAKE="$(MAKE)" RABBITMQ_NODENAME="$(NODENAME)" \
 	      $(foreach SCRIPT,$(WITH_BROKER_TEST_SCRIPTS),$(SCRIPT) &&) : ; \
         then \
 	  touch $(TEST_TMPDIR)/.passed ; \
-	  echo "\nPASSED\n" ; \
+	  printf "\nPASSED\n" ; \
 	else \
 	  cat $(TEST_TMPDIR)/rabbit-test-output ; \
-	  echo "\n\nFAILED\n" ; \
+	  printf "\n\nFAILED\n" ; \
 	fi
 	sleep 1
 	echo "rabbit_misc:report_cover(), init:stop()." | $(ERL_CALL) $(ERL_CALL_OPTS)
