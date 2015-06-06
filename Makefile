@@ -218,8 +218,7 @@ named_update: $(foreach DIR,. $(REPOS),$(DIR)+named_update)
 
 $(eval $(call repo_targets,. $(REPOS),named_update,| %,\
 	(cd % && git fetch -p && git checkout $(BRANCH) && \
-	 (test "$$$$(git branch | grep '^*')" = "* (detached from $(BRANCH))" || \
-	 git pull --ff-only))))
+	(! git symbolic-ref -q HEAD || git pull --ff-only))))
 
 .PHONY: tag
 tag: $(foreach DIR,. $(REPOS),$(DIR)+tag)
