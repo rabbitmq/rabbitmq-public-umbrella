@@ -32,6 +32,7 @@ PLUGINS = [
     ('rabbitmq_management_themes',        {'url': 'https://github.com/rabbitmq/rabbitmq-management-themes'}),
     ('rabbitmq_autocluster_consul',       {'url': 'https://github.com/aweber/rabbitmq-autocluster-consul',
                                            'erlang': 'R15B'}),
+    ('rabbitmq_boot_steps_visualiser',    {'url': 'https://github.com/rabbitmq/rabbitmq-boot-steps-visualiser'}),
 
     # Logging
     ('lager',                             {'url': 'https://github.com/hyperthunk/rabbitmq-lager',
