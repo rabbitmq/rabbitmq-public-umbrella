@@ -77,6 +77,38 @@ is_interesting(undefined_function_calls,
   {{rabbit_test_configs, maybe_flush_cover, 1},
    {cover, flush, 1}}) ->
     false;
+%% ttb is part of observer and it may not be available if Erlang
+%% is built without X11 support.
+is_interesting(undefined_function_calls,
+  {{webtool, _, _},
+   {ttb, _, _}}) ->
+    false;
+%% HiPE is not required, ignore errors if it's not enabled.
+is_interesting(undefined_function_calls,
+  {{Hipe1, _, _},
+   {Hipe2, _, _}})
+  when Hipe1 =:= hipe_unified_loader
+  orelse Hipe1 =:= hipe_main
+  orelse Hipe2 =:= hipe_rtl_arch
+  orelse Hipe2 =:= hipe_data_pp
+  orelse Hipe2 =:= hipe_tagscheme
+  orelse Hipe2 =:= hipe_bifs
+  orelse (Hipe1 =:= compile andalso Hipe2 =:= hipe) ->
+    false;
+is_interesting(undefined_function_calls,
+  {{rabbit, hipe_compile, 0},
+   {hipe, c, 2}}) ->
+    false;
+%% Missing functions in Debian Wheezy's Erlang (17.1 from
+%% wheezy-backports)?
+is_interesting(undefined_function_calls,
+  {{erl_boot_server, handle_command, 3},
+   {erl_prim_loader, prim_read_file_info, 3}}) ->
+    false;
+is_interesting(undefined_function_calls,
+  {{filelib, eval_read_link_info, 2},
+   {erl_prim_loader, read_link_info, 1}}) ->
+    false;
 is_interesting(_, _) ->
     true.
 
