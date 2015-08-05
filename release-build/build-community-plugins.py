@@ -18,16 +18,14 @@ PLUGINS = [
     ('rabbitmq_delayed_message_exchange', {'url': 'https://github.com/rabbitmq/rabbitmq-delayed-message-exchange'}),
 
     # Auth
-    ('rabbitmq_auth_backend_http',        {'url': 'https://github.com/rabbitmq/rabbitmq-auth-backend-http',
-                                           'erlang': 'R14B'}),
+    ('rabbitmq_auth_backend_http',        {'url': 'https://github.com/rabbitmq/rabbitmq-auth-backend-http'}),
     ('rabbitmq_auth_backend_amqp',        {'url': 'https://github.com/rabbitmq/rabbitmq-auth-backend-amqp'}),
     ('rabbitmq_auth_backend_ip_range',    {'url': 'https://github.com/gotthardp/rabbitmq-auth-backend-ip-range',
                                            'erlang': '17'}),
 
     # Management
     ('rabbitmq_top',                      {'url': 'https://github.com/rabbitmq/rabbitmq-top'}),
-    ('rabbitmq_management_exchange',      {'url': 'https://github.com/rabbitmq/rabbitmq-management-exchange',
-                                           'erlang': 'R14B'}),
+    ('rabbitmq_management_exchange',      {'url': 'https://github.com/rabbitmq/rabbitmq-management-exchange'}),
     ('rabbitmq_event_exchange',           {'url': 'https://github.com/rabbitmq/rabbitmq-event-exchange'}),
     ('rabbitmq_management_themes',        {'url': 'https://github.com/rabbitmq/rabbitmq-management-themes'}),
     ('rabbitmq_autocluster_consul',       {'url': 'https://github.com/aweber/rabbitmq-autocluster-consul',
@@ -37,7 +35,6 @@ PLUGINS = [
 
     # Logging
     ('lager',                             {'url': 'https://github.com/hyperthunk/rabbitmq-lager',
-                                           'erlang': 'R14B',
                                            'version-add-hash': False}),
 
     # Queues
@@ -45,23 +42,19 @@ PLUGINS = [
 
     # Protocols
     ('gen_smtp',                          {'url': 'https://github.com/gotthardp/rabbitmq-gen-smtp',
-                                           'version-add-hash': False,
-                                           'erlang': 'R16B'}),
-    ('rabbitmq_email',                    {'url': 'https://github.com/gotthardp/rabbitmq-email',
-                                           'erlang': 'R16B'}),
+                                           'version-add-hash': False}),
+    ('rabbitmq_email',                    {'url': 'https://github.com/gotthardp/rabbitmq-email'}),
     ('rfc4627_jsonrpc',                   {'url': 'https://github.com/rabbitmq/erlang-rfc4627-wrapper',
                                            'version-add-hash': False}),
     ('rabbitmq_jsonrpc',                  {'url': 'https://github.com/rabbitmq/rabbitmq-jsonrpc'}),
     ('rabbitmq_jsonrpc_channel',          {'url': 'https://github.com/rabbitmq/rabbitmq-jsonrpc-channel'}),
     ('rabbitmq_jsonrpc_channel_examples', {'url': 'https://github.com/rabbitmq/rabbitmq-jsonrpc-channel-examples'}),
     ('epgsql',                            {'url': 'https://github.com/gmr/epgsql-wrapper',
-                                           'erlang': 'R16B',
                                            'version-add-hash': False}),
-    ('pgsql_listen_exchange',             {'url': 'https://github.com/aweber/pgsql-listen-exchange',
-                                           'erlang': 'R16B'}),
+    ('pgsql_listen_exchange',             {'url': 'https://github.com/aweber/pgsql-listen-exchange'}),
 ]
 
-DEFAULT_OTP_VERSION="R13B03"
+DEFAULT_OTP_VERSION="R16B03"
 BUILD_DIR = "/var/tmp/plugins-build/"
 CURRENT_DIR = os.getcwd()
 RABBITMQ_TAG = ""
