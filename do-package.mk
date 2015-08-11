@@ -281,6 +281,15 @@ $(eval $(package_rules))
 
 endif # UPSTREAM_TYPE
 
+ifndef PRE17_TYPE_SPECS
+# Our type specs rely on dict:dict/0 etc, which are only available in
+# 17.0 upwards.
+PRE17_TYPE_SPECS:=$(shell erl -noshell -eval 'io:format([list_to_integer(X) || X <- string:tokens(erlang:system_info(version), ".")] < [5,11]), halt().')
+endif
+ifeq ($(PRE17_TYPE_SPECS),true)
+PACKAGE_ERLC_OPTS+=-Dpre17_type_specs
+endif
+
 # Generate a rule to compile .erl files from the directory $(1) into
 # directory $(2), taking extra erlc options from $(3)
 define package_source_dir_targets
