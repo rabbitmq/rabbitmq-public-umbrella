@@ -65,6 +65,20 @@ is_interesting(undefined_function_calls,
   {{ssl_compat, F, A},
    {ssl, F, A}}) ->
     false;
+%% time_compat calls functions appeared in Erlang 18.0's ssl and falls
+%% back on deprecated functions.
+is_interesting(undefined_function_calls,
+  {{time_compat, erlang_system_time, A},
+   {erlang, system_time, A}}) ->
+    false;
+is_interesting(undefined_function_calls,
+  {{time_compat, os_system_time, A},
+   {os, system_time, A}}) ->
+    false;
+is_interesting(undefined_function_calls,
+  {{time_compat, F, A},
+   {erlang, F, A}}) ->
+    false;
 %% Cowboy invokes file:sendfile/2 which is only on very recent Erlang.
 %% However it is guarded by a call to erlang:function_exported/3.
 is_interesting(undefined_function_calls,
