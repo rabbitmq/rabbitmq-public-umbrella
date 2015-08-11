@@ -9,6 +9,8 @@ REPOS:= \
     rabbitmq-dotnet-client \
     rabbitmq-test \
     cowboy-wrapper \
+    cowlib-wrapper \
+    ranch-wrapper \
     mochiweb-wrapper \
     rabbitmq-amqp1.0 \
     rabbitmq-auth-backend-ldap \
