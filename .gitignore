@@ -8,6 +8,7 @@
 
 # Sub-repositories.
 /cowboy-wrapper/
+/cowlib-wrapper/
 /mochiweb-wrapper/
 /rabbitmq-amqp1.0/
 /rabbitmq-auth-backend-ldap/
@@ -36,6 +37,7 @@
 /rabbitmq-web-dispatch/
 /rabbitmq-web-stomp-examples/
 /rabbitmq-web-stomp/
+/ranch-wrapper/
 /sockjs-erlang-wrapper/
 /toke/
 /webmachine-wrapper/
