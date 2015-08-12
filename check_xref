@@ -18,39 +18,30 @@
 %% Copyright (c) 2010-2014 GoPivotal, Inc.  All rights reserved.
 %%
 
+-define(XREF_CHECKS, [undefined_function_calls]).
+
 main([PackageDir, TmpDir]) ->
     {ok, _Pid} = xref:start(?MODULE),
     ok = xref:set_default(?MODULE, [{verbose,false}, {warnings,false}]),
     {ok, PackageModules} = add_dir(PackageDir, "ebin"),
     %% Remove them to avoid clash when we add them via the TmpDir
     ok = xref:remove_module(?MODULE, PackageModules),
-    {ok, _} = xref:add_directory(?MODULE, TmpDir, {recurse, true}),
+    ok = add_subdirs(TmpDir),
     {ok, otp} = xref:add_release(?MODULE, code:lib_dir(), {name, otp}),
 
-    ModulesQ =
-        "(" ++ lists:nthtail(
-                 2, lists:flatten(
-                      [io_lib:format(" + \"~s\" : Mod", [atom_to_list(Mod)])
-                       || Mod <- PackageModules])) ++
-        ")",
-
-    %% 'U' is the set of unknown Functions
-    %% '*' is set intersection
-    %% 'range' takes the RHS in all call pairs (From, To)
-    %% 'closure' gives the transitive closure
-    %% 'E' is all edges (i.e. all calls)
-    %% '|' is the subset of calls from any of the vertices
-    %%
-    %% I.e. we construct the transitive closure of all calls from any
-    %% of the plugin's modules, look at the ranges there of
-    %% (i.e. callees, not callers), and see if they're unknown
-    Q = "U * range (closure E | " ++ ModulesQ ++")",
-    {ok, MFAs} = xref:q(?MODULE, Q),
-    case filter_noise(MFAs, PackageModules) of
-        []     -> ok;
-        PrMFAs -> io:format("Undefined functions:~n"),
-                  [io:format("\t~s:~s/~w~n", [M, F, A]) || {M, F, A} <- PrMFAs],
-                  exit(undefined_functions)
+    Ret = lists:foldl(
+      fun(Check, Acc) ->
+          {ok, Result} = xref:analyze(?MODULE, Check, [{verbose, true}]),
+          Filtered = filter_noise(Check, Result),
+          print_result(Check, Filtered) andalso Acc
+      end, true, ?XREF_CHECKS),
+    if
+        Ret ->
+            io:format("xref: OK~n"),
+            halt(0);
+        true ->
+            io:format("~nxref: FAILURE~n"),
+            halt(1)
     end.
 
 add_dir(PackageDir, Dir) ->
@@ -60,18 +51,107 @@ add_dir(PackageDir, Dir) ->
         false -> {ok, []}
     end.
 
-filter_noise(MFAs, Modules) ->
-    [MFA || MFA <- MFAs, is_interesting(MFA, Modules)].
+add_subdirs(TmpDir) ->
+    Subdirs = [filename:join(TmpDir, "ebin") |
+               filelib:wildcard(filename:join(TmpDir, "*/ebin"))],
+    add_subdirs1(Subdirs).
 
-is_interesting({'$M_EXPR', _, _},  _Ms) -> false;
-is_interesting({_, '$F_EXPR', _},  _Ms) -> false;
-is_interesting({_, _, -1},         _Ms) -> false;
-%% Cowboy invokes file:sendfile/2 which is only on very recent
-%% Erlang. However it is guarded by a call to
-%% erlang:function_exported/3.
-is_interesting({file, sendfile, 2}, Ms) -> not lists:member(cowboy, Ms);
+add_subdirs1([Subdir | Rest]) ->
+    [Major, Minor, Patch] = [erlang:list_to_integer(V) ||
+                             V <- string:tokens(erlang:system_info(version),
+                                                ".")],
+    ERTSVer = Major * 10000 + Minor * 100 + Patch,
+    case string:tokens(filename:basename(filename:dirname(Subdir)), "-") of
+        ["eldap" | _] when ERTSVer >= 50901 ->
+            io:format(standard_error,
+              "INFO: Ignore 'eldap' plugin; already part of Erlang~n", []),
+            ok;
+        _ ->
+            {ok, _} = add_dir(Subdir, "")
+    end,
+    add_subdirs1(Rest);
+add_subdirs1([]) ->
+    ok.
+
+filter_noise(Check, Result) ->
+    [Item || Item <- Result, is_interesting(Check, Item)].
+
+%% Eunit testsuite for undefined function calls.
+is_interesting(undefined_function_calls,
+  {{eunit_test, wrapper_test_exported_, 0},
+   {eunit_test, nonexisting_function, 0}}) ->
+    false;
+%% ssl_compat calls functions appeared in Erlang 18.0's ssl and falls
+%% back on deprecated functions.
+is_interesting(undefined_function_calls,
+  {{ssl_compat, F, A},
+   {ssl, F, A}}) ->
+    false;
+%% time_compat calls functions appeared in Erlang 18.0's ssl and falls
+%% back on deprecated functions.
+is_interesting(undefined_function_calls,
+  {{time_compat, erlang_system_time, A},
+   {erlang, system_time, A}}) ->
+    false;
+is_interesting(undefined_function_calls,
+  {{time_compat, os_system_time, A},
+   {os, system_time, A}}) ->
+    false;
+is_interesting(undefined_function_calls,
+  {{time_compat, F, A},
+   {erlang, F, A}}) ->
+    false;
+%% Cowboy invokes file:sendfile/2 which is only on very recent Erlang.
+%% However it is guarded by a call to erlang:function_exported/3.
+is_interesting(undefined_function_calls,
+  {{cowboy_http_static, sendfile, 2},
+   {file, sendfile, 2}}) ->
+    false;
 %% Tests need this function, which technically makes it part of a
 %% plugin. But it's only in newer Erlangs than we test with.
-is_interesting({cover, flush, 1}, Ms)   -> not lists:member(
-                                                 rabbit_test_runner, Ms);
-is_interesting(_,                  _Ms) -> true.
+is_interesting(undefined_function_calls,
+  {{rabbit_test_configs, maybe_flush_cover, 1},
+   {cover, flush, 1}}) ->
+    false;
+%% ttb is part of observer and it may not be available if Erlang
+%% is built without X11 support.
+is_interesting(undefined_function_calls,
+  {{webtool, _, _},
+   {ttb, _, _}}) ->
+    false;
+%% HiPE is not required, ignore errors if it's not enabled.
+is_interesting(undefined_function_calls,
+  {{Hipe1, _, _},
+   {Hipe2, _, _}})
+  when Hipe1 =:= hipe_unified_loader
+  orelse Hipe1 =:= hipe_main
+  orelse Hipe2 =:= hipe_rtl_arch
+  orelse Hipe2 =:= hipe_data_pp
+  orelse Hipe2 =:= hipe_tagscheme
+  orelse Hipe2 =:= hipe_bifs
+  orelse (Hipe1 =:= compile andalso Hipe2 =:= hipe) ->
+    false;
+is_interesting(undefined_function_calls,
+  {{rabbit, hipe_compile, 0},
+   {hipe, c, 2}}) ->
+    false;
+%% Missing functions in Debian Wheezy's Erlang (17.1 from
+%% wheezy-backports)?
+is_interesting(undefined_function_calls,
+  {{erl_boot_server, handle_command, 3},
+   {erl_prim_loader, prim_read_file_info, 3}}) ->
+    false;
+is_interesting(undefined_function_calls,
+  {{filelib, eval_read_link_info, 2},
+   {erl_prim_loader, read_link_info, 1}}) ->
+    false;
+is_interesting(_, _) ->
+    true.
+
+print_result(undefined_function_calls, []) ->
+    true;
+print_result(undefined_function_calls, UndefinedFunctionCalls) ->
+    io:format("~nUndefined function call(s):~n"),
+    [io:format("\t~s:~s/~w (in ~s:~s/~w)~n", [M2, F2, A2, M1, F1, A1])
+      || {{M1, F1, A1}, {M2, F2, A2}} <- UndefinedFunctionCalls],
+    false.
