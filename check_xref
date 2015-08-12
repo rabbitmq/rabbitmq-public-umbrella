@@ -26,7 +26,7 @@ main([PackageDir, TmpDir]) ->
     {ok, PackageModules} = add_dir(PackageDir, "ebin"),
     %% Remove them to avoid clash when we add them via the TmpDir
     ok = xref:remove_module(?MODULE, PackageModules),
-    {ok, _} = xref:add_directory(?MODULE, TmpDir, {recurse, true}),
+    ok = add_subdirs(TmpDir),
     {ok, otp} = xref:add_release(?MODULE, code:lib_dir(), {name, otp}),
 
     Ret = lists:foldl(
@@ -50,6 +50,28 @@ add_dir(PackageDir, Dir) ->
         true  -> {ok, _} = xref:add_directory(?MODULE, Path, {recurse, true});
         false -> {ok, []}
     end.
+
+add_subdirs(TmpDir) ->
+    Subdirs = [filename:join(TmpDir, "ebin") |
+               filelib:wildcard(filename:join(TmpDir, "*/ebin"))],
+    add_subdirs1(Subdirs).
+
+add_subdirs1([Subdir | Rest]) ->
+    [Major, Minor, Patch] = [erlang:list_to_integer(V) ||
+                             V <- string:tokens(erlang:system_info(version),
+                                                ".")],
+    ERTSVer = Major * 10000 + Minor * 100 + Patch,
+    case string:tokens(filename:basename(filename:dirname(Subdir)), "-") of
+        ["eldap" | _] when ERTSVer >= 50901 ->
+            io:format(standard_error,
+              "INFO: Ignore 'eldap' plugin; already part of Erlang~n", []),
+            ok;
+        _ ->
+            {ok, _} = add_dir(Subdir, "")
+    end,
+    add_subdirs1(Rest);
+add_subdirs1([]) ->
+    ok.
 
 filter_noise(Check, Result) ->
     [Item || Item <- Result, is_interesting(Check, Item)].
