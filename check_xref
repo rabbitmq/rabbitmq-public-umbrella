@@ -57,9 +57,12 @@ add_subdirs(TmpDir) ->
     add_subdirs1(Subdirs).
 
 add_subdirs1([Subdir | Rest]) ->
-    [Major, Minor, Patch] = [erlang:list_to_integer(V) ||
-                             V <- string:tokens(erlang:system_info(version),
-                                                ".")],
+    VerS = [erlang:list_to_integer(V) ||
+            V <- string:tokens(erlang:system_info(version), ".")],
+    [Major, Minor, Patch] = case VerS of
+        [X, Y, Z] -> [X, Y, Z];
+        [X, Y]    -> [X, Y, 0]
+    end,
     ERTSVer = Major * 10000 + Minor * 100 + Patch,
     case string:tokens(filename:basename(filename:dirname(Subdir)), "-") of
         ["eldap" | _] when ERTSVer >= 50901 ->
