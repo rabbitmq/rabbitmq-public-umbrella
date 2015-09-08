@@ -1,241 +1,52 @@
-.PHONY: default
-default:
-	@echo No default target && false
+PROJECT = rabbitmq_public_umbrella
 
-REPOS:= \
-    rabbitmq-server \
-    rabbitmq-codegen \
-    rabbitmq-java-client \
-    rabbitmq-dotnet-client \
-    rabbitmq-test \
-    cowboy-wrapper \
-    cowlib-wrapper \
-    ranch-wrapper \
-    mochiweb-wrapper \
-    rabbitmq-amqp1.0 \
-    rabbitmq-auth-backend-ldap \
-    rabbitmq-auth-mechanism-ssl \
-    rabbitmq-consistent-hash-exchange \
-    rabbitmq-erlang-client \
-    rabbitmq-federation \
-    rabbitmq-federation-management \
-    rabbitmq-management \
-    rabbitmq-management-agent \
-    rabbitmq-management-visualiser \
-    rabbitmq-metronome \
-    rabbitmq-web-dispatch \
-    rabbitmq-mqtt \
-    rabbitmq-shovel \
-    rabbitmq-shovel-management \
-    rabbitmq-stomp \
-    rabbitmq-toke \
-    rabbitmq-tracing \
-    rabbitmq-web-stomp \
-    rabbitmq-web-stomp-examples \
-    sockjs-erlang-wrapper \
-    toke \
-    webmachine-wrapper
+DEPS = amqp_client		\
+       rabbit			\
+       rabbit_common		\
+       rabbitmq_codegen		\
+       rabbitmq_java_client	\
+       rabbitmq_shovel		\
+       rabbitmq_test
 
-BRANCH:=master
+# For RabbitMQ repositories, we want to checkout branches which match
+# the parent porject. For instance, if the parent project is on a
+# release tag, dependencies must be on the same release tag. If the
+# parent project is on a topic branch, dependencies must be on the same
+# topic branch or fallback to `stable` or `master` whichever was the
+# base of the topic branch.
 
-UMBRELLA_REPO_FETCH:=$(shell git remote -v 2>/dev/null | awk '/^origin\t.+ \(fetch\)$$/ { print $$2; }')
-ifdef UMBRELLA_REPO_FETCH
-GIT_CORE_REPOBASE_FETCH:=$(shell dirname $(UMBRELLA_REPO_FETCH))
-GIT_CORE_SUFFIX_FETCH:=$(suffix $(UMBRELLA_REPO_FETCH))
-else
-GIT_CORE_REPOBASE_FETCH:=https://github.com/rabbitmq
-GIT_CORE_SUFFIX_FETCH:=.git
+ifeq ($(origin current_rmq_ref),undefined)
+current_rmq_ref := $(shell git symbolic-ref -q --short HEAD || git describe --tags --exact-match)
+export current_rmq_ref
+endif
+ifeq ($(origin base_rmq_ref),undefined)
+base_rmq_ref := $(shell git merge-base --is-ancestor $$(git merge-base master HEAD) stable && echo stable || echo master)
+export base_rmq_ref
 endif
 
-UMBRELLA_REPO_PUSH:=$(shell git remote -v 2>/dev/null | awk '/^origin\t.+ \(push\)$$/ { print $$2; }')
-ifdef UMBRELLA_REPO_PUSH
-GIT_CORE_REPOBASE_PUSH:=$(shell dirname $(UMBRELLA_REPO_PUSH))
-GIT_CORE_SUFFIX_PUSH:=$(suffix $(UMBRELLA_REPO_PUSH))
-else
-GIT_CORE_REPOBASE_PUSH:=git@github.com:rabbitmq
-GIT_CORE_SUFFIX_PUSH:=.git
-endif
+dep_amqp_client          = git https://github.com/rabbitmq/rabbitmq-erlang-client.git $(current_rmq_ref) $(base_rmq_ref)
+dep_rabbit               = git https://github.com/rabbitmq/rabbitmq-server.git $(current_rmq_ref) $(base_rmq_ref)
+dep_rabbit_common        = git https://github.com/rabbitmq/rabbitmq-common.git $(current_rmq_ref) $(base_rmq_ref)
+dep_rabbitmq_codegen     = git https://github.com/rabbitmq/rabbitmq-codegen.git $(current_rmq_ref) $(base_rmq_ref)
+dep_rabbitmq_java_client = git https://github.com/rabbitmq/rabbitmq-java-client.git $(current_rmq_ref) $(base_rmq_ref)
+dep_rabbitmq_shovel      = git https://github.com/rabbitmq/rabbitmq-shovel.git $(current_rmq_ref) $(base_rmq_ref)
+dep_rabbitmq_test        = git https://github.com/rabbitmq/rabbitmq-test.git $(current_rmq_ref) $(base_rmq_ref)
 
-VERSION:=0.0.0
+# FIXME: Use erlang.mk patched for RabbitMQ, while waiting for PRs to be
+# reviewed and merged.
 
-ifndef VERBOSE
-QUIET:=@
-endif
+ERLANG_MK_GIT_REPOSITORY = https://github.com/rabbitmq/erlang.mk.git
+ERLANG_MK_GIT_REF = rabbitmq-tmp
 
-#----------------------------------
+include erlang.mk
 
-all:
-	$(MAKE) -f all-packages.mk all-packages VERSION=$(VERSION)
+# We need to pass the location of codegen to the Java client ant
+# process.
 
-test:
-	$(MAKE) -f all-packages.mk test-all-packages VERSION=$(VERSION)
-
-release:
-	$(MAKE) -f all-packages.mk all-releasable VERSION=$(VERSION)
-
-clean:
-	$(MAKE) -f all-packages.mk clean-all-packages
-
-check-xref:
-	$(MAKE) -f all-packages.mk check-xref-packages
-
-plugins-dist: release
-	rm -rf $(PLUGINS_DIST_DIR)
-	mkdir -p $(PLUGINS_DIST_DIR)
-	$(MAKE) -f all-packages.mk copy-releasable VERSION=$(VERSION) PLUGINS_DIST_DIR=$(PLUGINS_DIST_DIR)
-
-plugins-srcdist:
-	rm -rf $(PLUGINS_SRC_DIST_DIR)
-	mkdir -p $(PLUGINS_SRC_DIST_DIR)/licensing
-
-	rsync -a --exclude '.git*' rabbitmq-erlang-client $(PLUGINS_SRC_DIST_DIR)/
-	touch $(PLUGINS_SRC_DIST_DIR)/rabbitmq-erlang-client/.srcdist_done
-
-	rsync -a --exclude '.git*' rabbitmq-server $(PLUGINS_SRC_DIST_DIR)/
-	touch $(PLUGINS_SRC_DIST_DIR)/rabbitmq-server/.srcdist_done
-
-	$(MAKE) -f all-packages.mk copy-srcdist VERSION=$(VERSION) PLUGINS_SRC_DIST_DIR=$(PLUGINS_SRC_DIST_DIR)
-	cp Makefile *.mk generate* $(PLUGINS_SRC_DIST_DIR)/
-	echo "This is the released version of rabbitmq-public-umbrella. \
-You can clone the full version with: git clone https://github.com/rabbitmq/rabbitmq-public-umbrella.git" > $(PLUGINS_SRC_DIST_DIR)/README
-
-	PRESERVE_CLONE_DIR=1 $(MAKE) -C $(PLUGINS_SRC_DIST_DIR) clean
-	rm -rf $(PLUGINS_SRC_DIST_DIR)/rabbitmq-server
-
-#----------------------------------
-# Convenience aliases
-
-.PHONY: co
-co: checkout
-
-.PHONY: ci
-ci: checkin
-
-.PHONY: up
-up: update
-
-.PHONY: st
-st: status
-
-.PHONY: up_c
-up_c: named_update
-
-#----------------------------------
-
-$(REPOS):
-	$(QUIET)retries=5; \
-	umbrella_branch="$$(git branch | awk '/^\* / { print $$2; }')"; \
-	if test "$$umbrella_branch" = "stable"; then \
-	  branch_arg="-b $$umbrella_branch"; \
-	fi; \
-	while ! git clone $$branch_arg $(GIT_CORE_REPOBASE_FETCH)/$@$(GIT_CORE_SUFFIX_FETCH); do \
-	  retries=$$((retries - 1)); \
-	  if test "$$retries" = 0; then break; fi; \
-	  sleep 1; \
-	done
-	$(QUIET)test -d $@
-	$(QUIET)global_user_name="$$(git config --global user.name)"; \
-	global_user_email="$$(git config --global user.email)"; \
-	user_name="$$(git config user.name)"; \
-	user_email="$$(git config user.email)"; \
-	cd $@ && \
-	git remote set-url --push origin $(GIT_CORE_REPOBASE_PUSH)/$@$(GIT_CORE_SUFFIX_PUSH) && \
-	if test "$$global_user_name" != "$$user_name"; then git config user.name "$$user_name"; fi && \
-	if test "$$global_user_email" != "$$user_email"; then git config user.email "$$user_email"; fi
-
-
-.PHONY: checkout
-checkout: $(REPOS)
-
-.PHONY: list-repos
-list-repos:
-	@for repo in $(REPOS); do echo $$repo; done
-
-.PHONY: sync-gituser
-sync-gituser:
-	@global_user_name="$$(git config --global user.name)"; \
-	global_user_email="$$(git config --global user.email)"; \
-	user_name="$$(git config user.name)"; \
-	user_email="$$(git config user.email)"; \
-	for repo in $(REPOS); do \
-	cd $$repo && \
-	git config --unset user.name && \
-	git config --unset user.email && \
-	if test "$$global_user_name" != "$$user_name"; then git config user.name "$$user_name"; fi && \
-	if test "$$global_user_email" != "$$user_email"; then git config user.email "$$user_email"; fi && \
-	cd ..; done
-
-.PHONY: sync-gitremote
-sync-gitremote:
-	@for repo in $(REPOS); do \
-	cd $$repo && \
-	git remote set-url origin $(GIT_CORE_REPOBASE_FETCH)/$$repo$(GIT_CORE_SUFFIX_FETCH) && \
-	git remote set-url --push origin $(GIT_CORE_REPOBASE_PUSH)/$$repo$(GIT_CORE_SUFFIX_PUSH) && \
-	cd ..; done
-
-#----------------------------------
-# Subrepository management
-
-
-# $(1) is the target
-# $(2) is the target dependency. Can use % to get current REPO
-# $(3) is the target body. Can use % to get current REPO
-define repo_target
-
-.PHONY: $(1)
-$(1): $(2)
-	$(3)
-
-endef
-
-# $(1) is the list of repos
-# $(2) is the suffix
-# $(3) is the target dependency. Can use % to get current REPO
-# $(4) is the target body. Can use % to get current REPO
-define repo_targets
-$(foreach REPO,$(1),$(call repo_target,$(REPO)+$(2),\
-	$(patsubst %,$(3),$(REPO)),$(patsubst %,$(4),$(REPO))))
-endef
-
-# Do not allow status to fork with -j otherwise output will be garbled
-.PHONY: status
-status: checkout
-	@for repo in . $(REPOS); do \
-		echo "$$repo:"; \
-		cd "$$repo" && git status -s && cd - >/dev/null; \
-	done
-
-.PHONY: pull
-pull: $(foreach DIR,. $(REPOS),$(DIR)+pull)
-
-$(eval $(call repo_targets,. $(REPOS),pull,| %,\
-	(cd % && git fetch -p && \
-	 (! git symbolic-ref -q HEAD || git pull --ff-only))))
-
-.PHONY: update
-update: pull
-
-.PHONY: named_update
-named_update: $(foreach DIR,. $(REPOS),$(DIR)+named_update)
-
-$(eval $(call repo_targets,. $(REPOS),named_update,| %,\
-	(cd % && git fetch -p && git checkout $(BRANCH) && \
-	 (! git symbolic-ref -q HEAD || git pull --ff-only))))
-
-.PHONY: tag
-tag: $(foreach DIR,. $(REPOS),$(DIR)+tag)
-
-$(eval $(call repo_targets,. $(REPOS),tag,| %,\
-	(cd % && git tag $(TAG))))
-
-.PHONY: push
-push: $(foreach DIR,. $(REPOS),$(DIR)+push)
-
-$(eval $(call repo_targets,. $(REPOS),push,| %,\
-	(cd % && git push && git push --tags)))
-
-.PHONY: checkin
-checkin: $(foreach DIR,. $(REPOS),$(DIR)+checkin)
-
-$(eval $(call repo_targets,. $(REPOS),checkin,| %,\
-	(cd % && (test -z "$$$$(git status -s -uno)" || git commit -a))))
+CODEGEN_DIR = $(DEPS_DIR)/rabbitmq_codegen
+PYTHONPATH = $(CODEGEN_DIR)
+ANT ?= ant
+ANT_FLAGS += -Dsibling.codegen.dir=$(CODEGEN_DIR) -DUMBRELLA_AVAILABLE=true
+RABBITMQCTL = $(DEPS_DIR)/rabbit/scripts/rabbitmqctl
+RABBITMQ_TEST_DIR = $(CURDIR)
+export PYTHONPATH ANT_FLAGS RABBITMQCTL RABBITMQ_TEST_DIR
