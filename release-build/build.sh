@@ -63,6 +63,9 @@ CHANGELOG_EMAIL=packaging@rabbitmq.com
 # The full name to use in package changelog # entries, if an entry is added.
 CHANGELOG_FULLNAME="RabbitMQ Team"
 
+# The revision of Debian and RPM packageS.
+CHANGELOG_PKG_REV="1"
+
 # The comment for changelog entires
 CHANGELOG_COMMENT="New upstream release"
 
@@ -94,7 +97,7 @@ while [[ $# -gt 0 ]] ; do
 done
 
 mandatory_vars="VERSION BUILD_USERHOST"
-optional_vars="SSH_OPTS KEYSDIR SIGNING_KEY SIGNING_USER_EMAIL SIGNING_USER_ID WEB_URL WEBSITE_REPO CHANGELOG_EMAIL CHANGELOG_FULLNAME CHANGELOG_COMMENT TOPDIR topdir REPOS SCRIPTDIR UMBRELLADIR WIN_USERHOST MAC_USERHOST"
+optional_vars="SSH_OPTS KEYSDIR SIGNING_KEY SIGNING_USER_EMAIL SIGNING_USER_ID WEB_URL WEBSITE_REPO CHANGELOG_EMAIL CHANGELOG_FULLNAME CHANGELOG_PKG_REV CHANGELOG_COMMENT TOPDIR topdir REPOS SCRIPTDIR UMBRELLADIR WIN_USERHOST MAC_USERHOST"
 
 . $SCRIPTDIR/utils.sh
 absolutify_scriptdir
@@ -191,7 +194,7 @@ make clean
 if [[ -n "$CHANGELOG_EMAIL" ]] ; then
     # Tweak changelogs
     ( cd rabbitmq-server/packaging/debs/Debian/debian ; DEBFULLNAME="$CHANGELOG_FULLNAME" DEBEMAIL="$CHANGELOG_EMAIL" \
-      dch -v ${VERSION}-1 --check-dirname-level 0 --distribution unstable --force-distribution "$CHANGELOG_COMMENT" )
+      dch -v ${VERSION}-${CHANGELOG_PKG_REV} --check-dirname-level 0 --distribution unstable --force-distribution "$CHANGELOG_COMMENT" )
     # Append additional debian changelog comments into above entry
     if [ -f rabbitmq-server/packaging/debs/Debian/changelog_comments/additional_changelog_comments_${VERSION} ]; then
         while read ADDTNL_COMMENTS; do
@@ -206,9 +209,9 @@ if [[ -n "$CHANGELOG_EMAIL" ]] ; then
 
     spec=rabbitmq-server/packaging/RPMS/Fedora/rabbitmq-server.spec
     mv $spec $spec~
-    sed -ne '0,/^%changelog/p' <$spec~ >$spec
+    sed -r -e "s/^(Release: *)[0-9]*(.*)/\1${CHANGELOG_PKG_REV}\2/" -ne '0,/^%changelog/p' <$spec~ >$spec
     cat >>$spec <<EOF
-* $(date +'%a %b %-d %Y') ${CHANGELOG_EMAIL} ${VERSION}-1
+* $(date +'%a %b %-d %Y') ${CHANGELOG_EMAIL} ${VERSION}-${CHANGELOG_PKG_REV}
 - ${CHANGELOG_COMMENT}
 
 EOF
