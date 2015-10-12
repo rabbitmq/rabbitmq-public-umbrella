@@ -2,6 +2,9 @@
 .*.sw?
 *.beam
 /.erlang.mk/
+/deps/
+/doc/
+
 /coverage/build/
 /coverage/dist/
 /coverage/ebin/

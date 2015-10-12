@@ -8,30 +8,9 @@ DEPS = amqp_client		\
        rabbitmq_shovel		\
        rabbitmq_test
 
-# For RabbitMQ repositories, we want to checkout branches which match
-# the parent porject. For instance, if the parent project is on a
-# release tag, dependencies must be on the same release tag. If the
-# parent project is on a topic branch, dependencies must be on the same
-# topic branch or fallback to `stable` or `master` whichever was the
-# base of the topic branch.
+.DEFAULT_GOAL = up
 
-ifeq ($(origin current_rmq_ref),undefined)
-current_rmq_ref := $(shell git symbolic-ref -q --short HEAD || git describe --tags --exact-match)
-export current_rmq_ref
-endif
-ifeq ($(origin base_rmq_ref),undefined)
-base_rmq_ref := $(shell git merge-base --is-ancestor $$(git merge-base master HEAD) stable && echo stable || echo master)
-export base_rmq_ref
-endif
-
-dep_amqp_client          = git https://github.com/rabbitmq/rabbitmq-erlang-client.git $(current_rmq_ref) $(base_rmq_ref)
-dep_rabbit               = git https://github.com/rabbitmq/rabbitmq-server.git $(current_rmq_ref) $(base_rmq_ref)
-dep_rabbit_common        = git https://github.com/rabbitmq/rabbitmq-common.git $(current_rmq_ref) $(base_rmq_ref)
-dep_rabbitmq_codegen     = git https://github.com/rabbitmq/rabbitmq-codegen.git $(current_rmq_ref) $(base_rmq_ref)
-dep_rabbitmq_java_client = git https://github.com/rabbitmq/rabbitmq-java-client.git $(current_rmq_ref) $(base_rmq_ref)
-dep_rabbitmq_shovel      = git https://github.com/rabbitmq/rabbitmq-shovel.git $(current_rmq_ref) $(base_rmq_ref)
-dep_rabbitmq_test        = git https://github.com/rabbitmq/rabbitmq-test.git $(current_rmq_ref) $(base_rmq_ref)
-
+NO_AUTOPATCH_ERLANG_MK = yes
 DEP_PLUGINS = rabbit_common/mk/rabbitmq-run.mk
 
 # FIXME: Use erlang.mk patched for RabbitMQ, while waiting for PRs to be
@@ -40,6 +19,7 @@ DEP_PLUGINS = rabbit_common/mk/rabbitmq-run.mk
 ERLANG_MK_GIT_REPOSITORY = https://github.com/rabbitmq/erlang.mk.git
 ERLANG_MK_GIT_REF = rabbitmq-tmp
 
+include rabbitmq-components.mk
 include erlang.mk
 
 # We need to pass the location of codegen to the Java client ant
@@ -53,16 +33,16 @@ RABBITMQCTL = $(DEPS_DIR)/rabbit/scripts/rabbitmqctl
 RABBITMQ_TEST_DIR = $(CURDIR)
 export PYTHONPATH ANT_FLAGS RABBITMQCTL RABBITMQ_TEST_DIR
 
-.PHONY: co up status
+.PHONY: co up sync-gituser sync-gitremote status
 
 # make co: legacy target.
-co: $(ALL_DEPS_DIRS)
+co: fetch-deps
 	@:
 
 up: .+up $(DEPS:%=$(DEPS_DIR)/%+up)
 	@:
 
-%+up: co
+%+up: fetch-deps
 	$(exec_verbose) cd $*; \
 	git fetch -p && \
 	if [ '$(BRANCH)' ]; then \
@@ -73,10 +53,49 @@ up: .+up $(DEPS:%=$(DEPS_DIR)/%+up)
 		remote=$$(git config branch.$$branch.remote); \
 		merge=$$(git config branch.$$branch.merge | sed 's,refs/heads/,,'); \
 		if [ "$$remote" -a "$$merge" ]; then \
-			git merge --ff-only "$$remote/$$merge" | sed '/^Already up-to-date/d'; \
+			git merge --ff-only "$$remote/$$merge" \
+			 | sed '/^Already up-to-date/d'; \
 		fi; \
 	fi && \
 	echo
+
+sync-gituser:
+	$(exec_verbose) global_user_name="$$(git config --global user.name)"; \
+	global_user_email="$$(git config --global user.email)"; \
+	user_name="$$(git config user.name)"; \
+	user_email="$$(git config user.email)"; \
+	for repo in $(ALL_DEPS_DIRS); do \
+		(cd $$repo && \
+		git config --unset user.name && \
+		git config --unset user.email && \
+		if test "$$global_user_name" != "$$user_name"; then \
+			git config user.name "$$user_name"; \
+		fi && \
+		if test "$$global_user_email" != "$$user_email"; then \
+			git config user.email "$$user_email"; \
+		fi \
+		);\
+	done
+
+sync-gitremote:
+	$(exec_verbose) fetch_url="$$(git remote -v 2>/dev/null | \
+	 awk '/^origin\t.+ \(fetch\)$$/ { print $$2; }' | \
+	 sed 's,/rabbitmq-public-umbrella.*,,')"; \
+	push_url="$$(git remote -v 2>/dev/null | \
+	 awk '/^origin\t.+ \(push\)$$/ { print $$2; }' | \
+	 sed 's,/rabbitmq-public-umbrella.*,,')"; \
+	for repo in $(ALL_DEPS_DIRS); do \
+		(cd $$repo && \
+		git remote set-url origin \
+		 "$$(git remote -v 2>/dev/null | \
+		  awk '/^origin\t.+ \(fetch\)$$/ { print $$2; }' | \
+		  sed "s,$(RABBITMQ_REPO_BASE),$${fetch_url},")" && \
+		git remote set-url --push origin \
+		 "$$(git remote -v 2>/dev/null | \
+		  awk '/^origin\t.+ \(push\)$$/ { print $$2; }' | \
+		  sed "s,$(RABBITMQ_REPO_BASE),$${push_url},")"; \
+		); \
+	done
 
 status: .+status $(DEPS:%=$(DEPS_DIR)/%+status)
 	@:
