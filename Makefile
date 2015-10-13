@@ -27,7 +27,7 @@ RABBITMQCTL = $(DEPS_DIR)/rabbit/scripts/rabbitmqctl
 RABBITMQ_TEST_DIR = $(CURDIR)
 export PYTHONPATH ANT_FLAGS RABBITMQCTL RABBITMQ_TEST_DIR
 
-.PHONY: co up sync-gituser sync-gitremote status
+.PHONY: co up status
 
 # make co: legacy target.
 co: fetch-deps
@@ -56,7 +56,7 @@ up: .+up $(DEPS:%=$(DEPS_DIR)/%+up)
 status: .+status $(DEPS:%=$(DEPS_DIR)/%+status)
 	@:
 
-%+status: co
+%+status: fetch-deps
 	$(exec_verbose) cd $*; \
 	git status -s && \
 	echo
@@ -64,6 +64,9 @@ status: .+status $(DEPS:%=$(DEPS_DIR)/%+status)
 # --------------------------------------------------------------------
 # Helpers to ease work on the entire components collection.
 # --------------------------------------------------------------------
+
+.PHONY: sync-gituser sync-gitremote update-erlang-mk \
+	update-rabbitmq-components-mk
 
 sync-gituser:
 	$(exec_verbose) global_user_name="$$(git config --global user.name)"; \
