@@ -16,7 +16,7 @@
 
 ERLANG_MK_FILENAME := $(realpath $(lastword $(MAKEFILE_LIST)))
 
-ERLANG_MK_VERSION = 1.2.0-816-g7704617
+ERLANG_MK_VERSION = 2.0.0-pre.1-13-gb581428
 
 # Core configuration.
 
@@ -109,8 +109,6 @@ help::
 		"  all           Run deps, app and rel targets in that order" \
 		"  app           Compile the project" \
 		"  deps          Fetch dependencies (if needed) and compile them" \
-		"  fetch-deps    Fetch dependencies (if needed) without compiling them" \
-		"  list-deps     Fetch dependencies (if needed) and list them" \
 		"  search q=...  Search for a package in the built-in index" \
 		"  rel           Build a release for this project, if applicable" \
 		"  docs          Build the documentation for this project" \
@@ -4000,7 +3998,7 @@ endif
 # Copyright (c) 2013-2015, Loïc Hoguin <essen@ninenines.eu>
 # This file is part of erlang.mk and subject to the terms of the ISC License.
 
-.PHONY: fetch-deps list-deps distclean-deps
+.PHONY: distclean-deps
 
 # Configuration.
 
@@ -4042,26 +4040,6 @@ dep_verbose = $(dep_verbose_$(V))
 # Core targets.
 
 ifneq ($(SKIP_DEPS),)
-fetch-deps:
-else
-fetch-deps: $(ALL_DEPS_DIRS)
-ifneq ($(IS_DEP),1)
-	$(verbose) rm -f $(ERLANG_MK_TMP)/fetch-deps.log
-endif
-	$(verbose) mkdir -p $(ERLANG_MK_TMP)
-	$(verbose) for dep in $(ALL_DEPS_DIRS) ; do \
-		if grep -qs ^$$dep$$ $(ERLANG_MK_TMP)/fetch-deps.log; then \
-			echo -n; \
-		else \
-			echo $$dep >> $(ERLANG_MK_TMP)/fetch-deps.log; \
-			if [ -f $$dep/erlang.mk ]; then \
-				$(MAKE) -C $$dep fetch-deps IS_DEP=1 || exit $$?; \
-			fi \
-		fi \
-	done
-endif
-
-ifneq ($(SKIP_DEPS),)
 deps::
 else
 deps:: $(ALL_DEPS_DIRS)
@@ -4088,29 +4066,6 @@ endif
 		fi \
 	done
 endif
-
-ERLANG_MK_RECURSIVE_DEPS_LIST = $(ERLANG_MK_TMP)/list-deps.log
-
-$(ERLANG_MK_RECURSIVE_DEPS_LIST): fetch-deps
-ifneq ($(IS_DEP),1)
-	$(verbose) rm -f $(ERLANG_MK_TMP)/list-deps.log.orig
-endif
-	$(verbose) for dep in $(filter-out $(CURDIR),$(ALL_DEPS_DIRS)); do \
-		(test -f "$$dep/erlang.mk" && \
-		 $(MAKE) -C "$$dep" --no-print-directory \
-		  $(ERLANG_MK_RECURSIVE_DEPS_LIST) IS_DEP=1) || :; \
-	done
-	$(verbose) for dep in $(DEPS); do \
-		echo $(DEPS_DIR)/$$dep; \
-	done >> $(ERLANG_MK_TMP)/list-deps.log.orig
-ifneq ($(IS_DEP),1)
-	$(verbose) sort < $(ERLANG_MK_TMP)/list-deps.log.orig \
-		| uniq > $(ERLANG_MK_TMP)/list-deps.log
-	$(verbose) rm -f $(ERLANG_MK_TMP)/list-deps.log.orig
-endif
-
-list-deps: $(ERLANG_MK_RECURSIVE_DEPS_LIST)
-	$(verbose) cat $(ERLANG_MK_TMP)/list-deps.log
 
 # Deps related targets.
 
