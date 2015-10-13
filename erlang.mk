@@ -16,7 +16,7 @@
 
 ERLANG_MK_FILENAME := $(realpath $(lastword $(MAKEFILE_LIST)))
 
-ERLANG_MK_VERSION = 2.0.0-pre.1-13-gb581428
+ERLANG_MK_VERSION = 1.2.0-818-gc0946dc
 
 # Core configuration.
 
@@ -109,6 +109,8 @@ help::
 		"  all           Run deps, app and rel targets in that order" \
 		"  app           Compile the project" \
 		"  deps          Fetch dependencies (if needed) and compile them" \
+		"  fetch-deps    Fetch dependencies (if needed) without compiling them" \
+		"  list-deps     Fetch dependencies (if needed) and list them" \
 		"  search q=...  Search for a package in the built-in index" \
 		"  rel           Build a release for this project, if applicable" \
 		"  docs          Build the documentation for this project" \
@@ -3998,7 +4000,7 @@ endif
 # Copyright (c) 2013-2015, Loïc Hoguin <essen@ninenines.eu>
 # This file is part of erlang.mk and subject to the terms of the ISC License.
 
-.PHONY: distclean-deps
+.PHONY: fetch-deps list-deps distclean-deps
 
 # Configuration.
 
@@ -4040,6 +4042,26 @@ dep_verbose = $(dep_verbose_$(V))
 # Core targets.
 
 ifneq ($(SKIP_DEPS),)
+fetch-deps:
+else
+fetch-deps: $(ALL_DEPS_DIRS)
+ifneq ($(IS_DEP),1)
+	$(verbose) rm -f $(ERLANG_MK_TMP)/fetch-deps.log
+endif
+	$(verbose) mkdir -p $(ERLANG_MK_TMP)
+	$(verbose) for dep in $(ALL_DEPS_DIRS) ; do \
+		if grep -qs ^$$dep$$ $(ERLANG_MK_TMP)/fetch-deps.log; then \
+			echo -n; \
+		else \
+			echo $$dep >> $(ERLANG_MK_TMP)/fetch-deps.log; \
+			if [ -f $$dep/erlang.mk ]; then \
+				$(MAKE) -C $$dep fetch-deps IS_DEP=1 || exit $$?; \
+			fi \
+		fi \
+	done
+endif
+
+ifneq ($(SKIP_DEPS),)
 deps::
 else
 deps:: $(ALL_DEPS_DIRS)
@@ -4066,6 +4088,29 @@ endif
 		fi \
 	done
 endif
+
+ERLANG_MK_RECURSIVE_DEPS_LIST = $(ERLANG_MK_TMP)/list-deps.log
+
+$(ERLANG_MK_RECURSIVE_DEPS_LIST): fetch-deps
+ifneq ($(IS_DEP),1)
+	$(verbose) rm -f $(ERLANG_MK_TMP)/list-deps.log.orig
+endif
+	$(verbose) for dep in $(filter-out $(CURDIR),$(ALL_DEPS_DIRS)); do \
+		(test -f "$$dep/erlang.mk" && \
+		 $(MAKE) -C "$$dep" --no-print-directory \
+		  $(ERLANG_MK_RECURSIVE_DEPS_LIST) IS_DEP=1) || :; \
+	done
+	$(verbose) for dep in $(DEPS); do \
+		echo $(DEPS_DIR)/$$dep; \
+	done >> $(ERLANG_MK_TMP)/list-deps.log.orig
+ifneq ($(IS_DEP),1)
+	$(verbose) sort < $(ERLANG_MK_TMP)/list-deps.log.orig \
+		| uniq > $(ERLANG_MK_TMP)/list-deps.log
+	$(verbose) rm -f $(ERLANG_MK_TMP)/list-deps.log.orig
+endif
+
+list-deps: $(ERLANG_MK_RECURSIVE_DEPS_LIST)
+	$(verbose) cat $(ERLANG_MK_TMP)/list-deps.log
 
 # Deps related targets.
 
@@ -4857,12 +4902,14 @@ endef
 
 ebin/$(PROJECT).app:: $(ERL_FILES) $(CORE_FILES)
 	$(if $(strip $?),$(call compile_erl,$?))
+
+ebin/$(PROJECT).app::
 	$(eval GITDESCRIBE := $(shell git describe --dirty --abbrev=7 --tags --always --first-parent 2>/dev/null || true))
 	$(eval MODULES := $(patsubst %,'%',$(sort $(notdir $(basename \
 		$(filter-out $(ERLC_EXCLUDE_PATHS),$(ERL_FILES) $(CORE_FILES) $(BEAM_FILES)))))))
 ifeq ($(wildcard src/$(PROJECT).app.src),)
 	$(app_verbose) printf "$(subst $(newline),\n,$(subst ",\",$(call app_file,$(GITDESCRIBE),$(MODULES))))" \
-		> ebin/$(PROJECT).app
+		> $@.new
 else
 	$(verbose) if [ -z "$$(grep -E '^[^%]*{\s*modules\s*,' src/$(PROJECT).app.src)" ]; then \
 		echo "Empty modules entry not found in $(PROJECT).app.src. Please consult the erlang.mk README for instructions." >&2; \
@@ -4871,8 +4918,13 @@ else
 	$(appsrc_verbose) cat src/$(PROJECT).app.src \
 		| sed "s/{[[:space:]]*modules[[:space:]]*,[[:space:]]*\[\]}/{modules, \[$(call comma_list,$(MODULES))\]}/" \
 		| sed "s/{id,[[:space:]]*\"git\"}/{id, \"$(GITDESCRIBE)\"}/" \
-		> ebin/$(PROJECT).app
+		> $@.new
 endif
+	$(verbose) if test -f "$@" && cmp -s "$@" "$@.new"; then \
+		rm $@.new; \
+	else \
+		mv $@.new $@; \
+	fi
 
 clean:: clean-app
 
