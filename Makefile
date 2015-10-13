@@ -1,12 +1,6 @@
 PROJECT = rabbitmq_public_umbrella
 
-DEPS = amqp_client		\
-       rabbit			\
-       rabbit_common		\
-       rabbitmq_codegen		\
-       rabbitmq_java_client	\
-       rabbitmq_shovel		\
-       rabbitmq_test
+DEPS = $(RABBITMQ_COMPONENTS)
 
 .DEFAULT_GOAL = up
 
