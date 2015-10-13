@@ -107,9 +107,18 @@ sync-gitremote:
 	done
 
 update-erlang-mk: erlang-mk
+	$(verbose) if test "$(DO_COMMIT)" = 'yes'; then \
+		git diff --quiet -- erlang.mk \
+		|| git commit -m 'Update erlang.mk' -- erlang.mk; \
+	fi
 	$(verbose) for repo in $(ALL_DEPS_DIRS); do \
 		! test -f $$repo/erlang.mk \
 		|| $(MAKE) -C $$repo erlang-mk; \
+		if test "$(DO_COMMIT)" = 'yes'; then \
+			(cd $$repo; \
+			 git diff --quiet -- erlang.mk \
+			 || git commit -m 'Update erlang.mk' -- erlang.mk); \
+		fi; \
 	done
 
 update-rabbitmq-components-mk: rabbitmq-components-mk
