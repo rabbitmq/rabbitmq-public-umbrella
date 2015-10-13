@@ -104,13 +104,13 @@ sync-gitremote:
 	done
 
 update-erlang-mk: erlang-mk
-	$(exec_verbose) for repo in $(ALL_DEPS_DIRS); do \
+	$(verbose) for repo in $(ALL_DEPS_DIRS); do \
 		! test -f $$repo/erlang.mk \
 		|| $(MAKE) -C $$repo erlang-mk; \
 	done
 
 update-rabbitmq-components-mk: rabbitmq-components-mk
-	$(exec_verbose) for repo in $(ALL_DEPS_DIRS); do \
+	$(verbose) for repo in $(ALL_DEPS_DIRS); do \
 		! test -f $$repo/rabbitmq-components.mk \
 		|| $(MAKE) -C $$repo rabbitmq-components-mk; \
 	done
