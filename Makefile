@@ -4,7 +4,7 @@ DEPS = $(RABBITMQ_COMPONENTS)
 
 .DEFAULT_GOAL = up
 
-NO_AUTOPATCH_ERLANG_MK = yes
+NO_AUTOPATCH = $(DEPS)
 DEP_PLUGINS = rabbit_common/mk/rabbitmq-run.mk
 
 # FIXME: Use erlang.mk patched for RabbitMQ, while waiting for PRs to be
