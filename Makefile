@@ -53,6 +53,18 @@ up: .+up $(DEPS:%=$(DEPS_DIR)/%+up)
 	fi && \
 	echo
 
+status: .+status $(DEPS:%=$(DEPS_DIR)/%+status)
+	@:
+
+%+status: co
+	$(exec_verbose) cd $*; \
+	git status -s && \
+	echo
+
+# --------------------------------------------------------------------
+# Helpers to ease work on the entire components collection.
+# --------------------------------------------------------------------
+
 sync-gituser:
 	$(exec_verbose) global_user_name="$$(git config --global user.name)"; \
 	global_user_email="$$(git config --global user.email)"; \
@@ -91,10 +103,14 @@ sync-gitremote:
 		); \
 	done
 
-status: .+status $(DEPS:%=$(DEPS_DIR)/%+status)
-	@:
+update-erlang-mk: erlang-mk
+	$(exec_verbose) for repo in $(ALL_DEPS_DIRS); do \
+		! test -f $$repo/erlang.mk \
+		|| $(MAKE) -C $$repo erlang-mk; \
+	done
 
-%+status: co
-	$(exec_verbose) cd $*; \
-	git status -s && \
-	echo
+update-rabbitmq-components-mk: rabbitmq-components-mk
+	$(exec_verbose) for repo in $(ALL_DEPS_DIRS); do \
+		! test -f $$repo/rabbitmq-components.mk \
+		|| $(MAKE) -C $$repo rabbitmq-components-mk; \
+	done
