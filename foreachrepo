@@ -5,8 +5,7 @@ echo "===== rabbitmq-public-umbrella"
 echo
 
 if [ -d deps ]; then
-	for repo in $deps
-	do
+	for repo in deps/*; do
 		echo "===== $(basename "$repo")"
 		(cd $repo; "$@")
 		echo
