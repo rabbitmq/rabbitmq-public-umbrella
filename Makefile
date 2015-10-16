@@ -27,6 +27,9 @@ RABBITMQCTL = $(DEPS_DIR)/rabbit/scripts/rabbitmqctl
 RABBITMQ_TEST_DIR = $(CURDIR)
 export PYTHONPATH ANT_FLAGS RABBITMQCTL RABBITMQ_TEST_DIR
 
+READY_DEPS = $(foreach DEP,$(DEPS), \
+	     $(if $(wildcard $(DEPS_DIR)/$(DEP)),$(DEP),))
+
 .PHONY: co up status
 
 # make co: legacy target.
@@ -53,12 +56,20 @@ up: .+up $(DEPS:%=$(DEPS_DIR)/%+up)
 	fi && \
 	echo
 
-status: .+status $(DEPS:%=$(DEPS_DIR)/%+status)
+status: $(abspath .)+status $(READY_DEPS:%=$(DEPS_DIR)/%+status)
 	@:
 
-%+status: fetch-deps
+%+status:
 	$(exec_verbose) cd $*; \
 	git status -s && \
+	echo
+
+push: $(abspath .)+push $(READY_DEPS:%=$(DEPS_DIR)/%+push)
+	@:
+
+%+push:
+	$(exec_verbose) cd $*; \
+	git push && \
 	echo
 
 # --------------------------------------------------------------------
