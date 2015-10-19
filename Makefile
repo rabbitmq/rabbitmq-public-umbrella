@@ -16,17 +16,6 @@ ERLANG_MK_COMMIT = rabbitmq-tmp
 include rabbitmq-components.mk
 include erlang.mk
 
-# We need to pass the location of codegen to the Java client ant
-# process.
-
-CODEGEN_DIR = $(DEPS_DIR)/rabbitmq_codegen
-PYTHONPATH = $(CODEGEN_DIR)
-ANT ?= ant
-ANT_FLAGS += -Dsibling.codegen.dir=$(CODEGEN_DIR)
-RABBITMQCTL = $(DEPS_DIR)/rabbit/scripts/rabbitmqctl
-RABBITMQ_TEST_DIR = $(CURDIR)
-export PYTHONPATH ANT_FLAGS RABBITMQCTL RABBITMQ_TEST_DIR
-
 READY_DEPS = $(foreach DEP,$(DEPS), \
 	     $(if $(wildcard $(DEPS_DIR)/$(DEP)),$(DEP),))
 
@@ -36,7 +25,7 @@ READY_DEPS = $(foreach DEP,$(DEPS), \
 co: fetch-deps
 	@:
 
-up: .+up $(DEPS:%=$(DEPS_DIR)/%+up)
+up: $(abspath .)+up $(DEPS:%=$(DEPS_DIR)/%+up)
 	@:
 
 %+up: fetch-deps
