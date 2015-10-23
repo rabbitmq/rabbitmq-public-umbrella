@@ -75,8 +75,8 @@ sync-gituser:
 	user_email="$$(git config user.email)"; \
 	for repo in $(ALL_DEPS_DIRS); do \
 		(cd $$repo && \
-		git config --unset user.name && \
-		git config --unset user.email && \
+		git config --unset user.name; \
+		git config --unset user.email; \
 		if test "$$global_user_name" != "$$user_name"; then \
 			git config user.name "$$user_name"; \
 		fi && \
