@@ -19,7 +19,7 @@ include erlang.mk
 READY_DEPS = $(foreach DEP,$(DEPS), \
 	     $(if $(wildcard $(DEPS_DIR)/$(DEP)),$(DEP),))
 
-.PHONY: co up status
+.PHONY: co up status clean-subrepos distclean-subrepos
 
 # make co: legacy target.
 co: fetch-deps
@@ -60,6 +60,22 @@ push: $(abspath .)+push $(READY_DEPS:%=$(DEPS_DIR)/%+push)
 	$(exec_verbose) cd $*; \
 	git push && \
 	echo
+
+clean:: clean-subrepos
+
+clean-subrepos: $(READY_DEPS:%=$(DEPS_DIR)/%+clean)
+	@:
+
+%+clean:
+	-$(exec_verbose) $(MAKE) -C $* clean
+
+distclean:: distclean-subrepos
+
+distclean-subrepos: $(READY_DEPS:%=$(DEPS_DIR)/%+distclean)
+	@:
+
+%+distclean:
+	-$(exec_verbose) $(MAKE) -C $* distclean
 
 # --------------------------------------------------------------------
 # Helpers to ease work on the entire components collection.
