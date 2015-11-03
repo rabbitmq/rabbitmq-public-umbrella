@@ -39,8 +39,7 @@ up: $(abspath .)+up $(DEPS:%=$(DEPS_DIR)/%+up)
 		remote=$$(git config branch.$$branch.remote); \
 		merge=$$(git config branch.$$branch.merge | sed 's,refs/heads/,,'); \
 		if [ "$$remote" -a "$$merge" ]; then \
-			git merge --ff-only "$$remote/$$merge" \
-			 | sed '/^Already up-to-date/d'; \
+			git merge --ff-only "$$remote/$$merge"; \
 		fi; \
 	fi && \
 	echo
