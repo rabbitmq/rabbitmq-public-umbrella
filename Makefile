@@ -77,6 +77,99 @@ distclean-subrepos: $(READY_DEPS:%=$(DEPS_DIR)/%+distclean)
 	-$(exec_verbose) $(MAKE) -C $* distclean
 
 # --------------------------------------------------------------------
+# Release engineering.
+# --------------------------------------------------------------------
+
+VERSION ?= 0.0.0
+PACKAGES_DIR ?= packages/$(VERSION)
+
+UNIX_HOST ?=
+MACOSX_HOST ?=
+WINDOWS_HOST ?=
+
+SSH_OPTS ?=
+
+# The name and email address to use in package changelog entries.
+CHANGELOG_NAME ?= RabbitMQ Team
+CHANGELOG_EMAIL ?= packaging@rabbitmq.com
+
+# The revision of Debian and RPM packages.
+CHANGELOG_PKG_REV ?= 1
+
+# The comment for changelog entries.
+CHANGELOG_COMMENT ?= New upstream release
+CHANGELOG_ADDITIONAL_COMMENTS_FILE ?= \
+	$(DEPS_DIR)/rabbit/packaging/debs/Debian/changelog_comments/additional_changelog_comments_$(VERSION)
+
+SOURCE_DIST_FILE = $(PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.xz
+
+REMOTE_MAKE ?= $(MAKE)
+
+.PHONY: release release-source-dist release-server release-clients
+
+release: release-server
+	@:
+
+release-server: release-server-sources
+
+release-server-sources: $(DEPS_DIR)/rabbit
+# Prepare changelog entries.
+	$(exec_verbose) VERSION='$(VERSION)' \
+	CHANGELOG_NAME='$(CHANGELOG_NAME)' \
+	CHANGELOG_EMAIL='$(CHANGELOG_EMAIL)' \
+	CHANGELOG_PKG_REV='$(CHANGELOG_PKG_REV)' \
+	CHANGELOG_COMMENT='$(CHANGELOG_COMMENT)' \
+	CHANGELOG_ADDITIONAL_COMMENTS_FILE='$(CHANGELOG_ADDITIONAL_COMMENTS_FILE)' \
+	release-build/deb-changelog-entry.sh \
+	 $(DEPS_DIR)/rabbit/packaging/debs/Debian/debian/changelog
+
+	$(verbose) VERSION='$(VERSION)' \
+	CHANGELOG_NAME='$(CHANGELOG_NAME)' \
+	CHANGELOG_EMAIL='$(CHANGELOG_EMAIL)' \
+	CHANGELOG_PKG_REV='$(CHANGELOG_PKG_REV)' \
+	CHANGELOG_COMMENT='$(CHANGELOG_COMMENT)' \
+	release-build/rpm-changelog-entry.sh \
+	 $(DEPS_DIR)/rabbit/packaging/RPMS/Fedora/rabbitmq-server.spec
+
+# Build source archive.
+	$(verbose) $(MAKE) -C deps/rabbit source-dist PACKAGES_DIR=$(abspath $(PACKAGES_DIR))
+	$(verbose) rm -rf $(PACKAGES_DIR)/rabbitmq-server-$(VERSION)
+
+ifneq ($(UNIX_HOST),)
+release-server: release-server-packages
+
+release-server-packages: release-server-sources
+
+ifeq ($(UNIX_HOST),localhost)
+release-server-packages:
+	$(exec_verbose) $(MAKE) -C $(DEPS_DIR)/rabbit/packaging \
+		SOURCE_DIST_FILE="$(abspath $(SOURCE_DIST_FILE))" \
+		PACKAGES_DIR="$(abspath $(PACKAGES_DIR))" \
+		VERSION="$(VERSION)"
+else
+release-server-packages: REMOTE_RELEASE_TMPDIR=rabbitmq-server-$(VERSION)
+release-server-packages:
+	$(exec_verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
+		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
+	$(verbose) scp -rp -q $(DEPS_DIR)/rabbit/packaging \
+		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)
+	$(verbose) scp -p -q $(SOURCE_DIST_FILE) \
+		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)
+	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
+		'$(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)" \
+		 SOURCE_DIST_FILE="$(notdir $(SOURCE_DIST_FILE))" \
+		 PACKAGES_DIR="PACKAGES" \
+		 VERSION="$(VERSION)"'
+	$(verbose) scp -p $(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/PACKAGES/'*' \
+		$(PACKAGES_DIR)
+	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
+		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
+endif
+endif
+
+# The .Net client is built natively on Windows.
+
+# --------------------------------------------------------------------
 # Helpers to ease work on the entire components collection.
 # --------------------------------------------------------------------
 
