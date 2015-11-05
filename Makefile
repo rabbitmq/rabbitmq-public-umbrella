@@ -161,7 +161,7 @@ release-unix-server-packages:
 		PACKAGES_DIR="$(abspath $(PACKAGES_DIR))" \
 		VERSION="$(VERSION)"
 else
-release-unix-server-packages: REMOTE_RELEASE_TMPDIR=rabbitmq-server-$(VERSION)
+release-unix-server-packages: REMOTE_RELEASE_TMPDIR = rabbitmq-server-$(VERSION)
 release-unix-server-packages:
 	$(exec_verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
 		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
@@ -199,7 +199,7 @@ release-macosx-server-packages:
 		PACKAGES_DIR="$(abspath $(PACKAGES_DIR))" \
 		VERSION="$(VERSION)"
 else
-release-macosx-server-packages: REMOTE_RELEASE_TMPDIR=rabbitmq-server-$(VERSION)
+release-macosx-server-packages: REMOTE_RELEASE_TMPDIR = rabbitmq-server-$(VERSION)
 release-macosx-server-packages:
 	$(exec_verbose) ssh $(SSH_OPTS) $(MACOSX_HOST) \
 		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
@@ -240,7 +240,7 @@ release-java-client:
 	$(verbose) cd $(PACKAGES_DIR) && \
 		unzip -q rabbitmq-java-client-javadoc-$(VERSION).zip
 else
-release-java-client: REMOTE_RELEASE_TMPDIR=rabbitmq-java-client-$(VERSION)
+release-java-client: REMOTE_RELEASE_TMPDIR = rabbitmq-java-client-$(VERSION)
 release-java-client:
 	$(exec_verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
 		'rm -rf $(REMOTE_RELEASE_TMPDIR); \
