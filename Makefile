@@ -139,12 +139,12 @@ release-server-sources: $(DEPS_DIR)/rabbit
 	$(verbose) rm -rf $(PACKAGES_DIR)/rabbitmq-server-$(VERSION)
 
 ifneq ($(UNIX_HOST),)
-release-server: release-server-packages
+release-server: release-unix-server-packages
 
-release-server-packages: release-server-sources
+release-unix-server-packages: release-server-sources
 
 ifeq ($(UNIX_HOST),localhost)
-release-server-packages:
+release-unix-server-packages:
 	$(exec_verbose) release-build/install-otp.sh "$(OTP_VERSION)"
 	$(verbose) PATH="$$HOME/otp-$(OTP_VERSION)/bin:$$PATH" \
 		$(MAKE) -C $(DEPS_DIR)/rabbit/packaging \
@@ -152,8 +152,8 @@ release-server-packages:
 		PACKAGES_DIR="$(abspath $(PACKAGES_DIR))" \
 		VERSION="$(VERSION)"
 else
-release-server-packages: REMOTE_RELEASE_TMPDIR=rabbitmq-server-$(VERSION)
-release-server-packages:
+release-unix-server-packages: REMOTE_RELEASE_TMPDIR=rabbitmq-server-$(VERSION)
+release-unix-server-packages:
 	$(exec_verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
 		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
 	$(verbose) scp -rp -q $(DEPS_DIR)/rabbit/packaging \
