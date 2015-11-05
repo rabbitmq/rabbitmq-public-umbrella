@@ -226,7 +226,7 @@ endif
 ifneq ($(UNIX_HOST),)
 release-clients: release-java-client
 
-release-java-client: $(DEPS_DIR)/rabbitmq_java_client
+release-java-client: $(DEPS_DIR)/rabbitmq_java_client release-clients-build-doc
 
 ifeq ($(UNIX_HOST),localhost)
 release-java-client:
@@ -264,7 +264,71 @@ release-java-client:
 endif
 endif
 
-# The .Net client is built natively on Windows.
+ifneq ($(words $(WINDOWS_HOST) $(UNIX_HOST)),2)
+release-clients: release-dotnet-client
+
+DOTNET_CLIENT_VARS = \
+	RABBIT_VSN=$(VERSION) \
+	SKIP_MSIVAL2=1
+
+ifneq ($(KEYSDIR),)
+ifeq ($(WINDOWS_HOST),localhost)
+DOTNET_CLIENT_VARS += KEYFILE=$(realpath $(KEYSDIR)/dotnet/rabbit.snk)
+else
+DOTNET_CLIENT_VARS += KEYFILE=rabbit.snk
+endif
+endif
+
+release-dotnet-client: $(DEPS_DIR)/rabbitmq_dotnet_client release-clients-build-doc
+
+ifeq ($(WINDOWS_HOST),localhost)
+release-dotnet-client:
+	$(exec_verbose) cd $(DEPS_DIR)/rabbitmq_dotnet_client && \
+		$(DOTNET_CLIENT_VARS) \
+		./dist.sh
+	$(verbose) $(MAKE) -C "$(DEPS_DIR)/rabbitmq_dotnet_client" \
+		doc dist \
+		RABBIT_VSN="$(VERSION)"
+	$(verbose) cp -p \
+		$(DEPS_DIR)/rabbitmq_dotnet_client/releases/* \
+		$(PACKAGES_DIR)
+else
+release-dotnet-client: REMOTE_RELEASE_TMPDIR = rabbitmq-dotnet-client-$(VERSION)
+release-dotnet-client:
+	$(exec_verbose) ssh $(SSH_OPTS) $(WINDOWS_HOST) \
+		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
+	$(verbose) scp -rp -q \
+		$(DEPS_DIR)/rabbitmq_dotnet_client \
+		$(WINDOWS_HOST):$(REMOTE_RELEASE_TMPDIR)
+	$(verbose) scp -p -q $(PACKAGES_DIR)/build-dotnet-client.txt \
+		$(WINDOWS_HOST):$(REMOTE_RELEASE_TMPDIR)
+ifneq ($(KEYSDIR),)
+	$(verbose) scp -p -q $(KEYSDIR)/dotnet/rabbit.snk \
+		$(WINDOWS_HOST):$(REMOTE_RELEASE_TMPDIR)
+endif
+	$(verbose) ssh $(SSH_OPTS) $(WINDOWS_HOST) \
+		'cd $(REMOTE_RELEASE_TMPDIR) && \
+		 $(DOTNET_CLIENT_VARS) \
+		 ./dist.sh'
+	$(verbose) ssh $(SSH_OPTS) $(WINDOWS_HOST) \
+		'$(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)" \
+		 doc dist \
+		 RABBIT_VSN="$(VERSION)"'
+	$(verbose) scp -rp $(WINDOWS_HOST):$(REMOTE_RELEASE_TMPDIR)/release/'*' \
+		$(PACKAGES_DIR)
+	$(verbose) ssh $(SSH_OPTS) $(WINDOWS_HOST) \
+		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
+endif
+endif
+
+release-clients-build-doc: $(DEPS_DIR)/rabbitmq_website
+	$(exec_verbose) cd $(DEPS_DIR)/rabbitmq_website; \
+		python driver.py www & \
+		trap "kill $$!" EXIT; \
+		for file in build-java-client.html build-dotnet-client.html; do \
+			elinks -dump -no-references -no-numbering \
+			 http://localhost:8191/$$file > $(realpath $(PACKAGES_DIR))/$${file%.html}.txt; \
+		done
 
 # --------------------------------------------------------------------
 # Helpers to ease work on the entire components collection.
