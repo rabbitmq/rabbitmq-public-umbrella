@@ -175,6 +175,45 @@ release-unix-server-packages:
 endif
 endif
 
+ifneq ($(MACOSX_HOST),)
+release-server: release-macosx-server-packages
+
+release-macosx-server-packages: release-server-sources
+
+ifeq ($(MACOSX_HOST),localhost)
+release-macosx-server-packages:
+	$(exec_verbose) release-build/install-otp.sh "$(STANDALONE_OTP_VERSION)"
+	$(verbose) PATH="$$HOME/otp-$(STANDALONE_OTP_VERSION)/bin:$$PATH" \
+		$(MAKE) -C $(DEPS_DIR)/rabbit/packaging \
+		package-standalone-macosx \
+		SOURCE_DIST_FILE="$(abspath $(SOURCE_DIST_FILE))" \
+		PACKAGES_DIR="$(abspath $(PACKAGES_DIR))" \
+		VERSION="$(VERSION)"
+else
+release-macosx-server-packages: REMOTE_RELEASE_TMPDIR=rabbitmq-server-$(VERSION)
+release-macosx-server-packages:
+	$(exec_verbose) ssh $(SSH_OPTS) $(MACOSX_HOST) \
+		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
+	$(verbose) scp -rp -q $(DEPS_DIR)/rabbit/packaging \
+		$(MACOSX_HOST):$(REMOTE_RELEASE_TMPDIR)
+	$(verbose) scp -p -q $(SOURCE_DIST_FILE) release-build/install-otp.sh \
+		$(MACOSX_HOST):$(REMOTE_RELEASE_TMPDIR)
+	$(verbose) ssh $(SSH_OPTS) $(MACOSX_HOST) \
+		'chmod 755 $(REMOTE_RELEASE_TMPDIR)/install-otp.sh && \
+		 $(REMOTE_RELEASE_TMPDIR)/install-otp.sh '$(STANDALONE_OTP_VERSION)' && \
+		 PATH="$$HOME/otp-$(STANDALONE_OTP_VERSION)/bin:$$PATH" \
+		 $(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)" \
+		 package-standalone-macosx \
+		 SOURCE_DIST_FILE="$(notdir $(SOURCE_DIST_FILE))" \
+		 PACKAGES_DIR="PACKAGES" \
+		 VERSION="$(VERSION)"'
+	$(verbose) scp -p $(MACOSX_HOST):$(REMOTE_RELEASE_TMPDIR)/PACKAGES/'*' \
+		$(PACKAGES_DIR)
+	$(verbose) ssh $(SSH_OPTS) $(MACOSX_HOST) \
+		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
+endif
+endif
+
 # The .Net client is built natively on Windows.
 
 # --------------------------------------------------------------------
