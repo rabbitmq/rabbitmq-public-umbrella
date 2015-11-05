@@ -139,6 +139,11 @@ release-server-sources: $(DEPS_DIR)/rabbit
 	$(verbose) rm -rf $(PACKAGES_DIR)/rabbitmq-server-$(VERSION)
 
 ifneq ($(UNIX_HOST),)
+# This target is called "Unix packages" because it includes packages
+# for Linux and a generic archive ready for any Unix system. However,
+# it also includes the Windows installer! So by Unix packages, we mean
+# "it's built on Unix".
+
 release-server: release-unix-server-packages
 
 release-unix-server-packages: release-server-sources
