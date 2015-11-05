@@ -110,10 +110,14 @@ REMOTE_MAKE ?= $(MAKE)
 
 .PHONY: release release-source-dist release-server release-clients
 
-release: release-server
+release: release-server release-clients
 	@:
 
 release-server: release-server-sources
+	@:
+
+release-clients:
+	@:
 
 release-server-sources: $(DEPS_DIR)/rabbit
 # Prepare changelog entries.
@@ -216,6 +220,47 @@ release-macosx-server-packages:
 		$(PACKAGES_DIR)
 	$(verbose) ssh $(SSH_OPTS) $(MACOSX_HOST) \
 		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
+endif
+endif
+
+ifneq ($(UNIX_HOST),)
+release-clients: release-java-client
+
+release-java-client: $(DEPS_DIR)/rabbitmq_java_client
+
+ifeq ($(UNIX_HOST),localhost)
+release-java-client:
+	$(verbose) $(MAKE) -C "$(DEPS_DIR)/rabbitmq_java_client" \
+		dist \
+		VERSION="$(VERSION)"
+	$(verbose) cp -p \
+		$(DEPS_DIR)/rabbitmq_java_client/build/*.tar.gz \
+		$(DEPS_DIR)/rabbitmq_java_client/build/*.zip \
+		$(PACKAGES_DIR)
+	$(verbose) cd $(PACKAGES_DIR) && \
+		unzip -q rabbitmq-java-client-javadoc-$(VERSION).zip
+else
+release-java-client: REMOTE_RELEASE_TMPDIR=rabbitmq-java-client-$(VERSION)
+release-java-client:
+	$(exec_verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
+		'rm -rf $(REMOTE_RELEASE_TMPDIR); \
+		 mkdir -p $(REMOTE_RELEASE_TMPDIR)'
+	$(verbose) scp -rp -q \
+		$(DEPS_DIR)/rabbitmq_java_client \
+		$(DEPS_DIR)/rabbitmq_codegen \
+		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)
+	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
+		'$(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)/rabbitmq_java_client" \
+		 dist \
+		 VERSION="$(VERSION)"'
+	$(verbose) scp -p $(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/rabbitmq_java_client/build/'*.tar.gz' \
+		$(PACKAGES_DIR)
+	$(verbose) scp -p $(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/rabbitmq_java_client/build/'*.zip' \
+		$(PACKAGES_DIR)
+	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
+		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
+	$(verbose) cd $(PACKAGES_DIR) && \
+		unzip -q rabbitmq-java-client-javadoc-$(VERSION).zip
 endif
 endif
 
