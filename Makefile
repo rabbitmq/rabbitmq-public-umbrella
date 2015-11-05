@@ -101,6 +101,9 @@ CHANGELOG_COMMENT ?= New upstream release
 CHANGELOG_ADDITIONAL_COMMENTS_FILE ?= \
 	$(DEPS_DIR)/rabbit/packaging/debs/Debian/changelog_comments/additional_changelog_comments_$(VERSION)
 
+OTP_VERSION ?= R16B03
+STANDALONE_OTP_VERSION ?= 17.5
+
 SOURCE_DIST_FILE = $(PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.xz
 
 REMOTE_MAKE ?= $(MAKE)
@@ -142,7 +145,9 @@ release-server-packages: release-server-sources
 
 ifeq ($(UNIX_HOST),localhost)
 release-server-packages:
-	$(exec_verbose) $(MAKE) -C $(DEPS_DIR)/rabbit/packaging \
+	$(exec_verbose) release-build/install-otp.sh "$(OTP_VERSION)"
+	$(verbose) PATH="$$HOME/otp-$(OTP_VERSION)/bin:$$PATH" \
+		$(MAKE) -C $(DEPS_DIR)/rabbit/packaging \
 		SOURCE_DIST_FILE="$(abspath $(SOURCE_DIST_FILE))" \
 		PACKAGES_DIR="$(abspath $(PACKAGES_DIR))" \
 		VERSION="$(VERSION)"
@@ -153,10 +158,13 @@ release-server-packages:
 		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
 	$(verbose) scp -rp -q $(DEPS_DIR)/rabbit/packaging \
 		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)
-	$(verbose) scp -p -q $(SOURCE_DIST_FILE) \
+	$(verbose) scp -p -q $(SOURCE_DIST_FILE) release-build/install-otp.sh \
 		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)
 	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
-		'$(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)" \
+		'chmod 755 $(REMOTE_RELEASE_TMPDIR)/install-otp.sh && \
+		 $(REMOTE_RELEASE_TMPDIR)/install-otp.sh '$(OTP_VERSION)' && \
+		 PATH="$$HOME/otp-$(OTP_VERSION)/bin:$$PATH" \
+		 $(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)" \
 		 SOURCE_DIST_FILE="$(notdir $(SOURCE_DIST_FILE))" \
 		 PACKAGES_DIR="PACKAGES" \
 		 VERSION="$(VERSION)"'
