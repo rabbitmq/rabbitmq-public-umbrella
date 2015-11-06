@@ -272,7 +272,7 @@ release-java-client:
 endif
 endif
 
-ifneq ($(words $(WINDOWS_HOST) $(UNIX_HOST)),2)
+ifneq ($(WINDOWS_HOST),)
 release-clients: release-dotnet-client
 
 DOTNET_CLIENT_VARS = \
