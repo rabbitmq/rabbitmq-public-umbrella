@@ -113,6 +113,17 @@ SOURCE_DIST_FILE = $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.xz
 
 REMOTE_MAKE ?= $(MAKE)
 
+RSYNC ?= rsync
+RSYNC_V_0 =
+RSYNC_V_1 = -v
+RSYNC_V_2 = -v
+RSYNC_V = $(RSYNC_V_$(V))
+RSYNC_FLAGS = -a $(RSYNC_V) \
+	      --exclude '.sw?' --exclude '.*.sw?'	\
+	      --exclude '.git*'				\
+	      --exclude '.hg*'				\
+	      --exclude '.travis.yml'
+
 .PHONY: release release-source-dist release-server release-clients
 
 release: release-server release-clients
@@ -159,6 +170,15 @@ release-server: release-unix-server-packages
 
 release-unix-server-packages: release-server-sources
 
+ifneq ($(KEYSDIR),)
+ifeq ($(UNIX_HOST),localhost)
+UNIX_SERVER_VARS += GNUPG_PATH=$(abspath $(KEYSDIR)/keyring)
+else
+UNIX_SERVER_SRCS += $(KEYSDIR)/keyring
+UNIX_SERVER_VARS += GNUPG_PATH="$$HOME/$(REMOTE_RELEASE_TMPDIR)/keyring"
+endif
+endif
+
 # We do not clean the packages output directory in
 # release-*-server-packages, because it's already done by
 # release-server-sources, which is a dependency.
@@ -170,26 +190,32 @@ release-unix-server-packages:
 		$(MAKE) -C $(DEPS_DIR)/rabbit/packaging \
 		SOURCE_DIST_FILE="$(abspath $(SOURCE_DIST_FILE))" \
 		PACKAGES_DIR="$(abspath $(SERVER_PACKAGES_DIR))" \
-		VERSION="$(VERSION)"
+		VERSION="$(VERSION)" \
+		$(UNIX_SERVER_VARS)
 else
 release-unix-server-packages: REMOTE_RELEASE_TMPDIR = rabbitmq-server-$(VERSION)
 release-unix-server-packages:
 	$(exec_verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
-		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
-	$(verbose) scp -rp -q $(DEPS_DIR)/rabbit/packaging \
-		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)
-	$(verbose) scp -p -q $(SOURCE_DIST_FILE) release-build/install-otp.sh \
+		'rm -rf $(REMOTE_RELEASE_TMPDIR); \
+		 mkdir -p $(REMOTE_RELEASE_TMPDIR)'
+	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
+		$(DEPS_DIR)/rabbit/packaging \
+		$(SOURCE_DIST_FILE) \
+		release-build/install-otp.sh \
+		$(UNIX_SERVER_SRCS) \
 		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)
 	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
 		'chmod 755 $(REMOTE_RELEASE_TMPDIR)/install-otp.sh && \
 		 $(REMOTE_RELEASE_TMPDIR)/install-otp.sh '$(OTP_VERSION)' && \
 		 PATH="$$HOME/otp-$(OTP_VERSION)/bin:$$PATH" \
-		 $(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)" \
-		 SOURCE_DIST_FILE="$(notdir $(SOURCE_DIST_FILE))" \
+		 $(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)/packaging" \
+		 SOURCE_DIST_FILE="$$HOME/$(REMOTE_RELEASE_TMPDIR)/$(notdir $(SOURCE_DIST_FILE))" \
 		 PACKAGES_DIR="PACKAGES" \
-		 VERSION="$(VERSION)"'
-	$(verbose) scp -p $(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/PACKAGES/'*' \
-		$(SERVER_PACKAGES_DIR)
+		 VERSION="$(VERSION)" \
+		 $(UNIX_SERVER_VARS)'
+	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
+		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/packaging/PACKAGES/ \
+		$(SERVER_PACKAGES_DIR)/
 	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
 		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
 endif
@@ -213,22 +239,25 @@ else
 release-macosx-server-packages: REMOTE_RELEASE_TMPDIR = rabbitmq-server-$(VERSION)
 release-macosx-server-packages:
 	$(exec_verbose) ssh $(SSH_OPTS) $(MACOSX_HOST) \
-		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
-	$(verbose) scp -rp -q $(DEPS_DIR)/rabbit/packaging \
-		$(MACOSX_HOST):$(REMOTE_RELEASE_TMPDIR)
-	$(verbose) scp -p -q $(SOURCE_DIST_FILE) release-build/install-otp.sh \
+		'rm -rf $(REMOTE_RELEASE_TMPDIR); \
+		 mkdir -p $(REMOTE_RELEASE_TMPDIR)'
+	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
+		$(DEPS_DIR)/rabbit/packaging \
+		$(SOURCE_DIST_FILE) \
+		release-build/install-otp.sh \
 		$(MACOSX_HOST):$(REMOTE_RELEASE_TMPDIR)
 	$(verbose) ssh $(SSH_OPTS) $(MACOSX_HOST) \
 		'chmod 755 $(REMOTE_RELEASE_TMPDIR)/install-otp.sh && \
 		 $(REMOTE_RELEASE_TMPDIR)/install-otp.sh '$(STANDALONE_OTP_VERSION)' && \
 		 PATH="$$HOME/otp-$(STANDALONE_OTP_VERSION)/bin:$$PATH" \
-		 $(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)" \
+		 $(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)/packaging" \
 		 package-standalone-macosx \
-		 SOURCE_DIST_FILE="$(notdir $(SOURCE_DIST_FILE))" \
+		 SOURCE_DIST_FILE="$$HOME/$(REMOTE_RELEASE_TMPDIR)/$(notdir $(SOURCE_DIST_FILE))" \
 		 PACKAGES_DIR="PACKAGES" \
 		 VERSION="$(VERSION)"'
-	$(verbose) scp -p $(MACOSX_HOST):$(REMOTE_RELEASE_TMPDIR)/PACKAGES/'*' \
-		$(SERVER_PACKAGES_DIR)
+	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
+		$(MACOSX_HOST):$(REMOTE_RELEASE_TMPDIR)/packaging/PACKAGES/ \
+		$(SERVER_PACKAGES_DIR)/
 	$(verbose) ssh $(SSH_OPTS) $(MACOSX_HOST) \
 		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
 endif
@@ -237,47 +266,46 @@ endif
 ifneq ($(UNIX_HOST),)
 release-clients: release-java-client
 
+JAVA_CLIENT_SRCS = $(DEPS_DIR)/rabbitmq_java_client \
+		   $(DEPS_DIR)/rabbitmq_codegen \
+		   $(CLIENTS_BUILD_DOC_DIR)/build-java-client.txt
+
 release-java-client: $(DEPS_DIR)/rabbitmq_java_client release-clients-build-doc
 
 ifeq ($(UNIX_HOST),localhost)
 release-java-client:
-	$(exec_verbose) cp -p $(CLIENTS_BUILD_DOC_DIR)/build-java-client.txt \
-		$(DEPS_DIR)/rabbitmq_java_client
-	$(verbose) $(MAKE) -C "$(DEPS_DIR)/rabbitmq_java_client" \
+	$(exec_verbose) $(MAKE) -C "$(DEPS_DIR)/rabbitmq_java_client" \
 		dist \
-		VERSION="$(VERSION)"
-	$(exec_verbose) rm -rf $(JAVA_CLIENT_PACKAGES_DIR)
-	$(exec_verbose) mkdir -p $(JAVA_CLIENT_PACKAGES_DIR)
-	$(verbose) cp -p \
+		VERSION="$(VERSION)" \
+		BUILD_DOC="$(abspath $(CLIENTS_BUILD_DOC_DIR)/build-java-client.txt)"
+	$(verbose) rm -rf $(JAVA_CLIENT_PACKAGES_DIR)
+	$(verbose) mkdir -p $(JAVA_CLIENT_PACKAGES_DIR)
+	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
 		$(DEPS_DIR)/rabbitmq_java_client/build/*.tar.gz \
 		$(DEPS_DIR)/rabbitmq_java_client/build/*.zip \
 		$(JAVA_CLIENT_PACKAGES_DIR)
 	$(verbose) cd $(JAVA_CLIENT_PACKAGES_DIR) && \
 		unzip -q rabbitmq-java-client-javadoc-$(VERSION).zip
-	$(verbose) rm $(DEPS_DIR)/rabbitmq_java_client/build-java-client.txt
 else
 release-java-client: REMOTE_RELEASE_TMPDIR = rabbitmq-java-client-$(VERSION)
 release-java-client:
 	$(exec_verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
 		'rm -rf $(REMOTE_RELEASE_TMPDIR); \
 		 mkdir -p $(REMOTE_RELEASE_TMPDIR)'
-	$(verbose) scp -rp -q \
-		$(DEPS_DIR)/rabbitmq_java_client \
-		$(DEPS_DIR)/rabbitmq_codegen \
+	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
+		$(JAVA_CLIENT_SRCS) \
 		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)
-	$(verbose) scp -rp -q \
-		$(CLIENTS_BUILD_DOC_DIR)/build-java-client.txt \
-		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/rabbitmq_java_client
 	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
 		'$(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)/rabbitmq_java_client" \
 		 dist \
-		 VERSION="$(VERSION)"'
-	$(exec_verbose) rm -rf $(JAVA_CLIENT_PACKAGES_DIR)
-	$(exec_verbose) mkdir -p $(JAVA_CLIENT_PACKAGES_DIR)
-	$(verbose) scp -p $(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/rabbitmq_java_client/build/'*.tar.gz' \
-		$(JAVA_CLIENT_PACKAGES_DIR)
-	$(verbose) scp -p $(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/rabbitmq_java_client/build/'*.zip' \
-		$(JAVA_CLIENT_PACKAGES_DIR)
+		 VERSION="$(VERSION)"' \
+		 BUILD_DOC="$$HOME/$(REMOTE_RELEASE_TMPDIR)/build-java-client.txt"
+	$(verbose) rm -rf $(JAVA_CLIENT_PACKAGES_DIR)
+	$(verbose) mkdir -p $(JAVA_CLIENT_PACKAGES_DIR)
+	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
+		--include '*.tar.gz' --include '*.zip' --exclude '*' \
+		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/rabbitmq_java_client/build/ \
+		$(JAVA_CLIENT_PACKAGES_DIR)/
 	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
 		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
 	$(verbose) cd $(JAVA_CLIENT_PACKAGES_DIR) && \
@@ -288,15 +316,18 @@ endif
 ifneq ($(WINDOWS_HOST),)
 release-clients: release-dotnet-client
 
-DOTNET_CLIENT_VARS = \
-	RABBIT_VSN=$(VERSION) \
-	SKIP_MSIVAL2=1
+DOTNET_CLIENT_SRCS = $(DEPS_DIR)/rabbitmq_dotnet_client \
+		     $(CLIENTS_BUILD_DOC_DIR)/build-dotnet-client.txt
+
+DOTNET_CLIENT_VARS = RABBIT_VSN=$(VERSION) \
+		     SKIP_MSIVAL2=1
 
 ifneq ($(KEYSDIR),)
 ifeq ($(WINDOWS_HOST),localhost)
 DOTNET_CLIENT_VARS += KEYFILE=$(abspath $(KEYSDIR)/dotnet/rabbit.snk)
 else
-DOTNET_CLIENT_VARS += KEYFILE=rabbit.snk
+DOTNET_CLIENT_SRCS += $(KEYSDIR)/dotnet/rabbit.snk
+DOTNET_CLIENT_VARS += KEYFILE="$$HOME/$(REMOTE_RELEASE_TMPDIR)/rabbit.snk"
 endif
 endif
 
@@ -304,46 +335,39 @@ release-dotnet-client: $(DEPS_DIR)/rabbitmq_dotnet_client release-clients-build-
 
 ifeq ($(WINDOWS_HOST),localhost)
 release-dotnet-client:
-	$(exec_verbose) cp -p $(CLIENTS_BUILD_DOC_DIR)/build-dotnet-client.txt \
-		$(DEPS_DIR)/rabbitmq_dotnet_client
-	$(verbose) cd $(DEPS_DIR)/rabbitmq_dotnet_client && \
+	$(exec_verbose) cd $(DEPS_DIR)/rabbitmq_dotnet_client && \
 		$(DOTNET_CLIENT_VARS) \
+		BUILD_DOC=$(abspath $(CLIENTS_BUILD_DOC_DIR)/build-dotnet-client.txt) \
 		./dist.sh
 	$(verbose) $(MAKE) -C "$(DEPS_DIR)/rabbitmq_dotnet_client" \
 		doc dist \
 		RABBIT_VSN="$(VERSION)"
-	$(exec_verbose) rm -rf $(DOTNET_CLIENT_PACKAGES_DIR)
-	$(exec_verbose) mkdir -p $(DOTNET_CLIENT_PACKAGES_DIR)
-	$(verbose) cp -p \
+	$(verbose) rm -rf $(DOTNET_CLIENT_PACKAGES_DIR)
+	$(verbose) mkdir -p $(DOTNET_CLIENT_PACKAGES_DIR)
+	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
 		$(DEPS_DIR)/rabbitmq_dotnet_client/releases/* \
 		$(DOTNET_CLIENT_PACKAGES_DIR)
-	$(verbose) rm $(DEPS_DIR)/rabbitmq_dotnet_client/build-dotnet-client.txt
 else
 release-dotnet-client: REMOTE_RELEASE_TMPDIR = rabbitmq-dotnet-client-$(VERSION)
 release-dotnet-client:
 	$(exec_verbose) ssh $(SSH_OPTS) $(WINDOWS_HOST) \
-		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
-	$(verbose) scp -rp -q \
-		$(DEPS_DIR)/rabbitmq_dotnet_client \
+		'rm -rf $(REMOTE_RELEASE_TMPDIR); \
+		 mkdir -p $(REMOTE_RELEASE_TMPDIR)'
+	$(verbose) rsync $(RSYNC_FLAGS) \
+		$(DOTNET_CLIENT_SRCS) \
 		$(WINDOWS_HOST):$(REMOTE_RELEASE_TMPDIR)
-	$(verbose) scp -p -q $(CLIENTS_BUILD_DOC_DIR)/build-dotnet-client.txt \
-		$(WINDOWS_HOST):$(REMOTE_RELEASE_TMPDIR)
-ifneq ($(KEYSDIR),)
-	$(verbose) scp -p -q $(KEYSDIR)/dotnet/rabbit.snk \
-		$(WINDOWS_HOST):$(REMOTE_RELEASE_TMPDIR)
-endif
 	$(verbose) ssh $(SSH_OPTS) $(WINDOWS_HOST) \
-		'cd $(REMOTE_RELEASE_TMPDIR) && \
-		 $(DOTNET_CLIENT_VARS) \
-		 ./dist.sh'
-	$(verbose) ssh $(SSH_OPTS) $(WINDOWS_HOST) \
-		'$(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)" \
+		'$(DOTNET_CLIENT_VARS) \
+		 BUILD_DOC=$$HOME/$(REMOTE_RELEASE_TMPDIR)/build-dotnet-client.txt \
+		 $(REMOTE_RELEASE_TMPDIR)/rabbitmq_dotnet_client/dist.sh && \
+		 $(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)/rabbitmq_dotnet_client" \
 		 doc dist \
 		 RABBIT_VSN="$(VERSION)"'
-	$(exec_verbose) rm -rf $(DOTNET_CLIENT_PACKAGES_DIR)
-	$(exec_verbose) mkdir -p $(DOTNET_CLIENT_PACKAGES_DIR)
-	$(verbose) scp -rp $(WINDOWS_HOST):$(REMOTE_RELEASE_TMPDIR)/release/'*' \
-		$(DOTNET_CLIENT_PACKAGES_DIR)
+	$(verbose) rm -rf $(DOTNET_CLIENT_PACKAGES_DIR)
+	$(verbose) mkdir -p $(DOTNET_CLIENT_PACKAGES_DIR)
+	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
+		$(WINDOWS_HOST):$(REMOTE_RELEASE_TMPDIR)/rabbitmq_dotnet_client/release/ \
+		$(DOTNET_CLIENT_PACKAGES_DIR)/
 	$(verbose) ssh $(SSH_OPTS) $(WINDOWS_HOST) \
 		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
 endif
