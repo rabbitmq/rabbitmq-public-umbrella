@@ -289,7 +289,9 @@ release-dotnet-client: $(DEPS_DIR)/rabbitmq_dotnet_client release-clients-build-
 
 ifeq ($(WINDOWS_HOST),localhost)
 release-dotnet-client:
-	$(exec_verbose) cd $(DEPS_DIR)/rabbitmq_dotnet_client && \
+	$(exec_verbose) cp -p $(PACKAGES_DIR)/build-dotnet-client.txt \
+		$(DEPS_DIR)/rabbitmq_dotnet_client
+	$(verbose) cd $(DEPS_DIR)/rabbitmq_dotnet_client && \
 		$(DOTNET_CLIENT_VARS) \
 		./dist.sh
 	$(verbose) $(MAKE) -C "$(DEPS_DIR)/rabbitmq_dotnet_client" \
@@ -298,6 +300,7 @@ release-dotnet-client:
 	$(verbose) cp -p \
 		$(DEPS_DIR)/rabbitmq_dotnet_client/releases/* \
 		$(PACKAGES_DIR)
+	$(verbose) rm $(DEPS_DIR)/rabbitmq_dotnet_client/build-dotnet-client.txt
 else
 release-dotnet-client: REMOTE_RELEASE_TMPDIR = rabbitmq-dotnet-client-$(VERSION)
 release-dotnet-client:
