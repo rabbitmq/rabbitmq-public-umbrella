@@ -333,10 +333,12 @@ endif
 endif
 
 release-clients-build-doc: $(DEPS_DIR)/rabbitmq_website
-	$(exec_verbose) cd $(DEPS_DIR)/rabbitmq_website; \
+	$(exec_verbose) mkdir -p $(PACKAGES_DIR)
+	$(verbose) cd $(DEPS_DIR)/rabbitmq_website; \
 		python driver.py www & \
+		sleep 1; \
 		trap "kill $$!" EXIT; \
-		for file in build-java-client.html build-dotnet-client.html; do \
+		set -e; for file in build-java-client.html build-dotnet-client.html; do \
 			elinks -dump -no-references -no-numbering \
 			 http://localhost:8191/$$file > $(realpath $(PACKAGES_DIR))/$${file%.html}.txt; \
 		done
