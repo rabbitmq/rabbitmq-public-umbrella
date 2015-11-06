@@ -230,6 +230,8 @@ release-java-client: $(DEPS_DIR)/rabbitmq_java_client release-clients-build-doc
 
 ifeq ($(UNIX_HOST),localhost)
 release-java-client:
+	$(exec_verbose) cp -p $(PACKAGES_DIR)/build-java-client.txt \
+		$(DEPS_DIR)/rabbitmq_java_client
 	$(verbose) $(MAKE) -C "$(DEPS_DIR)/rabbitmq_java_client" \
 		dist \
 		VERSION="$(VERSION)"
@@ -239,6 +241,7 @@ release-java-client:
 		$(PACKAGES_DIR)
 	$(verbose) cd $(PACKAGES_DIR) && \
 		unzip -q rabbitmq-java-client-javadoc-$(VERSION).zip
+	$(verbose) rm $(DEPS_DIR)/rabbitmq_java_client/build-java-client.txt
 else
 release-java-client: REMOTE_RELEASE_TMPDIR = rabbitmq-java-client-$(VERSION)
 release-java-client:
@@ -249,6 +252,9 @@ release-java-client:
 		$(DEPS_DIR)/rabbitmq_java_client \
 		$(DEPS_DIR)/rabbitmq_codegen \
 		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)
+	$(verbose) scp -rp -q \
+		$(PACKAGES_DIR)/build-java-client.txt \
+		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/rabbitmq_java_client
 	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
 		'$(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)/rabbitmq_java_client" \
 		 dist \
