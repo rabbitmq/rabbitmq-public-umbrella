@@ -240,6 +240,7 @@ release-java-client:
 		$(DEPS_DIR)/rabbitmq_java_client/build/*.zip \
 		$(PACKAGES_DIR)
 	$(verbose) cd $(PACKAGES_DIR) && \
+		rm -rf rabbitmq-java-client-javadoc-$(VERSION) && \
 		unzip -q rabbitmq-java-client-javadoc-$(VERSION).zip
 	$(verbose) rm $(DEPS_DIR)/rabbitmq_java_client/build-java-client.txt
 else
@@ -266,6 +267,7 @@ release-java-client:
 	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
 		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
 	$(verbose) cd $(PACKAGES_DIR) && \
+		rm -rf rabbitmq-java-client-javadoc-$(VERSION) && \
 		unzip -q rabbitmq-java-client-javadoc-$(VERSION).zip
 endif
 endif
