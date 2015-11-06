@@ -81,7 +81,12 @@ distclean-subrepos: $(READY_DEPS:%=$(DEPS_DIR)/%+distclean)
 # --------------------------------------------------------------------
 
 VERSION ?= 0.0.0
-PACKAGES_DIR ?= packages/$(VERSION)
+PACKAGES_DIR ?= packages
+SERVER_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-server/$(VERSION)
+JAVA_CLIENT_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-java-client/$(VERSION)
+DOTNET_CLIENT_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-dotnet-client/$(VERSION)
+ERLANG_CLIENT_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-erlang-client/$(VERSION)
+CLIENTS_BUILD_DOC_DIR ?= $(PACKAGES_DIR)/clients-build-doc/$(VERSION)
 
 UNIX_HOST ?=
 MACOSX_HOST ?=
@@ -104,7 +109,7 @@ CHANGELOG_ADDITIONAL_COMMENTS_FILE ?= \
 OTP_VERSION ?= R16B03
 STANDALONE_OTP_VERSION ?= 17.5
 
-SOURCE_DIST_FILE = $(PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.xz
+SOURCE_DIST_FILE = $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.xz
 
 REMOTE_MAKE ?= $(MAKE)
 
@@ -139,8 +144,10 @@ release-server-sources: $(DEPS_DIR)/rabbit
 	 $(DEPS_DIR)/rabbit/packaging/RPMS/Fedora/rabbitmq-server.spec
 
 # Build source archive.
-	$(verbose) $(MAKE) -C deps/rabbit source-dist PACKAGES_DIR=$(abspath $(PACKAGES_DIR))
-	$(verbose) rm -rf $(PACKAGES_DIR)/rabbitmq-server-$(VERSION)
+	$(verbose) rm -rf $(SERVER_PACKAGES_DIR)
+	$(verbose) mkdir -p $(SERVER_PACKAGES_DIR)
+	$(verbose) $(MAKE) -C deps/rabbit source-dist PACKAGES_DIR=$(abspath $(SERVER_PACKAGES_DIR))
+	$(verbose) rm -rf $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION)
 
 ifneq ($(UNIX_HOST),)
 # This target is called "Unix packages" because it includes packages
@@ -152,13 +159,17 @@ release-server: release-unix-server-packages
 
 release-unix-server-packages: release-server-sources
 
+# We do not clean the packages output directory in
+# release-*-server-packages, because it's already done by
+# release-server-sources, which is a dependency.
+
 ifeq ($(UNIX_HOST),localhost)
 release-unix-server-packages:
 	$(exec_verbose) release-build/install-otp.sh "$(OTP_VERSION)"
 	$(verbose) PATH="$$HOME/otp-$(OTP_VERSION)/bin:$$PATH" \
 		$(MAKE) -C $(DEPS_DIR)/rabbit/packaging \
 		SOURCE_DIST_FILE="$(abspath $(SOURCE_DIST_FILE))" \
-		PACKAGES_DIR="$(abspath $(PACKAGES_DIR))" \
+		PACKAGES_DIR="$(abspath $(SERVER_PACKAGES_DIR))" \
 		VERSION="$(VERSION)"
 else
 release-unix-server-packages: REMOTE_RELEASE_TMPDIR = rabbitmq-server-$(VERSION)
@@ -178,7 +189,7 @@ release-unix-server-packages:
 		 PACKAGES_DIR="PACKAGES" \
 		 VERSION="$(VERSION)"'
 	$(verbose) scp -p $(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/PACKAGES/'*' \
-		$(PACKAGES_DIR)
+		$(SERVER_PACKAGES_DIR)
 	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
 		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
 endif
@@ -196,7 +207,7 @@ release-macosx-server-packages:
 		$(MAKE) -C $(DEPS_DIR)/rabbit/packaging \
 		package-standalone-macosx \
 		SOURCE_DIST_FILE="$(abspath $(SOURCE_DIST_FILE))" \
-		PACKAGES_DIR="$(abspath $(PACKAGES_DIR))" \
+		PACKAGES_DIR="$(abspath $(SERVER_PACKAGES_DIR))" \
 		VERSION="$(VERSION)"
 else
 release-macosx-server-packages: REMOTE_RELEASE_TMPDIR = rabbitmq-server-$(VERSION)
@@ -217,7 +228,7 @@ release-macosx-server-packages:
 		 PACKAGES_DIR="PACKAGES" \
 		 VERSION="$(VERSION)"'
 	$(verbose) scp -p $(MACOSX_HOST):$(REMOTE_RELEASE_TMPDIR)/PACKAGES/'*' \
-		$(PACKAGES_DIR)
+		$(SERVER_PACKAGES_DIR)
 	$(verbose) ssh $(SSH_OPTS) $(MACOSX_HOST) \
 		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
 endif
@@ -230,17 +241,18 @@ release-java-client: $(DEPS_DIR)/rabbitmq_java_client release-clients-build-doc
 
 ifeq ($(UNIX_HOST),localhost)
 release-java-client:
-	$(exec_verbose) cp -p $(PACKAGES_DIR)/build-java-client.txt \
+	$(exec_verbose) cp -p $(CLIENTS_BUILD_DOC_DIR)/build-java-client.txt \
 		$(DEPS_DIR)/rabbitmq_java_client
 	$(verbose) $(MAKE) -C "$(DEPS_DIR)/rabbitmq_java_client" \
 		dist \
 		VERSION="$(VERSION)"
+	$(exec_verbose) rm -rf $(JAVA_CLIENT_PACKAGES_DIR)
+	$(exec_verbose) mkdir -p $(JAVA_CLIENT_PACKAGES_DIR)
 	$(verbose) cp -p \
 		$(DEPS_DIR)/rabbitmq_java_client/build/*.tar.gz \
 		$(DEPS_DIR)/rabbitmq_java_client/build/*.zip \
-		$(PACKAGES_DIR)
-	$(verbose) cd $(PACKAGES_DIR) && \
-		rm -rf rabbitmq-java-client-javadoc-$(VERSION) && \
+		$(JAVA_CLIENT_PACKAGES_DIR)
+	$(verbose) cd $(JAVA_CLIENT_PACKAGES_DIR) && \
 		unzip -q rabbitmq-java-client-javadoc-$(VERSION).zip
 	$(verbose) rm $(DEPS_DIR)/rabbitmq_java_client/build-java-client.txt
 else
@@ -254,20 +266,21 @@ release-java-client:
 		$(DEPS_DIR)/rabbitmq_codegen \
 		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)
 	$(verbose) scp -rp -q \
-		$(PACKAGES_DIR)/build-java-client.txt \
+		$(CLIENTS_BUILD_DOC_DIR)/build-java-client.txt \
 		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/rabbitmq_java_client
 	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
 		'$(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)/rabbitmq_java_client" \
 		 dist \
 		 VERSION="$(VERSION)"'
+	$(exec_verbose) rm -rf $(JAVA_CLIENT_PACKAGES_DIR)
+	$(exec_verbose) mkdir -p $(JAVA_CLIENT_PACKAGES_DIR)
 	$(verbose) scp -p $(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/rabbitmq_java_client/build/'*.tar.gz' \
-		$(PACKAGES_DIR)
+		$(JAVA_CLIENT_PACKAGES_DIR)
 	$(verbose) scp -p $(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/rabbitmq_java_client/build/'*.zip' \
-		$(PACKAGES_DIR)
+		$(JAVA_CLIENT_PACKAGES_DIR)
 	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
 		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
-	$(verbose) cd $(PACKAGES_DIR) && \
-		rm -rf rabbitmq-java-client-javadoc-$(VERSION) && \
+	$(verbose) cd $(JAVA_CLIENT_PACKAGES_DIR) && \
 		unzip -q rabbitmq-java-client-javadoc-$(VERSION).zip
 endif
 endif
@@ -281,7 +294,7 @@ DOTNET_CLIENT_VARS = \
 
 ifneq ($(KEYSDIR),)
 ifeq ($(WINDOWS_HOST),localhost)
-DOTNET_CLIENT_VARS += KEYFILE=$(realpath $(KEYSDIR)/dotnet/rabbit.snk)
+DOTNET_CLIENT_VARS += KEYFILE=$(abspath $(KEYSDIR)/dotnet/rabbit.snk)
 else
 DOTNET_CLIENT_VARS += KEYFILE=rabbit.snk
 endif
@@ -291,7 +304,7 @@ release-dotnet-client: $(DEPS_DIR)/rabbitmq_dotnet_client release-clients-build-
 
 ifeq ($(WINDOWS_HOST),localhost)
 release-dotnet-client:
-	$(exec_verbose) cp -p $(PACKAGES_DIR)/build-dotnet-client.txt \
+	$(exec_verbose) cp -p $(CLIENTS_BUILD_DOC_DIR)/build-dotnet-client.txt \
 		$(DEPS_DIR)/rabbitmq_dotnet_client
 	$(verbose) cd $(DEPS_DIR)/rabbitmq_dotnet_client && \
 		$(DOTNET_CLIENT_VARS) \
@@ -299,9 +312,11 @@ release-dotnet-client:
 	$(verbose) $(MAKE) -C "$(DEPS_DIR)/rabbitmq_dotnet_client" \
 		doc dist \
 		RABBIT_VSN="$(VERSION)"
+	$(exec_verbose) rm -rf $(DOTNET_CLIENT_PACKAGES_DIR)
+	$(exec_verbose) mkdir -p $(DOTNET_CLIENT_PACKAGES_DIR)
 	$(verbose) cp -p \
 		$(DEPS_DIR)/rabbitmq_dotnet_client/releases/* \
-		$(PACKAGES_DIR)
+		$(DOTNET_CLIENT_PACKAGES_DIR)
 	$(verbose) rm $(DEPS_DIR)/rabbitmq_dotnet_client/build-dotnet-client.txt
 else
 release-dotnet-client: REMOTE_RELEASE_TMPDIR = rabbitmq-dotnet-client-$(VERSION)
@@ -311,7 +326,7 @@ release-dotnet-client:
 	$(verbose) scp -rp -q \
 		$(DEPS_DIR)/rabbitmq_dotnet_client \
 		$(WINDOWS_HOST):$(REMOTE_RELEASE_TMPDIR)
-	$(verbose) scp -p -q $(PACKAGES_DIR)/build-dotnet-client.txt \
+	$(verbose) scp -p -q $(CLIENTS_BUILD_DOC_DIR)/build-dotnet-client.txt \
 		$(WINDOWS_HOST):$(REMOTE_RELEASE_TMPDIR)
 ifneq ($(KEYSDIR),)
 	$(verbose) scp -p -q $(KEYSDIR)/dotnet/rabbit.snk \
@@ -325,22 +340,26 @@ endif
 		'$(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)" \
 		 doc dist \
 		 RABBIT_VSN="$(VERSION)"'
+	$(exec_verbose) rm -rf $(DOTNET_CLIENT_PACKAGES_DIR)
+	$(exec_verbose) mkdir -p $(DOTNET_CLIENT_PACKAGES_DIR)
 	$(verbose) scp -rp $(WINDOWS_HOST):$(REMOTE_RELEASE_TMPDIR)/release/'*' \
-		$(PACKAGES_DIR)
+		$(DOTNET_CLIENT_PACKAGES_DIR)
 	$(verbose) ssh $(SSH_OPTS) $(WINDOWS_HOST) \
 		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
 endif
 endif
 
 release-clients-build-doc: $(DEPS_DIR)/rabbitmq_website
-	$(exec_verbose) mkdir -p $(PACKAGES_DIR)
+	$(exec_verbose) rm -rf $(CLIENTS_BUILD_DOC_DIR)
+	$(verbose) mkdir -p $(CLIENTS_BUILD_DOC_DIR)
 	$(verbose) cd $(DEPS_DIR)/rabbitmq_website; \
 		python driver.py www & \
 		sleep 1; \
 		trap "kill $$!" EXIT; \
 		set -e; for file in build-java-client.html build-dotnet-client.html; do \
 			elinks -dump -no-references -no-numbering \
-			 http://localhost:8191/$$file > $(realpath $(PACKAGES_DIR))/$${file%.html}.txt; \
+			 http://localhost:8191/$$file > \
+			 $(abspath $(CLIENTS_BUILD_DOC_DIR))/$${file%.html}.txt; \
 		done
 
 # --------------------------------------------------------------------
