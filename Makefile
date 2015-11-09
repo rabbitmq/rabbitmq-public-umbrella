@@ -88,6 +88,10 @@ DOTNET_CLIENT_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-dotnet-client/$(VERSION)
 ERLANG_CLIENT_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-erlang-client/$(VERSION)
 CLIENTS_BUILD_DOC_DIR ?= $(PACKAGES_DIR)/clients-build-doc/$(VERSION)
 
+SIGNING_KEY ?= 056E8E56
+SIGNING_USER_EMAIL ?= info@rabbitmq.com
+SIGNING_USER_ID ?= RabbitMQ Release Signing Key <info@rabbitmq.com>
+
 UNIX_HOST ?=
 MACOSX_HOST ?=
 WINDOWS_HOST ?=
@@ -439,6 +443,24 @@ release-clients-build-doc: $(DEPS_DIR)/rabbitmq_website
 			 http://localhost:8191/$$file > \
 			 $(abspath $(CLIENTS_BUILD_DOC_DIR))/$${file%.html}.txt; \
 		done
+
+sign-artifacts:
+	$(exec_verbopse) python util/nopassphrase.py \
+            rpm --addsign \
+		--define '_signature gpg' \
+		--define '_gpg_path $(KEYSDIR)/keyring/.gnupg' \
+		--define '_gpg_name $(SIGNING_USER_ID)' \
+		$(SERVER_PACKAGES_DIR)/*.rpm
+	$(verbose) for p in \
+		$(SERVER_PACKAGES_DIR)/* \
+		$(JAVA_CLIENT_PACKAGES_DIR)/* \
+		$(ERLANG_CLIENT_PACKAGES_DIR)/* \
+	; do \
+		[ -f $$p ] && \
+			HOME=$(KEYSDIR)/keyring gpg \
+			$(if $(SIGNING_KEY),--default-key $(SIGNING_KEY)) \
+			-abs -o $$p.asc $$p ; \
+	done
 
 # --------------------------------------------------------------------
 # Helpers to ease work on the entire components collection.
