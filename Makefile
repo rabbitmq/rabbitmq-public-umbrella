@@ -298,8 +298,8 @@ release-java-client:
 	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
 		'$(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)/rabbitmq_java_client" \
 		 dist \
-		 VERSION="$(VERSION)"' \
-		 BUILD_DOC="$$HOME/$(REMOTE_RELEASE_TMPDIR)/build-java-client.txt"
+		 VERSION="$(VERSION)" \
+		 BUILD_DOC="$$HOME/$(REMOTE_RELEASE_TMPDIR)/build-java-client.txt"'
 	$(verbose) rm -rf $(JAVA_CLIENT_PACKAGES_DIR)
 	$(verbose) mkdir -p $(JAVA_CLIENT_PACKAGES_DIR)
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
