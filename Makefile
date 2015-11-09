@@ -291,7 +291,8 @@ release-macosx-server-packages:
 		 package-standalone-macosx \
 		 SOURCE_DIST_FILE="$$HOME/$(REMOTE_RELEASE_TMPDIR)/$(notdir $(SOURCE_DIST_FILE))" \
 		 PACKAGES_DIR="PACKAGES" \
-		 VERSION="$(VERSION)"'
+		 VERSION="$(VERSION)" \
+		 NO_CLEAN=yes'
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
 		$(MACOSX_HOST):$(REMOTE_RELEASE_TMPDIR)/packaging/PACKAGES/ \
 		$(SERVER_PACKAGES_DIR)/
