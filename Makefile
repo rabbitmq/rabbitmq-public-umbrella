@@ -88,6 +88,7 @@ JAVA_CLIENT_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-java-client/$(VERSION)
 DOTNET_CLIENT_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-dotnet-client/$(VERSION)
 ERLANG_CLIENT_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-erlang-client/$(VERSION)
 CLIENTS_BUILD_DOC_DIR ?= $(PACKAGES_DIR)/clients-build-doc/$(VERSION)
+DEBIAN_REPO_DIR ?= $(PACKAGES_DIR)/debian
 
 SIGNING_KEY ?= 056E8E56
 SIGNING_USER_EMAIL ?= info@rabbitmq.com
@@ -171,7 +172,7 @@ ifneq ($(UNIX_HOST),)
 # it also includes the Windows installer! So by Unix packages, we mean
 # "it's built on Unix".
 
-release-server: release-unix-server-packages
+release-server: release-unix-server-packages release-debian-repository
 
 release-unix-server-packages: release-server-sources
 
@@ -246,6 +247,15 @@ release-unix-server-packages:
 	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
 		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
 endif
+
+release-debian-repository: release-unix-server-packages
+	$(exec_verbose) rm -rf $(DEBIAN_REPO_DIR)
+	$(verbose) mkdir -p $(DEBIAN_REPO_DIR)
+	$(verbose) $(MAKE) -C $(DEPS_DIR)/rabbit/packaging/debs/apt-repository \
+		PACKAGES_DIR=$(abspath $(SERVER_PACKAGES_DIR)) \
+		REPO_DIR=$(abspath $(DEBIAN_REPO_DIR)) \
+		GNUPG_PATH=$(abspath $(KEYSDIR)/keyring) \
+		SIGNING_USER_EMAIL=$(SIGNING_USER_EMAIL)
 endif
 
 ifneq ($(MACOSX_HOST),)
