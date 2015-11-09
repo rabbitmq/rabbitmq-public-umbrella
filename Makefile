@@ -373,6 +373,60 @@ release-dotnet-client:
 endif
 endif
 
+release-clients: release-erlang-client
+
+release-erlang-client: release-erlang-client-sources
+	@:
+
+release-erlang-client-sources:
+	$(exec_verbose) rm -rf $(ERLANG_CLIENT_PACKAGES_DIR)
+	$(verbose) mkdir -p $(ERLANG_CLIENT_PACKAGES_DIR)
+	$(verbose) $(MAKE) -C "$(DEPS_DIR)/amqp_client" source-dist \
+		BUILD_DOC="$(abspath $(CLIENTS_BUILD_DOC_DIR)/build-erlang-client.txt)" \
+		PACKAGES_DIR=$(abspath $(ERLANG_CLIENT_PACKAGES_DIR))
+	$(verbose) rm -rf $(ERLANG_CLIENT_PACKAGES_DIR)/amqp_client-$(VERSION)-src
+
+ifneq ($(UNIX_HOST),)
+release-erlang-client: release-erlang-client-package
+
+ifeq ($(UNIX_HOST),localhost)
+release-erlang-client-package: release-erlang-client-sources
+	$(exec_verbose) $(MAKE) -C "$(DEPS_DIR)/amqp_client" \
+		dist docs \
+		VERSION="$(VERSION)" \
+		PACKAGES_DIR=$(abspath $(ERLANG_CLIENT_PACKAGES_DIR))
+	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
+		$(DEPS_DIR)/amqp_client/plugins/ \
+		$(ERLANG_CLIENT_PACKAGES_DIR)/
+	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
+		$(DEPS_DIR)/amqp_client/doc \
+		$(ERLANG_CLIENT_PACKAGES_DIR)
+else
+release-erlang-client-package: REMOTE_RELEASE_TMPDIR = rabbitmq-erlang-client-$(VERSION)
+release-erlang-client-package: release-erlang-client-sources
+	$(exec_verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
+		'rm -rf $(REMOTE_RELEASE_TMPDIR); \
+		 mkdir -p $(REMOTE_RELEASE_TMPDIR)'
+	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
+		$(ERLANG_CLIENT_PACKAGES_DIR)/amqp_client-$(VERSION)-src.tar.xz \
+		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)
+	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
+		'cd $(REMOTE_RELEASE_TMPDIR) && \
+		 xzcat amqp_client-$(VERSION)-src.tar.xz | tar -xf - && \
+		 $(REMOTE_MAKE) -C "amqp_client-$(VERSION)-src" dist docs \
+		  VERSION=$(VERSION) \
+		  V=$(V)'
+	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
+		$(DEPS_DIR)/amqp_client/plugins/ \
+		$(ERLANG_CLIENT_PACKAGES_DIR)/
+	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
+		$(DEPS_DIR)/amqp_client/doc \
+		$(ERLANG_CLIENT_PACKAGES_DIR)
+	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
+		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
+endif
+endif
+
 release-clients-build-doc: $(DEPS_DIR)/rabbitmq_website
 	$(exec_verbose) rm -rf $(CLIENTS_BUILD_DOC_DIR)
 	$(verbose) mkdir -p $(CLIENTS_BUILD_DOC_DIR)
@@ -380,7 +434,7 @@ release-clients-build-doc: $(DEPS_DIR)/rabbitmq_website
 		python driver.py www & \
 		sleep 1; \
 		trap "kill $$!" EXIT; \
-		set -e; for file in build-java-client.html build-dotnet-client.html; do \
+		set -e; for file in build-java-client.html build-dotnet-client.html build-erlang-client.html; do \
 			elinks -dump -no-references -no-numbering \
 			 http://localhost:8191/$$file > \
 			 $(abspath $(CLIENTS_BUILD_DOC_DIR))/$${file%.html}.txt; \
