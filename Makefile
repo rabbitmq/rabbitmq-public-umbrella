@@ -83,6 +83,7 @@ distclean-subrepos: $(READY_DEPS:%=$(DEPS_DIR)/%+distclean)
 VERSION ?= 0.0.0
 PACKAGES_DIR ?= packages
 SERVER_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-server/$(VERSION)
+PLUGIN_PACKAGES_DIR ?= $(PACKAGES_DIR)/plugins/$(VERSION)
 JAVA_CLIENT_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-java-client/$(VERSION)
 DOTNET_CLIENT_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-dotnet-client/$(VERSION)
 ERLANG_CLIENT_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-erlang-client/$(VERSION)
@@ -195,7 +196,18 @@ release-unix-server-packages:
 		SOURCE_DIST_FILE="$(abspath $(SOURCE_DIST_FILE))" \
 		PACKAGES_DIR="$(abspath $(SERVER_PACKAGES_DIR))" \
 		VERSION="$(VERSION)" \
-		$(UNIX_SERVER_VARS)
+		$(UNIX_SERVER_VARS) \
+		NO_CLEAN=yes
+	$(verbose) rm -rf $(PLUGIN_PACKAGES_DIR)
+	$(verbose) mkdir -p $(PLUGIN_PACKAGES_DIR)
+	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
+		$(DEPS_DIR)/rabbit/packaging/generic-unix/rabbitmq-server-$(VERSION)/plugins/ \
+		$(PLUGIN_PACKAGES_DIR)/
+	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
+		--include '*.xml' \
+		--exclude '*' \
+		$(DEPS_DIR)/rabbit/packaging/generic-unix/rabbitmq-server-$(VERSION)/docs/ \
+		$(SERVER_PACKAGES_DIR)/man/
 else
 release-unix-server-packages: REMOTE_RELEASE_TMPDIR = rabbitmq-server-$(VERSION)
 release-unix-server-packages:
@@ -216,10 +228,21 @@ release-unix-server-packages:
 		 SOURCE_DIST_FILE="$$HOME/$(REMOTE_RELEASE_TMPDIR)/$(notdir $(SOURCE_DIST_FILE))" \
 		 PACKAGES_DIR="PACKAGES" \
 		 VERSION="$(VERSION)" \
-		 $(UNIX_SERVER_VARS)'
+		 $(UNIX_SERVER_VARS) \
+		 NO_CLEAN=yes'
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
 		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/packaging/PACKAGES/ \
 		$(SERVER_PACKAGES_DIR)/
+	$(verbose) rm -rf $(PLUGIN_PACKAGES_DIR)
+	$(verbose) mkdir -p $(PLUGIN_PACKAGES_DIR)
+	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
+		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/packaging/generic-unix/rabbitmq-server-$(VERSION)/plugins/ \
+		$(PLUGIN_PACKAGES_DIR)/
+	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
+		--include '*.xml' \
+		--exclude '*' \
+		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/packaging/generic-unix/rabbitmq-server-$(VERSION)/docs/ \
+		$(SERVER_PACKAGES_DIR)/man/
 	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
 		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
 endif
