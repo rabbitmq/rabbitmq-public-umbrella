@@ -518,9 +518,6 @@ define make_target_start
 	$(verbose)
 endef
 
-define deploy
-endef
-
 .PHONY: fixup-permissions-for-deploy deploy
 
 fixup-permissions-for-deploy:
