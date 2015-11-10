@@ -83,7 +83,6 @@ distclean-subrepos: $(READY_DEPS:%=$(DEPS_DIR)/%+distclean)
 VERSION ?= 0.0.0
 PACKAGES_DIR ?= packages
 SERVER_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-server/v$(VERSION)
-PLUGIN_PACKAGES_DIR ?= $(PACKAGES_DIR)/plugins/v$(VERSION)
 JAVA_CLIENT_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-java-client/v$(VERSION)
 DOTNET_CLIENT_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-dotnet-client/v$(VERSION)
 ERLANG_CLIENT_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-erlang-client/v$(VERSION)
@@ -199,11 +198,6 @@ release-unix-server-packages:
 		VERSION="$(VERSION)" \
 		$(UNIX_SERVER_VARS) \
 		NO_CLEAN=yes
-	$(verbose) rm -rf $(PLUGIN_PACKAGES_DIR)
-	$(verbose) mkdir -p $(PLUGIN_PACKAGES_DIR)
-	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
-		$(DEPS_DIR)/rabbit/packaging/generic-unix/rabbitmq-server-$(VERSION)/plugins/ \
-		$(PLUGIN_PACKAGES_DIR)/
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
 		--include '*.xml' \
 		--exclude '*' \
@@ -234,11 +228,6 @@ release-unix-server-packages:
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
 		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/packaging/PACKAGES/ \
 		$(SERVER_PACKAGES_DIR)/
-	$(verbose) rm -rf $(PLUGIN_PACKAGES_DIR)
-	$(verbose) mkdir -p $(PLUGIN_PACKAGES_DIR)
-	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
-		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/packaging/generic-unix/rabbitmq-server-$(VERSION)/plugins/ \
-		$(PLUGIN_PACKAGES_DIR)/
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
 		--include '*.xml' \
 		--exclude '*' \
