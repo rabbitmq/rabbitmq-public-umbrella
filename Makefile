@@ -503,7 +503,6 @@ verify-signatures:
 
 DEPLOY_HOST ?= localhost
 DEPLOY_PATH ?= /tmp/rabbitmq/extras/releases
-DEPLOY_DEST ?= $(DEPLOY_HOST):$(DEPLOY_PATH)
 
 DEPLOYMENT_SUBDIRS = $(SERVER_PACKAGES_DIR) \
 		     $(JAVA_CLIENT_PACKAGES_DIR) \
@@ -525,12 +524,31 @@ fixup-permissions-for-deploy:
 	$(verbose) chmod g+s `find $(PACKAGES_DIR) -type d`
 
 deploy: verify-signatures fixup-permissions-for-deploy
+
+ifeq ($(DEPLOY_HOST),localhost)
+deploy:
+	$(exec_verbose) mkdir -p $(patsubst $(PACKAGES_DIR)/%,$(DEPLOY_PATH)/%,$(DEPLOYMENT_SUBDIRS))
+	$(foreach DIR,$(DEPLOYMENT_SUBDIRS),\
+		$(make_target_start) $(RSYNC) $(DEPLOY_RSYNC_FLAGS) \
+			$(DIR)/ \
+			$(DEPLOY_PATH)/$(patsubst $(PACKAGES_DIR)/%,%,$(DIR))/ \
+	)
+	$(verbose) cd $(DEPLOY_PATH)/rabbitmq-java-client; \
+		 rm -f current-javadoc; \
+		 ln -s \
+		  `cd $(abspath $(JAVA_CLIENT_PACKAGES_DIR)/..) && \
+		   ls -td */rabbitmq-java-client-javadoc-*/ | head -1` current-javadoc
+	$(verbose) cd $(DEPLOY_PATH)/rabbitmq-server; \
+		 rm -f current; \
+		 ln -s v$(VERSION) current
+else
+deploy:
 	$(exec_verbose) ssh $(SSH_OPTS) $(DEPLOY_HOST) \
 		'mkdir -p $(patsubst $(PACKAGES_DIR)/%,$(DEPLOY_PATH)/%,$(DEPLOYMENT_SUBDIRS))'
 	$(foreach DIR,$(DEPLOYMENT_SUBDIRS),\
 		$(make_target_start) $(RSYNC) $(DEPLOY_RSYNC_FLAGS) \
 			$(DIR)/ \
-			$(DEPLOY_DEST)/$(patsubst $(PACKAGES_DIR)/%,%,$(DIR))/ \
+			$(DEPLOY_HOST):$(DEPLOY_PATH)/$(patsubst $(PACKAGES_DIR)/%,%,$(DIR))/ \
 	)
 	$(verbose) ssh $(SSH_OPTS) $(DEPLOY_HOST) \
 		"(cd $(DEPLOY_PATH)/rabbitmq-java-client; \
@@ -542,6 +560,7 @@ deploy: verify-signatures fixup-permissions-for-deploy
 		'(cd $(DEPLOY_PATH)/rabbitmq-server; \
 		 rm -f current; \
 		 ln -s v$(VERSION) current)'
+endif
 
 # --------------------------------------------------------------------
 # Helpers to ease work on the entire components collection.
