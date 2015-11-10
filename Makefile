@@ -490,6 +490,62 @@ sign-artifacts:
 		 -abs -o $$p.asc $$p; \
 	done
 
+verify-signatures:
+	$(exec_verbose) for file in `find $(PACKAGES_DIR) -type f -name "*.asc"`; do \
+		echo "Checking $$file"; \
+		if ! HOME='$(abspath $(KEYSDIR)/keyring)' gpg --verify $$file $${file%.asc}; then \
+			bad_signature=1; \
+		fi; \
+	done; \
+	[ -z "$$bad_signature" ]
+
+# Deployment.
+
+DEPLOY_HOST ?= localhost
+DEPLOY_PATH ?= /tmp/rabbitmq/extras/releases
+DEPLOY_DEST ?= $(DEPLOY_HOST):$(DEPLOY_PATH)
+
+DEPLOYMENT_SUBDIRS = $(SERVER_PACKAGES_DIR) \
+		     $(JAVA_CLIENT_PACKAGES_DIR) \
+		     $(DOTNET_CLIENT_PACKAGES_DIR) \
+		     $(ERLANG_CLIENT_PACKAGES_DIR) \
+		     $(DEBIAN_REPO_DIR)
+
+DEPLOY_RSYNC_FLAGS = -rpl --delete-after $(RSYNC_V)
+
+define make_target_start
+
+	$(verbose)
+endef
+
+define deploy
+endef
+
+.PHONY: fixup-permissions-for-deploy deploy
+
+fixup-permissions-for-deploy:
+	$(exec_verbose) chmod -R g+w $(PACKAGES_DIR)
+	$(verbose) chmod g+s `find $(PACKAGES_DIR) -type d`
+
+deploy: verify-signatures fixup-permissions-for-deploy
+	$(exec_verbose) ssh $(SSH_OPTS) $(DEPLOY_HOST) \
+		'mkdir -p $(patsubst $(PACKAGES_DIR)/%,$(DEPLOY_PATH)/%,$(DEPLOYMENT_SUBDIRS))'
+	$(foreach DIR,$(DEPLOYMENT_SUBDIRS),\
+		$(make_target_start) $(RSYNC) $(DEPLOY_RSYNC_FLAGS) \
+			$(DIR)/ \
+			$(DEPLOY_DEST)/$(patsubst $(PACKAGES_DIR)/%,%,$(DIR))/ \
+	)
+	$(verbose) ssh $(SSH_OPTS) $(DEPLOY_HOST) \
+		"(cd $(DEPLOY_PATH)/rabbitmq-java-client; \
+		 rm -f current-javadoc; \
+		 ln -s \
+		  `cd $(abspath $(JAVA_CLIENT_PACKAGES_DIR)/..) && \
+		   ls -td */rabbitmq-java-client-javadoc-*/ | head -1` current-javadoc)"
+	$(verbose) ssh $(SSH_OPTS) $(DEPLOY_HOST) \
+		'(cd $(DEPLOY_PATH)/rabbitmq-server; \
+		 rm -f current; \
+		 ln -s v$(VERSION) current)'
+
 # --------------------------------------------------------------------
 # Helpers to ease work on the entire components collection.
 # --------------------------------------------------------------------
