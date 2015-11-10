@@ -478,22 +478,27 @@ release-clients-build-doc: $(DEPS_DIR)/rabbitmq_website
 			 $(abspath $(CLIENTS_BUILD_DOC_DIR))/$${file%.html}.txt; \
 		done
 
+# Signing artifacts.
+
+.PHONY: sign-artifacts verify-signatures
+
 sign-artifacts:
 	$(exec_verbopse) python util/nopassphrase.py \
-            rpm --addsign \
-		--define '_signature gpg' \
-		--define '_gpg_path $(KEYSDIR)/keyring/.gnupg' \
-		--define '_gpg_name $(SIGNING_USER_ID)' \
-		$(SERVER_PACKAGES_DIR)/*.rpm
+		rpm --addsign \
+		 --define '_signature gpg' \
+		 --define '_gpg_path $(KEYSDIR)/keyring/.gnupg' \
+		 --define '_gpg_name $(SIGNING_USER_ID)' \
+		 $(SERVER_PACKAGES_DIR)/*.rpm
 	$(verbose) for p in \
 		$(SERVER_PACKAGES_DIR)/* \
 		$(JAVA_CLIENT_PACKAGES_DIR)/* \
+		$(DOTNET_CLIENT_PACKAGES_DIR)/* \
 		$(ERLANG_CLIENT_PACKAGES_DIR)/* \
 	; do \
 		[ -f $$p ] && \
-			HOME=$(KEYSDIR)/keyring gpg \
-			$(if $(SIGNING_KEY),--default-key $(SIGNING_KEY)) \
-			-abs -o $$p.asc $$p ; \
+		HOME='$(abspath $(KEYSDIR)/keyring)' gpg \
+		 $(if $(SIGNING_KEY),--default-key $(SIGNING_KEY)) \
+		 -abs -o $$p.asc $$p; \
 	done
 
 # --------------------------------------------------------------------
