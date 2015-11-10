@@ -182,6 +182,10 @@ else
 UNIX_SERVER_SRCS += $(KEYSDIR)/keyring
 UNIX_SERVER_VARS += GNUPG_PATH="$$HOME/$(REMOTE_RELEASE_TMPDIR)/keyring"
 endif
+
+UNIX_SERVER_VARS += SIGNING_KEY="$(SIGNING_KEY)" \
+		    SIGNING_USER_ID="$(SIGNING_USER_ID)" \
+		    SIGNING_USER_EMAIL="$(SIGNING_USER_EMAIL)"
 endif
 
 # We do not clean the packages output directory in
