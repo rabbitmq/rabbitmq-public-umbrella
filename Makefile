@@ -448,10 +448,10 @@ release-erlang-client-package: release-erlang-client-sources
 		  VERSION=$(VERSION) \
 		  V=$(V)'
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
-		$(DEPS_DIR)/amqp_client/plugins/ \
+		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/amqp_client-$(VERSION)-src/plugins/ \
 		$(ERLANG_CLIENT_PACKAGES_DIR)/
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
-		$(DEPS_DIR)/amqp_client/doc \
+		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/amqp_client-$(VERSION)-src/doc \
 		$(ERLANG_CLIENT_PACKAGES_DIR)
 	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
 		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
