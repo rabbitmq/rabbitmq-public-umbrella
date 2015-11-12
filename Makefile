@@ -58,6 +58,16 @@ push: $(abspath .)+push $(READY_DEPS:%=$(DEPS_DIR)/%+push)
 %+push:
 	$(exec_verbose) cd $*; \
 	git push && \
+	git push --tags && \
+	echo
+
+tag: $(abspath .)+tag $(READY_DEPS:%=$(DEPS_DIR)/%+tag)
+	@:
+
+%+tag:
+	$(exec_verbose) test "$(TAG)" || (printf "\nERROR: TAG must be set\n\n" 1>&2; false)
+	$(verbose) cd $*; \
+	git tag $(TAG) && \
 	echo
 
 clean:: clean-subrepos
