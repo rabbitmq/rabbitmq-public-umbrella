@@ -3,46 +3,47 @@ Quick start
 
 From the rabbitmq-public-umbrella directory:
 
-- To get all packages provided by the RabbitMQ team from GitHub:
+To get all packages provided by the RabbitMQ team from GitHub:
 
     make co
 
-- To build all the releasable packages from the RabbitMQ team:
+To build all the releasable packages from the RabbitMQ team:
 
     make release
 
-- To run all tests in all the packages from the RabbitMQ team:
+To run all tests in all the packages from the RabbitMQ team:
 
-    make test
+    make tests
 
-- To remove all generated files:
+To remove all generated files:
 
     make clean
 
 
-From an individual package directory:
+Some targets available in individual package directories (under `deps` in case
+of the umbrella):
 
-- To build a package, along with all its dependencies:
+To build a package, along with all its dependencies:
 
     make
 
-  The .ez files for the package and its dependencies will be placed in
+The .ez files for the package and its dependencies will be placed in
   the dist/ directory.
 
-- To run a test broker with the .ez files from the package and its
-  dependencies loaded:
+To run a test broker with the .ez files from the package and its
+dependencies loaded:
 
     make run-in-broker
 
-- To run a package's tests:
+To run a package's tests:
 
-    make test
+    make tests
 
-- To remove all generated files in a package:
+To remove all generated files in a package:
 
     make clean-local
 
-- To remove all generated files in a package and its dependencies:
+To remove all generated files in a package and its dependencies:
 
     make clean
 
@@ -63,48 +64,7 @@ run.  One of the main goals of rabbitmq-public-umbrella is to handle
 such dependencies in a convenient manner.
 
 Packages generally follow the usual conventions for Erlang application
-source code.  But rabbitmq-public-umbrella contains a suite of
-makefiles (for GNU make) that make it easy to express how a package
-should be built and tested. The Makefile infrastructure handles
-dependencies between packages properly: If you make a change in a
-package, dependent packages will be rebuilt when necessary.  And
-because it avoids recursive Makefiles, builds are fast when there is
-little work to be done, and can be parallelized with the -j option to
-make.
-
-
-Building packages
-=================
-
-In order to build a package, you place its source directory under
-rabbitmq-public-umbrella.  Any other packages that it depends on
-should also go there.
-
-Packages that are maintained by the RabbitMQ team live in their own
-Git repositories on https://github.com/rabbitmq/. You can obtain them
-invidually by cloning the relevant repositories. Or, to make it easy
-to obtain all the packages and their depencies, the top-level
-rabbitmq-public-umbrella Makefile has a target to obtain them all:
-
-    make co
-
-Once you have the source for a package in the appropriate directory,
-you build it by going into the package directory and doing
-
-    make
-
-This will build the package and any packages it depends on (and any
-packages that those dependencies depnd on, etc.), and place all the
-resulting .ez files in the dist/ subdirectory.  Assuming that the
-package contains a RabbitMQ plugin, that complete set of .ez files can
-be copied into the plugins directory for the RabbitMQ broker.  The
-broker will then load the plugin when it starts up.
-
-To make it easy to build all the packages that are marked as
-releasable, the top-level rabbitmq-public-umbrella Makefile has a
-target to build them all:
-
-    make release
+source code.
 
 
 Global variables that can be set when building
