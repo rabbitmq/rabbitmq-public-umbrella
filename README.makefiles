@@ -6,6 +6,11 @@ From the rabbitmq-public-umbrella directory:
 To get all packages provided by the RabbitMQ team from GitHub:
 
     make co
+    
+To run RabbitMQ server from source:
+
+    cd deps/rabbit
+    make run-broker
 
 To build all the releasable packages from the RabbitMQ team:
 
