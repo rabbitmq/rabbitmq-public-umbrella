@@ -2,12 +2,16 @@ Rabbit Public Umbrella
 ======================
 
 To build a package, and all its dependencies, cd into the package
-directory and run `make`.
+directory under `deps` and run `make`.
 
-To build all releasable packages, run `make release` from this directory.
+To start RabbitMQ from a plugin directory, use `make run-broker`.
+In case of `deps/rabbit` (the server), that would run RabbitMQ without
+any plugins. To include a plugin or more, use `PLUGINS:
+
+    make run-broker PLUGINS='rabbitmq_management rabbitmq_consistent_hash_exchange'
 
 
-Dealing with sub repos
+Update sub repos
 ----------------------
 
-You can do stuff like `make up` which will update every sub repositories.
+`make up` which will update every sub repository under `deps`.
