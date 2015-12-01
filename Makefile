@@ -4,7 +4,8 @@ DEPS = $(RABBITMQ_COMPONENTS)
 
 .DEFAULT_GOAL = up
 
-DEP_PLUGINS = rabbit_common/mk/rabbitmq-run.mk
+DEP_PLUGINS = rabbit_common/mk/rabbitmq-run.mk \
+	      rabbit_common/mk/rabbitmq-tools.mk
 
 # FIXME: Use erlang.mk patched for RabbitMQ, while waiting for PRs to be
 # reviewed and merged.
@@ -14,9 +15,6 @@ ERLANG_MK_COMMIT = rabbitmq-tmp
 
 include rabbitmq-components.mk
 include erlang.mk
-
-READY_DEPS = $(foreach DEP,$(DEPS), \
-	     $(if $(wildcard $(DEPS_DIR)/$(DEP)),$(DEP),))
 
 .PHONY: co up status clean-subrepos distclean-subrepos
 
@@ -574,69 +572,3 @@ deploy:
 		 rm -f current; \
 		 ln -s v$(VERSION) current)'
 endif
-
-# --------------------------------------------------------------------
-# Helpers to ease work on the entire components collection.
-# --------------------------------------------------------------------
-
-.PHONY: sync-gituser sync-gitremote update-erlang-mk \
-	update-rabbitmq-components-mk
-
-sync-gituser:
-	$(exec_verbose) global_user_name="$$(git config --global user.name)"; \
-	global_user_email="$$(git config --global user.email)"; \
-	user_name="$$(git config user.name)"; \
-	user_email="$$(git config user.email)"; \
-	for repo in $(ALL_DEPS_DIRS); do \
-		(cd $$repo && \
-		git config --unset user.name; \
-		git config --unset user.email; \
-		if test "$$global_user_name" != "$$user_name"; then \
-			git config user.name "$$user_name"; \
-		fi && \
-		if test "$$global_user_email" != "$$user_email"; then \
-			git config user.email "$$user_email"; \
-		fi \
-		);\
-	done
-
-sync-gitremote:
-	$(exec_verbose) fetch_url="$$(git remote -v 2>/dev/null | \
-	 awk '/^origin\t.+ \(fetch\)$$/ { print $$2; }' | \
-	 sed 's,/rabbitmq-public-umbrella.*,,')"; \
-	push_url="$$(git remote -v 2>/dev/null | \
-	 awk '/^origin\t.+ \(push\)$$/ { print $$2; }' | \
-	 sed 's,/rabbitmq-public-umbrella.*,,')"; \
-	for repo in $(ALL_DEPS_DIRS); do \
-		(cd $$repo && \
-		git remote set-url origin \
-		 "$$(git remote -v 2>/dev/null | \
-		  awk '/^origin\t.+ \(fetch\)$$/ { print $$2; }' | \
-		  sed "s,$(RABBITMQ_REPO_BASE),$${fetch_url},")" && \
-		git remote set-url --push origin \
-		 "$$(git remote -v 2>/dev/null | \
-		  awk '/^origin\t.+ \(push\)$$/ { print $$2; }' | \
-		  sed "s,$(RABBITMQ_REPO_BASE),$${push_url},")"; \
-		); \
-	done
-
-update-erlang-mk: erlang-mk
-	$(verbose) if test "$(DO_COMMIT)" = 'yes'; then \
-		git diff --quiet -- erlang.mk \
-		|| git commit -m 'Update erlang.mk' -- erlang.mk; \
-	fi
-	$(verbose) for repo in $(ALL_DEPS_DIRS); do \
-		! test -f $$repo/erlang.mk \
-		|| $(MAKE) -C $$repo erlang-mk; \
-		if test "$(DO_COMMIT)" = 'yes'; then \
-			(cd $$repo; \
-			 git diff --quiet -- erlang.mk \
-			 || git commit -m 'Update erlang.mk' -- erlang.mk); \
-		fi; \
-	done
-
-update-rabbitmq-components-mk: rabbitmq-components-mk
-	$(verbose) for repo in $(ALL_DEPS_DIRS); do \
-		! test -f $$repo/rabbitmq-components.mk \
-		|| $(MAKE) -C $$repo rabbitmq-components-mk; \
-	done
