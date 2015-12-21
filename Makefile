@@ -210,7 +210,7 @@ release-unix-server-packages:
 		$(UNIX_SERVER_VARS) \
 		NO_CLEAN=yes
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
-		--include '*.xml' \
+		--include '*.man.xml' \
 		--exclude '*' \
 		$(DEPS_DIR)/rabbit/packaging/generic-unix/rabbitmq-server-$(VERSION)/docs/ \
 		$(SERVER_PACKAGES_DIR)/man/
@@ -240,7 +240,7 @@ release-unix-server-packages:
 		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/packaging/PACKAGES/ \
 		$(SERVER_PACKAGES_DIR)/
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
-		--include '*.xml' \
+		--include '*.man.xml' \
 		--exclude '*' \
 		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/packaging/generic-unix/rabbitmq-server-$(VERSION)/docs/ \
 		$(SERVER_PACKAGES_DIR)/man/
