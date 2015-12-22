@@ -1,8 +1,13 @@
 #!/bin/sh
-for gitdir in $(find . -maxdepth 2 -type d -name .git | env LC_ALL=C sort)
-do
-	repo=$(dirname $gitdir)
-	echo "===== $repo"
-	(cd $repo; "$@")
-	echo
-done
+
+echo "===== rabbitmq-public-umbrella"
+"$@"
+echo
+
+if [ -d deps ]; then
+	for repo in deps/*; do
+		echo "===== $(basename "$repo")"
+		(cd $repo; "$@")
+		echo
+	done
+fi

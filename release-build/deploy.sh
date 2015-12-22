@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # The deployment counterpart to build.sh
 
@@ -31,13 +31,6 @@ DEPLOY_USERHOST=
 # PATH on DEPLOY_USERHOST to deploy to.
 DEPLOY_PATH=/home/rabbitmq/extras/releases
 
-# Which rabbitmq-public-umbrella deploy target (of deploy, deploy-live) to invoke
-DEPLOY_TARGET=deploy
-
-# The directory on the local host to use for the build.  If not set,
-# we will use a uniquely-named directory in /var/tmp.
-TOPDIR=
-
 # Where auxiliary scripts live
 SCRIPTDIR=$(dirname $0)
 
@@ -48,29 +41,23 @@ while [[ $# -gt 0 ]] ; do
 done
 
 mandatory_vars="VERSION"
-optional_vars="SSH_OPTS KEYSDIR REAL_WEB_URL MAC_USERHOST DEPLOY_USERHOST TOPDIR DEPLOY_TARGET SCRIPTDIR"
+optional_vars="SSH_OPTS KEYSDIR DEPLOY_USERHOST SCRIPTDIR"
 
 . $SCRIPTDIR/utils.sh
 absolutify_scriptdir
 
-[[ -n "$TOPDIR" ]] || TOPDIR="$SCRIPTDIR/../.."
+[[ -n "$UMBRELLADIR" ]] || UMBRELLADIR=$SCRIPTDIR/..
 
 check_vars
 
 set -e -x
 
-vars="VERSION=$VERSION REAL_WEB_URL=$REAL_WEB_URL MAC_USERHOST=\"$MAC_USERHOST\" SSH_OPTS=\"$SSH_OPTS\" DEPLOY_HOST=\"$DEPLOY_USERHOST\" DEPLOY_PATH=\"$DEPLOY_PATH\" GNUPG_PATH=$KEYSDIR/keyring"
-
-# The maven deployment bits need access to credentials under KEYSDIR
-if [ -n "$KEYSDIR" ] ; then
-    vars="$vars GNUPG_PATH=$KEYSDIR/keyring $SIGNING_PARAMS"
-fi
-
-# Build macports
-cd $TOPDIR/rabbitmq-public-umbrella
-#eval "make -f release.mk rabbitmq-server-macports-packaging $vars"
-
 # Finally, deploy
-if [[ -n "$DEPLOY_USERHOST" ]] ; then
-    eval "make -f release.mk $DEPLOY_TARGET $vars"
+if [ "$DEPLOY_USERHOST" ]; then
+	${MAKE:-make} -C "$UMBRELLADIR" deploy \
+		${VERSION:+VERSION="$VERSION"} \
+		${DEPLOY_USERHOST:+DEPLOY_HOST="$DEPLOY_USERHOST"} \
+		${DEPLOY_PATH:+DEPLOY_PATH="$DEPLOY_PATH"} \
+		${SSH_OPTS:+SSH_OPTS="$SSH_OPTS"} \
+		${KEYSDIR:+KEYSDIR="$KEYSDIR"}
 fi
