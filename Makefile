@@ -321,6 +321,7 @@ release-java-client:
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
 		$(DEPS_DIR)/rabbitmq_java_client/build/*.tar.gz \
 		$(DEPS_DIR)/rabbitmq_java_client/build/*.zip \
+		$(DEPS_DIR)/rabbitmq_java_client/build/bundle \
 		$(JAVA_CLIENT_PACKAGES_DIR)
 	$(verbose) cd $(JAVA_CLIENT_PACKAGES_DIR) && \
 		unzip -q rabbitmq-java-client-javadoc-$(VERSION).zip
@@ -341,7 +342,10 @@ release-java-client:
 	$(verbose) rm -rf $(JAVA_CLIENT_PACKAGES_DIR)
 	$(verbose) mkdir -p $(JAVA_CLIENT_PACKAGES_DIR)
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
-		--include '*.tar.gz' --include '*.zip' --exclude '*' \
+		--include '*.tar.gz' \
+		--include '*.zip' \
+		--include 'bundle' --include 'bundle/*' \
+		--exclude '*' \
 		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/rabbitmq_java_client/build/ \
 		$(JAVA_CLIENT_PACKAGES_DIR)/
 	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
