@@ -532,7 +532,7 @@ define make_target_start
 	$(verbose)
 endef
 
-.PHONY: fixup-permissions-for-deploy deploy
+.PHONY: fixup-permissions-for-deploy deploy deploy-maven
 
 fixup-permissions-for-deploy:
 	$(exec_verbose) chmod -R g+w $(PACKAGES_DIR)
@@ -576,3 +576,16 @@ deploy:
 		 rm -f current; \
 		 ln -s v$(VERSION) current)'
 endif
+
+deploy-maven: $(DEPS_DIR)/rabbitmq_java_client verify-signatures fixup-permissions-for-deploy
+	$(exec_verbose) \
+	NEXUS_USERNAME=$$(cat $(KEYSDIR)/nexus/username); \
+	NEXUS_PASSWORD=$$(cat $(KEYSDIR)/nexus/password); \
+	VERSION=$(VERSION) \
+		$(UNIX_SERVER_VARS) \
+		CREDS="$$NEXUS_USERNAME:$$NEXUS_PASSWORD" \
+		$(DEPS_DIR)/rabbitmq_java_client/nexus-upload.sh \
+		$(JAVA_CLIENT_PACKAGES_DIR)/bundle/amqp-client-$(VERSION).pom \
+		$(JAVA_CLIENT_PACKAGES_DIR)/bundle/amqp-client-$(VERSION).jar \
+		$(JAVA_CLIENT_PACKAGES_DIR)/bundle/amqp-client-$(VERSION)-javadoc.jar \
+		$(JAVA_CLIENT_PACKAGES_DIR)/bundle/amqp-client-$(VERSION)-sources.jar
