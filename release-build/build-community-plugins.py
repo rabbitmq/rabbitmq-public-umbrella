@@ -10,50 +10,74 @@ from distutils.version import StrictVersion
 #
 # Let's keep the same order as the website.
 
-PLUGINS = [
+PLUGINS = {
     # Routing
-    ('rabbitmq_lvc',                      {'url': 'https://github.com/rabbitmq/rabbitmq-lvc-plugin'}),
-    ('rabbitmq_rtopic_exchange',          {'url': 'https://github.com/videlalvaro/rabbitmq-rtopic-exchange'}),
-    ('rabbitmq_delayed_message_exchange', {'url': 'https://github.com/rabbitmq/rabbitmq-delayed-message-exchange'}),
+    'rabbitmq_lvc':                      {'url': 'https://github.com/rabbitmq/rabbitmq-lvc-plugin',
+                                          'erlang': 'R14B'},
+    'rabbitmq_rtopic_exchange':          {'url': 'https://github.com/rabbitmq/rabbitmq-rtopic-exchange'},
+    'rabbitmq_recent_history_exchange':  {'url': 'https://github.com/rabbitmq/rabbitmq-recent-history-exchange'},
+    'rabbitmq_delayed_message_exchange': {'url': 'https://github.com/rabbitmq/rabbitmq-delayed-message-exchange'},
 
     # Auth
-    ('rabbitmq_auth_backend_http',        {'url': 'https://github.com/rabbitmq/rabbitmq-auth-backend-http'}),
-    ('rabbitmq_auth_backend_amqp',        {'url': 'https://github.com/rabbitmq/rabbitmq-auth-backend-amqp'}),
-    ('rabbitmq_auth_backend_ip_range',    {'url': 'https://github.com/gotthardp/rabbitmq-auth-backend-ip-range',
-                                           'erlang': '17'}),
+    'rabbitmq_auth_backend_http':        {'url': 'https://github.com/rabbitmq/rabbitmq-auth-backend-http',
+                                          'erlang': 'R14B'},
+    'rabbitmq_auth_backend_amqp':        {'url': 'https://github.com/rabbitmq/rabbitmq-auth-backend-amqp'},
+    'rabbitmq_auth_backend_ip_range':    {'url': 'https://github.com/gotthardp/rabbitmq-auth-backend-ip-range',
+                                          'erlang': '17'},
 
     # Management
-    ('rabbitmq_top',                      {'url': 'https://github.com/rabbitmq/rabbitmq-top'}),
-    ('rabbitmq_management_exchange',      {'url': 'https://github.com/rabbitmq/rabbitmq-management-exchange'}),
-    ('rabbitmq_management_themes',        {'url': 'https://github.com/rabbitmq/rabbitmq-management-themes'}),
-    ('autocluster',                       {'url': 'https://github.com/aweber/rabbitmq-autocluster',
-                                           'erlang': '17'}),
-    ('rabbitmq_boot_steps_visualiser',    {'url': 'https://github.com/rabbitmq/rabbitmq-boot-steps-visualiser'}),
-    ('rabbitmq_clusterer',                {'url': 'https://github.com/rabbitmq/rabbitmq-clusterer'}),
+    'rabbitmq_top':                      {'url': 'https://github.com/rabbitmq/rabbitmq-top'},
+    'rabbitmq_management_exchange':      {'url': 'https://github.com/rabbitmq/rabbitmq-management-exchange',
+                                          'erlang': 'R14B'},
+    'rabbitmq_event_exchange':           {'url': 'https://github.com/rabbitmq/rabbitmq-event-exchange'},
+    'rabbitmq_management_themes':        {'url': 'https://github.com/rabbitmq/rabbitmq-management-themes'},
+    'rabbitmq_autocluster_consul':       {'url': 'https://github.com/aweber/rabbitmq-autocluster-consul',
+                                          'erlang': 'R15B'},
+    'rabbitmq_boot_steps_visualiser':    {'url': 'https://github.com/rabbitmq/rabbitmq-boot-steps-visualiser'},
+    'rabbitmq_clusterer':                {'url': 'https://github.com/rabbitmq/rabbitmq-clusterer'},
 
     # Logging
-    ('lager',                             {'url': 'https://github.com/hyperthunk/rabbitmq-lager',
-                                           'version-add-hash': False}),
+    'lager':                             {'url': 'https://github.com/hyperthunk/rabbitmq-lager',
+                                          'erlang': 'R14B',
+                                          'version-add-hash': False},
+
+    # Queues
+    'rabbitmq_sharding':                 {'url': 'https://github.com/rabbitmq/rabbitmq-sharding'},
 
     # Protocols
-    ('gen_smtp',                          {'url': 'https://github.com/gotthardp/rabbitmq-gen-smtp',
-                                           'version-add-hash': False}),
-    ('rabbitmq_email',                    {'url': 'https://github.com/gotthardp/rabbitmq-email'}),
-    ('rfc4627_jsonrpc',                   {'url': 'https://github.com/rabbitmq/erlang-rfc4627-wrapper',
-                                           'version-add-hash': False}),
-    ('rabbitmq_jsonrpc',                  {'url': 'https://github.com/rabbitmq/rabbitmq-jsonrpc'}),
-    ('rabbitmq_jsonrpc_channel',          {'url': 'https://github.com/rabbitmq/rabbitmq-jsonrpc-channel'}),
-    ('rabbitmq_jsonrpc_channel_examples', {'url': 'https://github.com/rabbitmq/rabbitmq-jsonrpc-channel-examples'}),
-    ('epgsql',                            {'url': 'https://github.com/gmr/epgsql-wrapper',
-                                           'version-add-hash': False}),
-    ('pgsql_listen_exchange',             {'url': 'https://github.com/aweber/pgsql-listen-exchange'}),
-]
+    'gen_smtp':                          {#'url': 'https://github.com/gotthardp/gen_smtp',
+                                          'wrapper-url': 'https://github.com/gotthardp/rabbitmq-gen-smtp',
+                                          'version-add-hash': False,
+                                          'erlang': 'R16B'},
+    'rabbitmq_email':                    {'url': 'https://github.com/gotthardp/rabbitmq-email',
+                                          'erlang': 'R16B'},
+    'rfc4627_jsonrpc':                   {'url': 'https://github.com/rabbitmq/erlang-rfc4627-wrapper',
+                                          'version-add-hash': False},
+    'rabbitmq_jsonrpc':                  {'url': 'https://github.com/rabbitmq/rabbitmq-jsonrpc'},
+    'rabbitmq_jsonrpc_channel':          {'url': 'https://github.com/rabbitmq/rabbitmq-jsonrpc-channel'},
+    'rabbitmq_jsonrpc_channel_examples': {'url': 'https://github.com/rabbitmq/rabbitmq-jsonrpc-channel-examples'},
+    'epgsql':                            {'url': 'https://github.com/gmr/epgsql-wrapper',
+                                          'version-add-hash': False},
+    'pgsql_listen_exchange':             {'url': 'https://github.com/aweber/pgsql-listen-exchange',
+                                          'erlang': 'R16B'},
 
-DEFAULT_OTP_VERSION="R16B03"
+    'gen_coap':                          {#'url': 'https://github.com/gotthardp/gen_coap',
+                                          'wrapper-url': 'https://github.com/gotthardp/rabbitmq-gen-coap',
+                                          'version-add-hash': False,
+                                          'erlang': '17'},
+    'rabbitmq_coap_pubsub':              {'url': 'https://github.com/gotthardp/rabbitmq-coap-pubsub',
+                                          'erlang': '17'},
+}
+
+DEFAULT_OTP_VERSION_FOR_3_5="R13B03"
+DEFAULT_OTP_VERSION_FOR_3_6="R16B03"
 BUILD_DIR = "/var/tmp/plugins-build/"
 CURRENT_DIR = os.getcwd()
 RABBITMQ_TAG = ""
 GITREPOBASE="https://github.com/rabbitmq"
+USE_OLD_FASHION_BUILD = True
+SERVER_PROVIDED_DEPS = []
+RUN_TESTS = True
 
 def main():
     parser = OptionParser(usage=sys.argv[0])
@@ -64,24 +88,34 @@ def main():
     parser.add_option("-t", "--server-tag",
                       dest="server_tag",
                       help="build against specific server tag")
-    parser.add_option("-T", "--plugin-tag",
-                      dest="plugin_tag",
-                      help="build against specific plugin tag")
     parser.add_option("-R", "--repo-base",
                       dest="repo_base",
                       help="clone from alternative git repository base URL")
     parser.add_option("-d", "--build-dir",
                       dest="build_dir",
                       help="build directory")
+    parser.add_option("-T", "--no-tests",
+                      action="store_false", dest="run_tests", default=True,
+                      help="Do not run the testsuite")
+
     (options, args) = parser.parse_args()
     if options.plugins is None:
         plugins = PLUGINS
     else:
-        plugins = [(k, v) for (k, v) in PLUGINS if k in options.plugins]
-        if len(plugins) != len(options.plugins):
-            print "Some plugins not found!"
-            print "Requested: {0}".format(options.plugins)
-            print "Available: {0}".format([k for (k, v) in PLUGINS])
+        plugins = []
+        plugins_not_found = 0
+        for p in options.plugins:
+            tokens = p.split('@')
+            name = tokens[0]
+            if name in PLUGINS:
+                details = PLUGINS[name]
+                if len(tokens) == 2:
+                    details['tag'] = tokens[1]
+                plugins.append((name, details))
+            else:
+                print "Plugin {0} not found".format(name)
+                plugins_not_found = 1
+        if plugins_not_found:
             sys.exit(1)
         print "Building    : {0}".format(", ".join(options.plugins))
     if options.repo_base is not None:
@@ -90,16 +124,24 @@ def main():
     if options.build_dir is not None:
         global BUILD_DIR
         BUILD_DIR = options.build_dir
+    global RUN_TESTS
+    RUN_TESTS = options.run_tests
     print "Destination : {0}".format(BUILD_DIR)
     if os.path.exists(BUILD_DIR):
         print "\nError: {0} exists. Not building.".format(BUILD_DIR)
         sys.exit(1)
     os.makedirs("{0}/plugins".format(BUILD_DIR))
-    ensure_otp(DEFAULT_OTP_VERSION)
+    ensure_otp(DEFAULT_OTP_VERSION_FOR_3_5)
+    ensure_otp(DEFAULT_OTP_VERSION_FOR_3_6)
     checkout(options.server_tag)
+    global USE_OLD_FASHION_BUILD
+    USE_OLD_FASHION_BUILD = RABBITMQ_TAG and server_version() < '3.6.x'
+    if not USE_OLD_FASHION_BUILD:
+        global SERVER_PROVIDED_DEPS
+        SERVER_PROVIDED_DEPS = server_provided_deps()
     print "Version     : {0}\n".format(server_version())
     print "Building..."
-    [build(p, options.plugin_tag) for p in plugins]
+    [build(p) for p in plugins]
 
 def ensure_dir(d):
     if not os.path.exists(d):
@@ -124,11 +166,11 @@ def checkout(opt_tag):
     cd(CURRENT_DIR + "/rabbitmq-public-umbrella")
     if opt_tag is None:
         RABBITMQ_TAG = get_tag(do("git", "tag", "-l", "rabbitmq*").split('\n'))
-        do("make", "checkout")
+        do("make", "co")
     else:
         RABBITMQ_TAG = opt_tag
         do("git", "checkout", RABBITMQ_TAG)
-        do("make", "checkout")
+        do("make", "co")
         do("./foreachrepo", "git", "checkout", RABBITMQ_TAG)
 
 def get_tag(lines):
@@ -149,11 +191,24 @@ def tag_to_version(tag):
 def server_version():
     return RABBITMQ_TAG[10:].replace('_', '.')[:-1] + "x"
 
-def build((plugin, details), tag):
+def server_provided_deps():
+    if USE_OLD_FASHION_BUILD:
+        return
+    cd(CURRENT_DIR + '/deps/rabbit')
+    do('touch', 'git-revisions.txt')
+    do('make', 'list-deps')
+    deps = []
+    for line in open(os.path.join(CURRENT_DIR, '.erlang.mk', 'list-deps.log')):
+        deps.append(os.path.basename(line.strip()))
+    do('rm', 'git-revisions.txt')
+    cd(BUILD_DIR + '/rabbitmq-public-umbrella')
+    return deps
+
+def build((plugin, details)):
     sys.stdout.write(" * {0}".format(plugin))
     sys.stdout.flush()
     try:
-        do_build(plugin, details, tag)
+        do_build(plugin, details)
         print ''
     except BuildError as e:
         print " FAILED"
@@ -161,55 +216,110 @@ def build((plugin, details), tag):
             for elem in e.value:
                 f.write("{0}".format(elem))
 
-def do_build(plugin, details, tag):
-    cd(BUILD_DIR + "/rabbitmq-public-umbrella")
-    url = details['url']
+def do_build(plugin, details):
+    global USE_OLD_FASHION_BUILD
+    if USE_OLD_FASHION_BUILD:
+        cd(BUILD_DIR + "/rabbitmq-public-umbrella")
+        targets = ["check-xref"]
+        if RUN_TESTS:
+            targets.append('test')
+        targets.append('srcdist')
+    else:
+        cd(BUILD_DIR + "/rabbitmq-public-umbrella/deps")
+        targets = []
+        if RUN_TESTS:
+            targets.append('tests')
+    targets.append('dist')
+
     if 'version-add-hash' in details:
         version_add_hash = details['version-add-hash']
     else:
         version_add_hash = True
+
     if 'erlang' in details:
         erlang_version = details['erlang']
     else:
-        erlang_version = DEFAULT_OTP_VERSION
-    do("git", "clone", url)
-    checkout_dir = url.split("/")[-1].split(".")[0]
-    cd(CURRENT_DIR + "/" + checkout_dir)
-    if tag is None:
-        do("git", "checkout", "master")
+        erlang_version = DEFAULT_OTP_VERSION_FOR_3_5
+    if not USE_OLD_FASHION_BUILD:
+        # RabbitMQ 3.6.x+ requires R16B03.
+        erlang_version = re.sub(r'^R(13|14|15|16(A|B|B01|B02)).*', DEFAULT_OTP_VERSION_FOR_3_6, erlang_version)
+
+    if USE_OLD_FASHION_BUILD:
+        if 'wrapper-url' in details:
+            url = details['wrapper-url']
+        else:
+            url = details['url']
+        checkout_dir = url.split("/")[-1].split(".")[0]
     else:
-        do("git", "checkout", tag)
+        if 'wrapper-url' in details:
+            # Skip wrappers, they will be pulled as normal Erlang.mk
+            # dependencies.
+            return
+        url = details['url']
+        checkout_dir = plugin
+    cloned = False
+    if not os.path.exists(os.path.join(CURRENT_DIR, checkout_dir)):
+        do("git", "clone", url, checkout_dir)
+        cloned = True
+    cd(CURRENT_DIR + "/" + checkout_dir)
+
+    if 'tag' in details:
+        do("git", "checkout", details['tag'])
+    else:
+        do("git", "checkout", "master")
+
     hash = do("git", "--git-dir=./.git", "rev-parse", "HEAD")[0:8]
     if version_add_hash:
         plugin_version = "{0}-{1}".format(server_version(), hash)
     else:
         plugin_version = server_version()
-    [do("make", "-j2", "VERSION={0}".format(plugin_version), target, erlang=erlang_version) for target in ["check-xref", "test", "srcdist", "dist"]]
-    dest_dir = os.path.join(BUILD_DIR, "plugins", "v" + server_version())
-    dest_src_dir = os.path.join(dest_dir, "src")
-    ensure_dir(dest_dir)
-    ensure_dir(dest_src_dir)
-    do("cp", find_package("{0}/dist/".format(CURRENT_DIR), plugin, ".ez"),
-       dest_dir)
-    do("cp",
-       find_package("{0}/srcdist/".format(CURRENT_DIR), plugin, ".tar.bz2"),
-       dest_src_dir)
 
-def find_package(dir, prefix, suffix):
+    if USE_OLD_FASHION_BUILD:
+        [do("make", "-j2", "VERSION={0}".format(plugin_version), target, erlang=erlang_version) for target in targets]
+    else:
+        [do("make", "VERSION={0}".format(plugin_version), target, erlang=erlang_version) for target in targets]
+    dest_dir = os.path.join(BUILD_DIR, "plugins", "v" + server_version())
+    ensure_dir(dest_dir)
+    if USE_OLD_FASHION_BUILD:
+        cmd = ['cp'] + \
+           find_package("{0}/dist/".format(CURRENT_DIR), plugin, ".ez") + \
+           [dest_dir]
+        do(*cmd)
+        dest_src_dir = os.path.join(dest_dir, "src")
+        ensure_dir(dest_src_dir)
+        cmd = ['cp'] + \
+           find_package("{0}/srcdist/".format(CURRENT_DIR), plugin, ".tar.bz2") + \
+           [dest_src_dir]
+        do(*cmd)
+    else:
+        cmd = ['cp'] + \
+           find_package("{0}/plugins/".format(CURRENT_DIR), '*', '.ez') + \
+           [dest_dir]
+        do(*cmd)
+
+def find_package(dir, wanted, suffix):
+    global SERVER_PROVIDED_DEPS
+    packages = []
     for f in os.listdir(dir):
-        if f.startswith(prefix) and f.endswith(suffix):
-            return os.path.join(dir, f)
-    raise BuildError(['no_package', dir, prefix, suffix])
+        name = f.split('-')[0]
+        if (wanted == '*' or name == wanted) and f.endswith(suffix) and \
+        not name in SERVER_PROVIDED_DEPS:
+            packages.append(os.path.join(dir, f))
+    if len(packages) == 0:
+        raise BuildError(['no_package', dir, wanted, suffix])
+    return packages
 
 def do(*args, **kwargs):
     path = os.environ['PATH']
     env = copy.deepcopy(os.environ)
-    erlang_version = DEFAULT_OTP_VERSION
+    erlang_version = DEFAULT_OTP_VERSION_FOR_3_5
     if 'erlang' in kwargs:
         erlang_version = kwargs['erlang']
         if not 'skip_ensure' in kwargs:
             ensure_otp(erlang_version)
     env['PATH'] = "{0}/bin:{1}".format(otp_dir(erlang_version), path)
+    if not USE_OLD_FASHION_BUILD:
+        env['PATH'] = "{0}/rabbitmq-public-umbrella/.erlang.mk/rebar:{1}".format(BUILD_DIR, env['PATH'])
     proc = Popen(args, cwd = CURRENT_DIR, env = env,
                  stdout = PIPE, stderr = PIPE)
     (stdout, stderr) = proc.communicate()
