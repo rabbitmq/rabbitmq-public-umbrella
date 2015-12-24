@@ -52,9 +52,14 @@ check_vars
 
 set -e -x
 
+TARGETS=deploy
+if [ "$DEPLOY_TARGET" = 'deploy-live' ]; then
+	TARGETS="$TARGETS deploy-maven"
+fi
+
 # Finally, deploy
 if [ "$DEPLOY_USERHOST" ]; then
-	${MAKE:-make} -C "$UMBRELLADIR" deploy \
+	${MAKE:-make} -C "$UMBRELLADIR" $TARGETS \
 		${VERSION:+VERSION="$VERSION"} \
 		${DEPLOY_USERHOST:+DEPLOY_HOST="$DEPLOY_USERHOST"} \
 		${DEPLOY_PATH:+DEPLOY_PATH="$DEPLOY_PATH"} \
