@@ -14,7 +14,6 @@ PLUGINS = [
     # Routing
     ('rabbitmq_lvc',                      {'url': 'https://github.com/rabbitmq/rabbitmq-lvc-plugin'}),
     ('rabbitmq_rtopic_exchange',          {'url': 'https://github.com/videlalvaro/rabbitmq-rtopic-exchange'}),
-    ('rabbitmq_recent_history_exchange',  {'url': 'https://github.com/videlalvaro/rabbitmq-recent-history-exchange'}),
     ('rabbitmq_delayed_message_exchange', {'url': 'https://github.com/rabbitmq/rabbitmq-delayed-message-exchange'}),
 
     # Auth
@@ -26,7 +25,6 @@ PLUGINS = [
     # Management
     ('rabbitmq_top',                      {'url': 'https://github.com/rabbitmq/rabbitmq-top'}),
     ('rabbitmq_management_exchange',      {'url': 'https://github.com/rabbitmq/rabbitmq-management-exchange'}),
-    ('rabbitmq_event_exchange',           {'url': 'https://github.com/rabbitmq/rabbitmq-event-exchange'}),
     ('rabbitmq_management_themes',        {'url': 'https://github.com/rabbitmq/rabbitmq-management-themes'}),
     ('autocluster',                       {'url': 'https://github.com/aweber/rabbitmq-autocluster',
                                            'erlang': '17'}),
@@ -36,9 +34,6 @@ PLUGINS = [
     # Logging
     ('lager',                             {'url': 'https://github.com/hyperthunk/rabbitmq-lager',
                                            'version-add-hash': False}),
-
-    # Queues
-    ('rabbitmq_sharding',                 {'url': 'https://github.com/rabbitmq/rabbitmq-sharding'}),
 
     # Protocols
     ('gen_smtp',                          {'url': 'https://github.com/gotthardp/rabbitmq-gen-smtp',
