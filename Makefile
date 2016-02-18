@@ -266,7 +266,8 @@ release-macosx-server-packages: release-server-sources
 ifeq ($(MACOSX_HOST),localhost)
 release-macosx-server-packages:
 	$(exec_verbose) release-build/install-otp.sh "$(STANDALONE_OTP_VERSION)"
-	$(verbose) PATH="$$HOME/otp-$(STANDALONE_OTP_VERSION)/bin:$$PATH" \
+	$(verbose) export XML_CATALOG_FILES="/usr/local/etc/xml/catalog" && \
+		PATH="$$HOME/otp-$(STANDALONE_OTP_VERSION)/bin:$$PATH" \
 		$(MAKE) -C $(DEPS_DIR)/rabbit/packaging \
 		package-standalone-macosx \
 		SOURCE_DIST_FILE="$(abspath $(SOURCE_DIST_FILE))" \
@@ -286,6 +287,7 @@ release-macosx-server-packages:
 	$(verbose) ssh $(SSH_OPTS) $(MACOSX_HOST) \
 		'chmod 755 $(REMOTE_RELEASE_TMPDIR)/install-otp.sh && \
 		 $(REMOTE_RELEASE_TMPDIR)/install-otp.sh '$(STANDALONE_OTP_VERSION)' && \
+		 export XML_CATALOG_FILES="/usr/local/etc/xml/catalog" && \
 		 PATH="$$HOME/otp-$(STANDALONE_OTP_VERSION)/bin:$$PATH" \
 		 $(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)/packaging" \
 		 package-standalone-macosx \
@@ -420,7 +422,7 @@ release-clients: release-erlang-client
 release-erlang-client: release-erlang-client-sources
 	@:
 
-release-erlang-client-sources:
+release-erlang-client-sources: release-clients-build-doc
 	$(exec_verbose) rm -rf $(ERLANG_CLIENT_PACKAGES_DIR)
 	$(verbose) mkdir -p $(ERLANG_CLIENT_PACKAGES_DIR)
 	$(verbose) $(MAKE) -C "$(DEPS_DIR)/amqp_client" source-dist \

@@ -72,8 +72,8 @@ while [[ $# -gt 0 ]] ; do
   shift
 done
 
-mandatory_vars="VERSION BUILD_USERHOST"
-optional_vars="SSH_OPTS KEYSDIR SIGNING_KEY SIGNING_USER_EMAIL SIGNING_USER_ID CHANGELOG_EMAIL CHANGELOG_FULLNAME CHANGELOG_PKG_REV CHANGELOG_COMMENT SCRIPTDIR UMBRELLADIR WIN_USERHOST MAC_USERHOST"
+mandatory_vars="VERSION"
+optional_vars="SSH_OPTS KEYSDIR SIGNING_KEY SIGNING_USER_EMAIL SIGNING_USER_ID CHANGELOG_EMAIL CHANGELOG_FULLNAME CHANGELOG_PKG_REV CHANGELOG_COMMENT SCRIPTDIR UMBRELLADIR BUILD_USERHOST WIN_USERHOST MAC_USERHOST"
 
 . $SCRIPTDIR/utils.sh
 absolutify_scriptdir
@@ -105,13 +105,13 @@ if ! reprepro --help >/dev/null 2>&1 ; then
 fi
 
 # Verify that we can ssh into the hosts, just in case
-ssh $SSH_OPTS $BUILD_USERHOST 'true'
-ssh $SSH_OPTS $ROOT_USERHOST 'true'
+[ -n "$BUILD_USERHOST" ] && ssh $SSH_OPTS $BUILD_USERHOST 'true'
+[ -n "$BUILD_USERHOST" ] && ssh $SSH_OPTS $ROOT_USERHOST 'true'
 [ -n "$WIN_USERHOST" ] && ssh $SSH_OPTS "$WIN_USERHOST" 'true'
 [ -n "$MAC_USERHOST" ] && ssh $SSH_OPTS "$MAC_USERHOST" 'true'
 
 # Prepare the build host.
-ssh $SSH_OPTS $ROOT_USERHOST '
+[ -n "$BUILD_USERHOST" ] && ssh $SSH_OPTS $ROOT_USERHOST '
     set -e -x
     case "$(cat /etc/debian_version)" in
     7.*)
