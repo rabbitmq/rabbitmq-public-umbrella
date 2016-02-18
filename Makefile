@@ -267,7 +267,7 @@ ifeq ($(MACOSX_HOST),localhost)
 release-macosx-server-packages:
 	$(exec_verbose) release-build/install-otp.sh "$(STANDALONE_OTP_VERSION)"
 	$(verbose) export XML_CATALOG_FILES="/usr/local/etc/xml/catalog" && \
-		PATH="$$HOME/otp-$(STANDALONE_OTP_VERSION)/bin:$$PATH" \
+		PATH="$$HOME/otp-$(STANDALONE_OTP_VERSION)/bin:/usr/local/bin:$$PATH" \
 		$(MAKE) -C $(DEPS_DIR)/rabbit/packaging \
 		package-standalone-macosx \
 		SOURCE_DIST_FILE="$(abspath $(SOURCE_DIST_FILE))" \
@@ -288,7 +288,7 @@ release-macosx-server-packages:
 		'chmod 755 $(REMOTE_RELEASE_TMPDIR)/install-otp.sh && \
 		 $(REMOTE_RELEASE_TMPDIR)/install-otp.sh '$(STANDALONE_OTP_VERSION)' && \
 		 export XML_CATALOG_FILES="/usr/local/etc/xml/catalog" && \
-		 PATH="$$HOME/otp-$(STANDALONE_OTP_VERSION)/bin:$$PATH" \
+		 PATH="$$HOME/otp-$(STANDALONE_OTP_VERSION)/bin:/usr/local/bin:$$PATH" \
 		 $(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)/packaging" \
 		 package-standalone-macosx \
 		 SOURCE_DIST_FILE="$$HOME/$(REMOTE_RELEASE_TMPDIR)/$(notdir $(SOURCE_DIST_FILE))" \
