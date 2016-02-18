@@ -420,7 +420,7 @@ release-clients: release-erlang-client
 release-erlang-client: release-erlang-client-sources
 	@:
 
-release-erlang-client-sources:
+release-erlang-client-sources: release-clients-build-doc
 	$(exec_verbose) rm -rf $(ERLANG_CLIENT_PACKAGES_DIR)
 	$(verbose) mkdir -p $(ERLANG_CLIENT_PACKAGES_DIR)
 	$(verbose) $(MAKE) -C "$(DEPS_DIR)/amqp_client" source-dist \
