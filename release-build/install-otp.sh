@@ -9,9 +9,6 @@ version=$1
 extras=$2
 
 if [ $(uname -s) = 'Darwin' ]; then
-    # Add Homebrew prefix to the PATH.
-    export PATH="/usr/local/bin:$PATH"
-
     # Use OpenSSL from Homebrew.
     with_ssl='--with-ssl=/usr/local/opt/openssl'
 fi
