@@ -96,13 +96,28 @@ ERLANG_CLIENT_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-erlang-client/v$(VERSION)
 CLIENTS_BUILD_DOC_DIR ?= $(PACKAGES_DIR)/clients-build-doc/v$(VERSION)
 DEBIAN_REPO_DIR ?= $(PACKAGES_DIR)/debian
 
+UNIX_HOST ?=
+MACOSX_HOST ?=
+WINDOWS_HOST ?=
+
 SIGNING_KEY ?= 056E8E56
 SIGNING_USER_EMAIL ?= info@rabbitmq.com
 SIGNING_USER_ID ?= RabbitMQ Release Signing Key <info@rabbitmq.com>
 
-UNIX_HOST ?=
-MACOSX_HOST ?=
-WINDOWS_HOST ?=
+ifneq ($(KEYSDIR),)
+ifeq ($(UNIX_HOST),)
+SIGNING_VARS += GNUPG_PATH=$(abspath $(KEYSDIR)/keyring)
+else ifeq ($(UNIX_HOST),localhost)
+SIGNING_VARS += GNUPG_PATH=$(abspath $(KEYSDIR)/keyring)
+else
+SIGNING_SRCS += $(KEYSDIR)/keyring
+SIGNING_VARS += GNUPG_PATH="$$HOME/$(REMOTE_RELEASE_TMPDIR)/keyring"
+endif
+
+SIGNING_VARS += SIGNING_KEY="$(SIGNING_KEY)" \
+		SIGNING_USER_ID="$(SIGNING_USER_ID)" \
+		SIGNING_USER_EMAIL="$(SIGNING_USER_EMAIL)"
+endif
 
 SSH_OPTS ?=
 
@@ -182,18 +197,8 @@ release-server: release-unix-server-packages release-debian-repository
 
 release-unix-server-packages: release-server-sources
 
-ifneq ($(KEYSDIR),)
-ifeq ($(UNIX_HOST),localhost)
-UNIX_SERVER_VARS += GNUPG_PATH=$(abspath $(KEYSDIR)/keyring)
-else
-UNIX_SERVER_SRCS += $(KEYSDIR)/keyring
-UNIX_SERVER_VARS += GNUPG_PATH="$$HOME/$(REMOTE_RELEASE_TMPDIR)/keyring"
-endif
-
-UNIX_SERVER_VARS += SIGNING_KEY="$(SIGNING_KEY)" \
-		    SIGNING_USER_ID="$(SIGNING_USER_ID)" \
-		    SIGNING_USER_EMAIL="$(SIGNING_USER_EMAIL)"
-endif
+UNIX_SERVER_SRCS += $(SIGNING_SRCS)
+UNIX_SERVER_VARS += $(SIGNING_VARS)
 
 # We do not clean the packages output directory in
 # release-*-server-packages, because it's already done by
@@ -582,7 +587,7 @@ deploy-maven: $(DEPS_DIR)/rabbitmq_java_client verify-signatures fixup-permissio
 	NEXUS_USERNAME=$$(cat $(KEYSDIR)/nexus/username); \
 	NEXUS_PASSWORD=$$(cat $(KEYSDIR)/nexus/password); \
 	VERSION=$(VERSION) \
-		$(UNIX_SERVER_VARS) \
+		$(SIGNING_VARS) \
 		CREDS="$$NEXUS_USERNAME:$$NEXUS_PASSWORD" \
 		$(DEPS_DIR)/rabbitmq_java_client/nexus-upload.sh \
 		$(JAVA_CLIENT_PACKAGES_DIR)/bundle/amqp-client-$(VERSION).pom \
