@@ -17,6 +17,8 @@ PLUGINS = {
     'rabbitmq_rtopic_exchange':          {'url': 'https://github.com/rabbitmq/rabbitmq-rtopic-exchange'},
     'rabbitmq_recent_history_exchange':  {'url': 'https://github.com/rabbitmq/rabbitmq-recent-history-exchange'},
     'rabbitmq_delayed_message_exchange': {'url': 'https://github.com/rabbitmq/rabbitmq-delayed-message-exchange'},
+    'rabbitmq_routing_node_stamp':       {'url': 'https://github.com/rabbitmq/rabbitmq-routing-node-stamp'},
+    'rabbitmq_message_timestamp':        {'url': 'https://github.com/rabbitmq/rabbitmq-message-timestamp'},
 
     # Auth
     'rabbitmq_auth_backend_http':        {'url': 'https://github.com/rabbitmq/rabbitmq-auth-backend-http',
