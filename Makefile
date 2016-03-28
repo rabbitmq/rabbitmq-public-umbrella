@@ -54,8 +54,9 @@ push: $(abspath .)+push $(READY_DEPS:%=$(DEPS_DIR)/%+push)
 
 %+push:
 	$(exec_verbose) cd $*; \
+        git pull && \
 	git push && \
-	git push --tags && \
+	git push --tags --force && \
 	echo
 
 tag: $(abspath .)+tag $(READY_DEPS:%=$(DEPS_DIR)/%+tag)
