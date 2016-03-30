@@ -65,7 +65,6 @@ tag: $(abspath .)+tag $(READY_DEPS:%=$(DEPS_DIR)/%+tag)
 %+tag:
 	$(exec_verbose) test "$(TAG)" || (printf "\nERROR: TAG must be set\n\n" 1>&2; false)
 	$(verbose) cd $*; \
-	git pull --ff && \
 	git tag $(TAG) && \
 	echo
 
