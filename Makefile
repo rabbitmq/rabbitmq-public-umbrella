@@ -102,8 +102,6 @@ MACOSX_HOST ?=
 WINDOWS_HOST ?=
 
 SIGNING_KEY ?= 056E8E56
-SIGNING_USER_EMAIL ?= info@rabbitmq.com
-SIGNING_USER_ID ?= RabbitMQ Release Signing Key <info@rabbitmq.com>
 
 ifneq ($(KEYSDIR),)
 ifeq ($(UNIX_HOST),)
@@ -115,9 +113,7 @@ SIGNING_SRCS += $(KEYSDIR)/keyring
 SIGNING_VARS += GNUPG_PATH="$$HOME/$(REMOTE_RELEASE_TMPDIR)/keyring"
 endif
 
-SIGNING_VARS += SIGNING_KEY="$(SIGNING_KEY)" \
-		SIGNING_USER_ID="$(SIGNING_USER_ID)" \
-		SIGNING_USER_EMAIL="$(SIGNING_USER_EMAIL)"
+SIGNING_VARS += SIGNING_KEY="$(SIGNING_KEY)"
 endif
 
 SSH_OPTS ?=
@@ -261,7 +257,7 @@ release-debian-repository: release-unix-server-packages
 		PACKAGES_DIR=$(abspath $(SERVER_PACKAGES_DIR)) \
 		REPO_DIR=$(abspath $(DEBIAN_REPO_DIR)) \
 		GNUPG_PATH=$(abspath $(KEYSDIR)/keyring) \
-		SIGNING_USER_EMAIL=$(SIGNING_USER_EMAIL)
+		SIGNING_KEY=$(SIGNING_KEY)
 endif
 
 ifneq ($(MACOSX_HOST),)
@@ -497,7 +493,7 @@ sign-artifacts:
 		rpm --addsign \
 		 --define '_signature gpg' \
 		 --define '_gpg_path $(KEYSDIR)/keyring/.gnupg' \
-		 --define '_gpg_name $(SIGNING_USER_ID)' \
+		 --define '_gpg_name $(SIGNING_KEY)' \
 		 $(SERVER_PACKAGES_DIR)/*.rpm
 	$(verbose) for p in \
 		$(SERVER_PACKAGES_DIR)/* \
