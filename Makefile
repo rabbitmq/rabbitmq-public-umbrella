@@ -101,7 +101,8 @@ UNIX_HOST ?=
 MACOSX_HOST ?=
 WINDOWS_HOST ?=
 
-SIGNING_KEY ?= 056E8E56
+# Default to the nightly signing key.
+SIGNING_KEY ?= 0xD441A9DDBA058EF7
 
 ifneq ($(KEYSDIR),)
 ifeq ($(UNIX_HOST),)
