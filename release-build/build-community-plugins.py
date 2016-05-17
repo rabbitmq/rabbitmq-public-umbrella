@@ -72,7 +72,7 @@ PLUGINS = {
 }
 
 DEFAULT_OTP_VERSION_FOR_3_5="R13B03"
-DEFAULT_OTP_VERSION_FOR_3_6="R16B03"
+DEFAULT_OTP_VERSION_FOR_3_7="18.3"
 BUILD_DIR = "/var/tmp/plugins-build/"
 CURRENT_DIR = os.getcwd()
 RABBITMQ_TAG = ""
@@ -134,7 +134,7 @@ def main():
         sys.exit(1)
     os.makedirs("{0}/plugins".format(BUILD_DIR))
     ensure_otp(DEFAULT_OTP_VERSION_FOR_3_5)
-    ensure_otp(DEFAULT_OTP_VERSION_FOR_3_6)
+    ensure_otp(DEFAULT_OTP_VERSION_FOR_3_7)
     checkout(options.server_tag)
     global USE_OLD_FASHION_BUILD
     USE_OLD_FASHION_BUILD = RABBITMQ_TAG and server_version() < '3.6.x'
@@ -243,8 +243,8 @@ def do_build(plugin, details):
     else:
         erlang_version = DEFAULT_OTP_VERSION_FOR_3_5
     if not USE_OLD_FASHION_BUILD:
-        # RabbitMQ 3.6.x+ requires R16B03.
-        erlang_version = re.sub(r'^R(13|14|15|16(A|B|B01|B02)).*', DEFAULT_OTP_VERSION_FOR_3_6, erlang_version)
+        # RabbitMQ 3.7.x+ requires 18.3.
+        erlang_version = DEFAULT_OTP_VERSION_FOR_3_7
 
     if USE_OLD_FASHION_BUILD:
         if 'wrapper-url' in details:
