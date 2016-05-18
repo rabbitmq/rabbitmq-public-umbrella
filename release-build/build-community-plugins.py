@@ -39,7 +39,7 @@ PLUGINS = {
     'rabbitmq_clusterer':                {'url': 'https://github.com/rabbitmq/rabbitmq-clusterer'},
 
     # Logging
-    'lager':                             {'url': 'https://github.com/hyperthunk/rabbitmq-lager',
+    'rabbitmq_lager':                    {'url': 'https://github.com/hyperthunk/rabbitmq-lager',
                                           'erlang': 'R14B',
                                           'version-add-hash': False},
 
