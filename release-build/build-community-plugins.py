@@ -229,7 +229,7 @@ def do_build(plugin, details):
         targets.append('srcdist')
     else:
         cd(BUILD_DIR + "/rabbitmq-public-umbrella/deps")
-        targets = []
+        targets = ['update-rabbitmq-components-mk']
         if RUN_TESTS:
             targets.append('tests')
     targets.append('dist')
