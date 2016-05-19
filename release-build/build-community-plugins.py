@@ -72,8 +72,12 @@ PLUGINS = {
                                           'erlang': '17'},
 }
 
-DEFAULT_OTP_VERSION_FOR_3_5="R13B03"
-DEFAULT_OTP_VERSION_FOR_3_7="18.3"
+DEFAULT_OTP_VERSIONS = {
+        'a_long_time_ago': 'R13B03',
+        '3.6.x': 'R16B03',
+        '3.7.x': '18.3',
+}
+
 BUILD_DIR = "/var/tmp/plugins-build/"
 CURRENT_DIR = os.getcwd()
 RABBITMQ_TAG = ""
@@ -134,15 +138,13 @@ def main():
         print "\nError: {0} exists. Not building.".format(BUILD_DIR)
         sys.exit(1)
     os.makedirs("{0}/plugins".format(BUILD_DIR))
-    ensure_otp(DEFAULT_OTP_VERSION_FOR_3_5)
-    ensure_otp(DEFAULT_OTP_VERSION_FOR_3_7)
     checkout(options.server_tag)
     global USE_OLD_FASHION_BUILD
-    USE_OLD_FASHION_BUILD = RABBITMQ_TAG and server_version() < '3.6.x'
+    USE_OLD_FASHION_BUILD = RABBITMQ_TAG and get_server_version() < '3.6.x'
     if not USE_OLD_FASHION_BUILD:
         global SERVER_PROVIDED_DEPS
         SERVER_PROVIDED_DEPS = server_provided_deps()
-    print "Version     : {0}\n".format(server_version())
+    print "Version     : {0}\n".format(get_server_version())
     print "Building..."
     [build(p) for p in plugins]
 
@@ -191,7 +193,7 @@ def get_tag(lines):
 def tag_to_version(tag):
     return re.sub(r'_', '.', re.sub(r'^rabbitmq_v', '', tag))
 
-def server_version():
+def get_server_version():
     return RABBITMQ_TAG[10:].replace('_', '.')[:-1] + "x"
 
 def server_provided_deps():
@@ -239,13 +241,16 @@ def do_build(plugin, details):
     else:
         version_add_hash = True
 
+    server_version = get_server_version()
+
     if 'erlang' in details:
         erlang_version = details['erlang']
     else:
-        erlang_version = DEFAULT_OTP_VERSION_FOR_3_5
+        erlang_version = DEFAULT_OTP_VERSIONS['a_long_time_ago']
     if not USE_OLD_FASHION_BUILD:
-        # RabbitMQ 3.7.x+ requires 18.3.
-        erlang_version = DEFAULT_OTP_VERSION_FOR_3_7
+        erlang_version = DEFAULT_OTP_VERSIONS[server_version]
+
+    ensure_otp(erlang_version)
 
     if USE_OLD_FASHION_BUILD:
         if 'wrapper-url' in details:
@@ -273,15 +278,15 @@ def do_build(plugin, details):
 
     hash = do("git", "--git-dir=./.git", "rev-parse", "HEAD")[0:8]
     if version_add_hash:
-        plugin_version = "{0}-{1}".format(server_version(), hash)
+        plugin_version = "{0}-{1}".format(server_version, hash)
     else:
-        plugin_version = server_version()
+        plugin_version = server_version
 
     if USE_OLD_FASHION_BUILD:
         [do("make", "-j2", "VERSION={0}".format(plugin_version), target, erlang=erlang_version) for target in targets]
     else:
         [do("make", "VERSION={0}".format(plugin_version), target, erlang=erlang_version) for target in targets]
-    dest_dir = os.path.join(BUILD_DIR, "plugins", "v" + server_version())
+    dest_dir = os.path.join(BUILD_DIR, "plugins", "v" + server_version)
     ensure_dir(dest_dir)
     if USE_OLD_FASHION_BUILD:
         cmd = ['cp'] + \
@@ -315,12 +320,11 @@ def find_package(dir, wanted, suffix):
 def do(*args, **kwargs):
     path = os.environ['PATH']
     env = copy.deepcopy(os.environ)
-    erlang_version = DEFAULT_OTP_VERSION_FOR_3_5
     if 'erlang' in kwargs:
         erlang_version = kwargs['erlang']
         if not 'skip_ensure' in kwargs:
             ensure_otp(erlang_version)
-    env['PATH'] = "{0}/bin:{1}".format(otp_dir(erlang_version), path)
+        env['PATH'] = "{0}/bin:{1}".format(otp_dir(erlang_version), path)
     if not USE_OLD_FASHION_BUILD:
         env['PATH'] = "{0}/rabbitmq-public-umbrella/.erlang.mk/rebar:{1}".format(BUILD_DIR, env['PATH'])
     proc = Popen(args, cwd = CURRENT_DIR, env = env,
