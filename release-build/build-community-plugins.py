@@ -37,6 +37,7 @@ PLUGINS = {
                                           'erlang': 'R15B'},
     'rabbitmq_boot_steps_visualiser':    {'url': 'https://github.com/rabbitmq/rabbitmq-boot-steps-visualiser'},
     'rabbitmq_clusterer':                {'url': 'https://github.com/rabbitmq/rabbitmq-clusterer'},
+    'rabbitmq_trust_store':              {'url': 'https://github.com/rabbitmq/rabbitmq-trust-store'},
 
     # Logging
     'rabbitmq_lager':                    {'url': 'https://github.com/hyperthunk/rabbitmq-lager',
