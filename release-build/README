@@ -54,7 +54,7 @@ build.sh takes a large number of parameters in order to configure it
 for the build environment.  These are set on the command line in a
 similar way to make variables, for example,
 
-$ release-build/build.sh BUILD_USERHOST=etch VERSION=1.7.1234 KEYSDIR=/home/dpw/work/rabbit/release-build/keys CHANGELOG_EMAIL="David Wragg <dpw@lshift.net>" SIGNING_PARAMS='SIGNING_KEY=BE8CA7D4 SIGNING_USER_EMAIL=dpw@lshift.net SIGNING_USER_ID="David Wragg (RabbitMQ Test Build) <dpw@lshift.net>"' WIN_USERHOST="David Wragg@192.168.122.85" DEPLOY_USERHOST=rabbitmq-deploy@mrbraver.lshift.net SSH_OPTS="-i /home/dpw/work/rabbit/release-build/ssh-key/id_rsa"
+$ release-build/build.sh BUILD_USERHOST=etch VERSION=1.7.1234 KEYSDIR=/home/dpw/work/rabbit/release-build/keys CHANGELOG_EMAIL="David Wragg <dpw@lshift.net>" SIGNING_PARAMS='SIGNING_KEY=BE8CA7D4' WIN_USERHOST="David Wragg@192.168.122.85" DEPLOY_USERHOST=rabbitmq-deploy@mrbraver.lshift.net SSH_OPTS="-i /home/dpw/work/rabbit/release-build/ssh-key/id_rsa"
 
 Many of these variables are optional, though omitting them may result
 in parts of the build being skipped.  The variables are documented at
