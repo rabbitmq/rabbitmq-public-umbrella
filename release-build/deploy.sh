@@ -21,8 +21,7 @@ KEYSDIR=
 # site
 REAL_WEB_URL=http://www.rabbitmq.com/
 
-# The Apple Mac OS host with macports installed used for generating
-# the macports artifacts
+# Mac OS X host used to produce OS X-specific artifacts
 MAC_USERHOST=
 
 # RSync user/host to deploy to.  If empty, we don't deploy.
