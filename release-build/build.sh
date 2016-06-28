@@ -3,7 +3,7 @@
 # An automated rabbitmq build script
 #
 # Example Usage:
-# release-build/build.sh BUILD_USERHOST=etch VERSION=1.7.$[`date +'%Y%m%d'` - 20090000] WIN_USERHOST="David Wragg@192.168.122.85" DEPLOY_USERHOST=mrbraver.lshift.net
+# release-build/build.sh BUILD_USERHOST=etch VERSION=1.7.$[`date +'%Y%m%d'` - 20090000] DEPLOY_USERHOST=mrbraver.lshift.net
 
 # You should provide values for the following variables on the command line:
 
@@ -12,10 +12,6 @@ VERSION=
 
 # The ssh user@host to use for the main build
 BUILD_USERHOST=
-
-# The windows ssh user@host to use for the windows bits.  If you omit
-# it, the windows bits won't get built.
-WIN_USERHOST=
 
 # The Mac ssh user@host to use for the mac bits.  If you omit
 # it, the mac bits won't get built.
@@ -71,7 +67,7 @@ while [[ $# -gt 0 ]] ; do
 done
 
 mandatory_vars="VERSION"
-optional_vars="SSH_OPTS KEYSDIR SIGNING_KEY CHANGELOG_EMAIL CHANGELOG_FULLNAME CHANGELOG_PKG_REV CHANGELOG_COMMENT SCRIPTDIR UMBRELLADIR BUILD_USERHOST WIN_USERHOST MAC_USERHOST"
+optional_vars="SSH_OPTS KEYSDIR SIGNING_KEY CHANGELOG_EMAIL CHANGELOG_FULLNAME CHANGELOG_PKG_REV CHANGELOG_COMMENT SCRIPTDIR UMBRELLADIR BUILD_USERHOST MAC_USERHOST"
 
 . $SCRIPTDIR/utils.sh
 absolutify_scriptdir
@@ -105,7 +101,6 @@ fi
 # Verify that we can ssh into the hosts, just in case
 [ -n "$BUILD_USERHOST" ] && ssh $SSH_OPTS $BUILD_USERHOST 'true'
 [ -n "$BUILD_USERHOST" ] && ssh $SSH_OPTS $ROOT_USERHOST 'true'
-[ -n "$WIN_USERHOST" ] && ssh $SSH_OPTS "$WIN_USERHOST" 'true'
 [ -n "$MAC_USERHOST" ] && ssh $SSH_OPTS "$MAC_USERHOST" 'true'
 
 # Prepare the build host.
@@ -148,7 +143,6 @@ ${MAKE:-make} -C "$UMBRELLADIR" release sign-artifacts  \
 	${VERSION:+VERSION="$VERSION"} \
 	${BUILD_USERHOST:+UNIX_HOST="$BUILD_USERHOST"} \
 	${MAC_USERHOST:+MACOSX_HOST="$MAC_USERHOST"} \
-	${WIN_USERHOST:+WINDOWS_HOST="$WIN_USERHOST"} \
 	${KEYSDIR:+KEYSDIR="$KEYSDIR"} \
 	${SIGNING_KEY:+SIGNING_KEY="$SIGNING_KEY"} \
 	${CHANGELOG_FULLNAME:+CHANGELOG_NAME="$CHANGELOG_FULLNAME"} \

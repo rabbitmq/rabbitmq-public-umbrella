@@ -92,14 +92,12 @@ VERSION ?= 0.0.0
 PACKAGES_DIR ?= packages
 SERVER_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-server/v$(VERSION)
 JAVA_CLIENT_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-java-client/v$(VERSION)
-DOTNET_CLIENT_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-dotnet-client/v$(VERSION)
 ERLANG_CLIENT_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-erlang-client/v$(VERSION)
 CLIENTS_BUILD_DOC_DIR ?= $(PACKAGES_DIR)/clients-build-doc/v$(VERSION)
 DEBIAN_REPO_DIR ?= $(PACKAGES_DIR)/debian
 
 UNIX_HOST ?=
 MACOSX_HOST ?=
-WINDOWS_HOST ?=
 
 # Default to the nightly signing key.
 SIGNING_KEY ?= 0xD441A9DDBA058EF7
@@ -358,66 +356,6 @@ release-java-client:
 endif
 endif
 
-ifneq ($(WINDOWS_HOST),)
-release-clients: release-dotnet-client
-
-DOTNET_CLIENT_SRCS = $(DEPS_DIR)/rabbitmq_dotnet_client \
-		     $(CLIENTS_BUILD_DOC_DIR)/build-dotnet-client.txt
-
-DOTNET_CLIENT_VARS = RABBIT_VSN=$(VERSION) \
-		     SKIP_MSIVAL2=1
-
-ifneq ($(KEYSDIR),)
-ifeq ($(WINDOWS_HOST),localhost)
-DOTNET_CLIENT_VARS += KEYFILE=$(abspath $(KEYSDIR)/dotnet/rabbit.snk)
-else
-DOTNET_CLIENT_SRCS += $(KEYSDIR)/dotnet/rabbit.snk
-DOTNET_CLIENT_VARS += KEYFILE="$$HOME/$(REMOTE_RELEASE_TMPDIR)/rabbit.snk"
-endif
-endif
-
-release-dotnet-client: $(DEPS_DIR)/rabbitmq_dotnet_client release-clients-build-doc
-
-ifeq ($(WINDOWS_HOST),localhost)
-release-dotnet-client:
-	$(exec_verbose) cd $(DEPS_DIR)/rabbitmq_dotnet_client && \
-		$(DOTNET_CLIENT_VARS) \
-		BUILD_DOC=$(abspath $(CLIENTS_BUILD_DOC_DIR)/build-dotnet-client.txt) \
-		./dist.sh
-	$(verbose) $(MAKE) -C "$(DEPS_DIR)/rabbitmq_dotnet_client" \
-		doc dist \
-		RABBIT_VSN="$(VERSION)"
-	$(verbose) rm -rf $(DOTNET_CLIENT_PACKAGES_DIR)
-	$(verbose) mkdir -p $(DOTNET_CLIENT_PACKAGES_DIR)
-	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
-		$(DEPS_DIR)/rabbitmq_dotnet_client/releases/* \
-		$(DOTNET_CLIENT_PACKAGES_DIR)
-else
-release-dotnet-client: REMOTE_RELEASE_TMPDIR = rabbitmq-dotnet-client-$(VERSION)
-release-dotnet-client:
-	$(exec_verbose) ssh $(SSH_OPTS) $(WINDOWS_HOST) \
-		'rm -rf $(REMOTE_RELEASE_TMPDIR); \
-		 mkdir -p $(REMOTE_RELEASE_TMPDIR)'
-	$(verbose) rsync $(RSYNC_FLAGS) \
-		$(DOTNET_CLIENT_SRCS) \
-		$(WINDOWS_HOST):$(REMOTE_RELEASE_TMPDIR)
-	$(verbose) ssh $(SSH_OPTS) $(WINDOWS_HOST) \
-		'$(DOTNET_CLIENT_VARS) \
-		 BUILD_DOC=$$HOME/$(REMOTE_RELEASE_TMPDIR)/build-dotnet-client.txt \
-		 $(REMOTE_RELEASE_TMPDIR)/rabbitmq_dotnet_client/dist.sh && \
-		 $(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)/rabbitmq_dotnet_client" \
-		 doc dist \
-		 RABBIT_VSN="$(VERSION)"'
-	$(verbose) rm -rf $(DOTNET_CLIENT_PACKAGES_DIR)
-	$(verbose) mkdir -p $(DOTNET_CLIENT_PACKAGES_DIR)
-	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
-		$(WINDOWS_HOST):$(REMOTE_RELEASE_TMPDIR)/rabbitmq_dotnet_client/release/ \
-		$(DOTNET_CLIENT_PACKAGES_DIR)/
-	$(verbose) ssh $(SSH_OPTS) $(WINDOWS_HOST) \
-		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
-endif
-endif
-
 release-clients: release-erlang-client
 
 release-erlang-client: release-erlang-client-sources
@@ -479,7 +417,7 @@ release-clients-build-doc: $(DEPS_DIR)/rabbitmq_website
 		python driver.py www & \
 		sleep 1; \
 		trap "kill $$!" EXIT; \
-		set -e; for file in build-java-client.html build-dotnet-client.html build-erlang-client.html; do \
+		set -e; for file in build-java-client.html build-erlang-client.html; do \
 			elinks -dump -no-references -no-numbering \
 			 http://localhost:8191/$$file > \
 			 $(abspath $(CLIENTS_BUILD_DOC_DIR))/$${file%.html}.txt; \
@@ -499,7 +437,6 @@ sign-artifacts:
 	$(verbose) for p in \
 		$(SERVER_PACKAGES_DIR)/* \
 		$(JAVA_CLIENT_PACKAGES_DIR)/* \
-		$(DOTNET_CLIENT_PACKAGES_DIR)/* \
 		$(ERLANG_CLIENT_PACKAGES_DIR)/* \
 	; do \
 		[ -f $$p ] && \
@@ -524,9 +461,10 @@ DEPLOY_PATH ?= /tmp/rabbitmq/extras/releases
 
 DEPLOYMENT_SUBDIRS = $(SERVER_PACKAGES_DIR) \
 		     $(JAVA_CLIENT_PACKAGES_DIR) \
-		     $(DOTNET_CLIENT_PACKAGES_DIR) \
 		     $(ERLANG_CLIENT_PACKAGES_DIR) \
 		     $(DEBIAN_REPO_DIR)
+
+DEPLOYMENT_SUBDIRS := $(foreach DIR,$(DEPLOYMENT_SUBDIRS),$(if $(wildcard $(DIR)),$(DIR),))
 
 DEPLOY_RSYNC_FLAGS = -rpl --delete-after $(RSYNC_V)
 

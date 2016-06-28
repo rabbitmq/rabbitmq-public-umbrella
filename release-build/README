@@ -3,11 +3,9 @@ Automatic RabbitMQ release builds
 
 The build.sh script in this directory automates the process of
 performing a RabbitMQ release build.  The rabbitmq-umbrella Makefile
-already automates most of the Linux side of the build, and there are
-also shell scripts to automated the Windows side of the build.  But
-there remains an intricate back-and-forth between Linux and Windows to
-perform the build.  This script contains the ssh-and-rsync glue to
-pull the whole thing together into a single command.
+already automates most of the Linux side of the build. This script
+contains the ssh-and-rsync glue to pull the whole thing together
+into a single command.
 
 
 Prerequisites
@@ -23,19 +21,13 @@ some of these as guest VMs.
   Any Linux should be suitable. There are few otherwise-inessential
   dependencies; probably just make and rsync.
 
-- Build host: Runs the rabbitmq-umbrella Makefile 'dist' target, and
-  the Linux bits of the rabbitmq-dotnet-client build process.
+- Build host: Runs the rabbitmq-umbrella Makefile 'dist' target.
   build.sh will take care of the process of downloading, building, and
   locally installing the appropriate OTP versions (via the
   install-otp.sh script).  The build.sh script will also ensure that
   all prerequisite packages for the build are installed on the build
   host.  So that it can do this, the ssh key in use should be in
   root's authorized_keys file on the build host.
-
-- Windows host: Used for the Windows-only bits of the
-  rabbitmq-dotnet-client build. .NET 4.0 or later and Visual Studio 2013 Community edition must be installed.  You
-  will also need to have various cygwin packages installed, in
-  particular the ssh server.
 
 - Deployment host: Once the build is complete, the rabbitmq-umbrella
   Makefile will deploy the resulting artifacts to the
@@ -44,7 +36,7 @@ some of these as guest VMs.
 
 Some of these hosts may be the same.  For my test builds, the master
 host and deployment host are my desktop machine, and the build host
-and windows host are guests VM running under kvm.
+is a guest VM running under kvm.
 
 
 Build.sh parameters
@@ -54,12 +46,12 @@ build.sh takes a large number of parameters in order to configure it
 for the build environment.  These are set on the command line in a
 similar way to make variables, for example,
 
-$ release-build/build.sh BUILD_USERHOST=etch VERSION=1.7.1234 KEYSDIR=/home/dpw/work/rabbit/release-build/keys CHANGELOG_EMAIL="David Wragg <dpw@lshift.net>" SIGNING_PARAMS='SIGNING_KEY=BE8CA7D4' WIN_USERHOST="David Wragg@192.168.122.85" DEPLOY_USERHOST=rabbitmq-deploy@mrbraver.lshift.net SSH_OPTS="-i /home/dpw/work/rabbit/release-build/ssh-key/id_rsa"
+$ release-build/build.sh BUILD_USERHOST=etch VERSION=1.7.1234 KEYSDIR=/home/dpw/work/rabbit/release-build/keys CHANGELOG_EMAIL="David Wragg <dpw@lshift.net>" SIGNING_PARAMS='SIGNING_KEY=BE8CA7D4' DEPLOY_USERHOST=rabbitmq-deploy@mrbraver.lshift.net SSH_OPTS="-i /home/dpw/work/rabbit/release-build/ssh-key/id_rsa"
 
 Many of these variables are optional, though omitting them may result
 in parts of the build being skipped.  The variables are documented at
 the top of build.sh.  The minimal set required for a full build and
-deployment is VERSION, BUILD_USERHOST, WIN_USERHOST and
+deployment is VERSION, BUILD_USERHOST and
 DEPLOY_USERHOST (the last three specifying the hosts to use during the
 build).
 
