@@ -42,7 +42,6 @@ PLUGIN_REPOS="\
 
 REPOS="rabbitmq-public-umbrella \
        rabbitmq-java-client \
-       rabbitmq-dotnet-client \
        rabbitmq-server \
        rabbitmq-codegen \
        $PLUGIN_REPOS"
