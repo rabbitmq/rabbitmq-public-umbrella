@@ -26,6 +26,7 @@ PLUGINS = {
     'rabbitmq_auth_backend_amqp':        {'url': 'https://github.com/rabbitmq/rabbitmq-auth-backend-amqp'},
     'rabbitmq_auth_backend_ip_range':    {'url': 'https://github.com/gotthardp/rabbitmq-auth-backend-ip-range',
                                           'erlang': '17'},
+    'rabbitmq_trust_store':              {'url': 'https://github.com/rabbitmq/rabbitmq-trust-store'},
 
     # Management
     'rabbitmq_top':                      {'url': 'https://github.com/rabbitmq/rabbitmq-top'},
@@ -37,7 +38,6 @@ PLUGINS = {
                                           'erlang': 'R15B'},
     'rabbitmq_boot_steps_visualiser':    {'url': 'https://github.com/rabbitmq/rabbitmq-boot-steps-visualiser'},
     'rabbitmq_clusterer':                {'url': 'https://github.com/rabbitmq/rabbitmq-clusterer'},
-    'rabbitmq_trust_store':              {'url': 'https://github.com/rabbitmq/rabbitmq-trust-store'},
 
     # Logging
     'rabbitmq_lager':                    {'url': 'https://github.com/hyperthunk/rabbitmq-lager',
@@ -70,6 +70,7 @@ PLUGINS = {
                                           'erlang': '17'},
     'rabbitmq_coap_pubsub':              {'url': 'https://github.com/gotthardp/rabbitmq-coap-pubsub',
                                           'erlang': '17'},
+    'rabbitmq_web_mqtt':                 {'url': 'https://github.com/rabbitmq/rabbitmq-web-mqtt'},
 }
 
 DEFAULT_OTP_VERSIONS = {
