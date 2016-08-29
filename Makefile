@@ -308,26 +308,24 @@ ifneq ($(UNIX_HOST),)
 release-clients: release-java-client
 
 JAVA_CLIENT_SRCS = $(DEPS_DIR)/rabbitmq_java_client \
-		   $(DEPS_DIR)/rabbitmq_codegen \
-		   $(CLIENTS_BUILD_DOC_DIR)/build-java-client.txt
+		   $(DEPS_DIR)/rabbitmq_codegen
 
-release-java-client: $(DEPS_DIR)/rabbitmq_java_client release-clients-build-doc
+release-java-client: $(DEPS_DIR)/rabbitmq_java_client
 
 ifeq ($(UNIX_HOST),localhost)
 release-java-client:
-	$(exec_verbose) $(MAKE) -C "$(DEPS_DIR)/rabbitmq_java_client" \
-		dist \
-		VERSION="$(VERSION)" \
-		BUILD_DOC="$(abspath $(CLIENTS_BUILD_DOC_DIR)/build-java-client.txt)"
+	$(exec_verbose) $(MAKE) -C "$(DEPS_DIR)/rabbitmq_java_client" dist
 	$(verbose) rm -rf $(JAVA_CLIENT_PACKAGES_DIR)
 	$(verbose) mkdir -p $(JAVA_CLIENT_PACKAGES_DIR)
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
-		$(DEPS_DIR)/rabbitmq_java_client/build/*.tar.gz \
-		$(DEPS_DIR)/rabbitmq_java_client/build/*.zip \
-		$(DEPS_DIR)/rabbitmq_java_client/build/bundle \
+		$(DEPS_DIR)/rabbitmq_java_client/target/*.jar \
+		$(DEPS_DIR)/rabbitmq_java_client/target/apidocs \
 		$(JAVA_CLIENT_PACKAGES_DIR)
+	$(verbose) mv $(JAVA_CLIENT_PACKAGES_DIR)/apidocs \
+		$(JAVA_CLIENT_PACKAGES_DIR)/rabbitmq-java-client-javadoc-$(VERSION)
 	$(verbose) cd $(JAVA_CLIENT_PACKAGES_DIR) && \
-		unzip -q rabbitmq-java-client-javadoc-$(VERSION).zip
+		zip -qr rabbitmq-java-client-javadoc-$(VERSION).zip \
+		rabbitmq-java-client-javadoc-$(VERSION)
 else
 release-java-client: REMOTE_RELEASE_TMPDIR = rabbitmq-java-client-$(VERSION)
 release-java-client:
@@ -340,21 +338,22 @@ release-java-client:
 	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
 		'$(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)/rabbitmq_java_client" \
 		 dist \
-		 VERSION="$(VERSION)" \
-		 BUILD_DOC="$$HOME/$(REMOTE_RELEASE_TMPDIR)/build-java-client.txt"'
+		 DEPS_DIR=".."'
 	$(verbose) rm -rf $(JAVA_CLIENT_PACKAGES_DIR)
 	$(verbose) mkdir -p $(JAVA_CLIENT_PACKAGES_DIR)
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
-		--include '*.tar.gz' \
-		--include '*.zip' \
-		--include 'bundle' --include 'bundle/*' \
+		--include '*.jar' \
+		--include 'apidocs' --include 'apidocs/*' \
 		--exclude '*' \
-		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/rabbitmq_java_client/build/ \
+		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/rabbitmq_java_client/target/ \
 		$(JAVA_CLIENT_PACKAGES_DIR)/
 	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
 		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
+	$(verbose) mv $(JAVA_CLIENT_PACKAGES_DIR)/apidocs \
+		$(JAVA_CLIENT_PACKAGES_DIR)/rabbitmq-java-client-javadoc-$(VERSION)
 	$(verbose) cd $(JAVA_CLIENT_PACKAGES_DIR) && \
-		unzip -q rabbitmq-java-client-javadoc-$(VERSION).zip
+		zip -qr rabbitmq-java-client-javadoc-$(VERSION).zip \
+		rabbitmq-java-client-javadoc-$(VERSION)
 endif
 endif
 
@@ -535,7 +534,7 @@ define make_target_start
 	$(verbose)
 endef
 
-.PHONY: fixup-permissions-for-deploy deploy deploy-maven
+.PHONY: fixup-permissions-for-deploy deploy
 
 fixup-permissions-for-deploy:
 	$(exec_verbose) chmod -R g+w $(PACKAGES_DIR)
@@ -579,16 +578,3 @@ deploy:
 		 rm -f current; \
 		 ln -s v$(VERSION) current)'
 endif
-
-deploy-maven: $(DEPS_DIR)/rabbitmq_java_client verify-signatures fixup-permissions-for-deploy
-	$(exec_verbose) \
-	NEXUS_USERNAME=$$(cat $(KEYSDIR)/nexus/username); \
-	NEXUS_PASSWORD=$$(cat $(KEYSDIR)/nexus/password); \
-	VERSION=$(VERSION) \
-		$(SIGNING_VARS) \
-		CREDS="$$NEXUS_USERNAME:$$NEXUS_PASSWORD" \
-		$(DEPS_DIR)/rabbitmq_java_client/nexus-upload.sh \
-		$(JAVA_CLIENT_PACKAGES_DIR)/bundle/amqp-client-$(VERSION).pom \
-		$(JAVA_CLIENT_PACKAGES_DIR)/bundle/amqp-client-$(VERSION).jar \
-		$(JAVA_CLIENT_PACKAGES_DIR)/bundle/amqp-client-$(VERSION)-javadoc.jar \
-		$(JAVA_CLIENT_PACKAGES_DIR)/bundle/amqp-client-$(VERSION)-sources.jar
