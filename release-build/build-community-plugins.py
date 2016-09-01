@@ -107,10 +107,11 @@ def main():
                       help="Do not run the testsuite")
 
     (options, args) = parser.parse_args()
+    plugins = []
     if options.plugins is None:
-        plugins = PLUGINS
+        for name in PLUGINS.keys():
+            plugins.append((name, PLUGINS[name]))
     else:
-        plugins = []
         plugins_not_found = 0
         for p in options.plugins:
             tokens = p.split('@')
