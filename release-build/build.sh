@@ -135,7 +135,7 @@ fi
     [ -n "$uja_command" ] && eval $uja_command
 '
 
-(cd $UMBRELLADIR/deps/rabbit && git checkout -- \
+(cd $UMBRELLADIR/deps/rabbitmq_server_release && git checkout -- \
 	packaging/debs/Debian/debian/changelog \
 	packaging/RPMS/Fedora/rabbitmq-server.spec)
 
