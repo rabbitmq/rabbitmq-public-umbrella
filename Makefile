@@ -129,7 +129,7 @@ CHANGELOG_PKG_REV ?= 1
 # The comment for changelog entries.
 CHANGELOG_COMMENT ?= New upstream release
 CHANGELOG_ADDITIONAL_COMMENTS_FILE ?= \
-	$(DEPS_DIR)/rabbitmq_release/packaging/debs/Debian/changelog_comments/additional_changelog_comments_$(VERSION)
+	$(DEPS_DIR)/rabbitmq_server_release/packaging/debs/Debian/changelog_comments/additional_changelog_comments_$(VERSION)
 
 OTP_VERSION ?= 18.3
 STANDALONE_OTP_VERSION ?= 17.5
@@ -160,7 +160,7 @@ release-server: release-server-sources
 release-clients:
 	@:
 
-release-server-sources: $(DEPS_DIR)/rabbitmq_release
+release-server-sources: $(DEPS_DIR)/rabbitmq_server_release
 # Prepare changelog entries.
 	$(exec_verbose) VERSION='$(VERSION)' \
 	CHANGELOG_NAME='$(CHANGELOG_NAME)' \
@@ -169,7 +169,7 @@ release-server-sources: $(DEPS_DIR)/rabbitmq_release
 	CHANGELOG_COMMENT='$(CHANGELOG_COMMENT)' \
 	CHANGELOG_ADDITIONAL_COMMENTS_FILE='$(CHANGELOG_ADDITIONAL_COMMENTS_FILE)' \
 	release-build/deb-changelog-entry.sh \
-	 $(DEPS_DIR)/rabbitmq_release/packaging/debs/Debian/debian/changelog
+	 $(DEPS_DIR)/rabbitmq_server_release/packaging/debs/Debian/debian/changelog
 
 	$(verbose) VERSION='$(VERSION)' \
 	CHANGELOG_NAME='$(CHANGELOG_NAME)' \
@@ -177,12 +177,12 @@ release-server-sources: $(DEPS_DIR)/rabbitmq_release
 	CHANGELOG_PKG_REV='$(CHANGELOG_PKG_REV)' \
 	CHANGELOG_COMMENT='$(CHANGELOG_COMMENT)' \
 	release-build/rpm-changelog-entry.sh \
-	 $(DEPS_DIR)/rabbitmq_release/packaging/RPMS/Fedora/rabbitmq-server.spec
+	 $(DEPS_DIR)/rabbitmq_server_release/packaging/RPMS/Fedora/rabbitmq-server.spec
 
 # Build source archive.
 	$(verbose) rm -rf $(SERVER_PACKAGES_DIR)
 	$(verbose) mkdir -p $(SERVER_PACKAGES_DIR)
-	$(verbose) $(MAKE) -C deps/rabbitmq_release source-dist PACKAGES_DIR=$(abspath $(SERVER_PACKAGES_DIR))
+	$(verbose) $(MAKE) -C deps/rabbitmq_server_release source-dist PACKAGES_DIR=$(abspath $(SERVER_PACKAGES_DIR))
 	$(verbose) rm -rf $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION)
 
 ifneq ($(UNIX_HOST),)
@@ -206,7 +206,7 @@ ifeq ($(UNIX_HOST),localhost)
 release-unix-server-packages:
 	$(exec_verbose) release-build/install-otp.sh "$(OTP_VERSION)"
 	$(verbose) PATH="$$HOME/otp-$(OTP_VERSION)/bin:$$PATH" \
-		$(MAKE) -C $(DEPS_DIR)/rabbitmq_release/packaging \
+		$(MAKE) -C $(DEPS_DIR)/rabbitmq_server_release/packaging \
 		SOURCE_DIST_FILE="$(abspath $(SOURCE_DIST_FILE))" \
 		PACKAGES_DIR="$(abspath $(SERVER_PACKAGES_DIR))" \
 		VERSION="$(VERSION)" \
@@ -215,7 +215,7 @@ release-unix-server-packages:
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
 		--include '*.man.xml' \
 		--exclude '*' \
-		$(DEPS_DIR)/rabbitmq_release/packaging/generic-unix/rabbitmq-server-$(VERSION)/deps/rabbit/docs/ \
+		$(DEPS_DIR)/rabbitmq_server_release/packaging/generic-unix/rabbitmq-server-$(VERSION)/deps/rabbit/docs/ \
 		$(SERVER_PACKAGES_DIR)/man/
 else
 release-unix-server-packages: REMOTE_RELEASE_TMPDIR = rabbitmq-server-$(VERSION)
@@ -224,7 +224,7 @@ release-unix-server-packages:
 		'rm -rf $(REMOTE_RELEASE_TMPDIR); \
 		 mkdir -p $(REMOTE_RELEASE_TMPDIR)'
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
-		$(DEPS_DIR)/rabbitmq_release/packaging \
+		$(DEPS_DIR)/rabbitmq_server_release/packaging \
 		$(SOURCE_DIST_FILE) \
 		release-build/install-otp.sh \
 		$(UNIX_SERVER_SRCS) \
@@ -254,7 +254,7 @@ endif
 release-debian-repository: release-unix-server-packages
 	$(exec_verbose) rm -rf $(DEBIAN_REPO_DIR)
 	$(verbose) mkdir -p $(DEBIAN_REPO_DIR)
-	$(verbose) $(MAKE) -C $(DEPS_DIR)/rabbitmq_release/packaging/debs/apt-repository \
+	$(verbose) $(MAKE) -C $(DEPS_DIR)/rabbitmq_server_release/packaging/debs/apt-repository \
 		PACKAGES_DIR=$(abspath $(SERVER_PACKAGES_DIR)) \
 		REPO_DIR=$(abspath $(DEBIAN_REPO_DIR)) \
 		GNUPG_PATH=$(abspath $(KEYSDIR)/keyring) \
@@ -270,7 +270,7 @@ ifeq ($(MACOSX_HOST),localhost)
 release-macosx-server-packages:
 	$(exec_verbose) release-build/install-otp.sh "$(STANDALONE_OTP_VERSION)"
 	$(verbose) PATH="$$HOME/otp-$(STANDALONE_OTP_VERSION)/bin:$$PATH" \
-		$(MAKE) -C $(DEPS_DIR)/rabbitmq_release/packaging \
+		$(MAKE) -C $(DEPS_DIR)/rabbitmq_server_release/packaging \
 		package-standalone-macosx \
 		SOURCE_DIST_FILE="$(abspath $(SOURCE_DIST_FILE))" \
 		PACKAGES_DIR="$(abspath $(SERVER_PACKAGES_DIR))" \
@@ -282,7 +282,7 @@ release-macosx-server-packages:
 		'rm -rf $(REMOTE_RELEASE_TMPDIR); \
 		 mkdir -p $(REMOTE_RELEASE_TMPDIR)'
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
-		$(DEPS_DIR)/rabbitmq_release/packaging \
+		$(DEPS_DIR)/rabbitmq_server_release/packaging \
 		$(SOURCE_DIST_FILE) \
 		release-build/install-otp.sh \
 		$(MACOSX_HOST):$(REMOTE_RELEASE_TMPDIR)
