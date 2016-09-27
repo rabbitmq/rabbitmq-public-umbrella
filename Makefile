@@ -91,7 +91,6 @@ distclean-subrepos: $(READY_DEPS:%=$(DEPS_DIR)/%+distclean)
 VERSION ?= 0.0.0
 PACKAGES_DIR ?= packages
 SERVER_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-server/v$(VERSION)
-JAVA_CLIENT_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-java-client/v$(VERSION)
 ERLANG_CLIENT_PACKAGES_DIR ?= $(PACKAGES_DIR)/rabbitmq-erlang-client/v$(VERSION)
 CLIENTS_BUILD_DOC_DIR ?= $(PACKAGES_DIR)/clients-build-doc/v$(VERSION)
 DEBIAN_REPO_DIR ?= $(PACKAGES_DIR)/debian
@@ -302,59 +301,6 @@ release-macosx-server-packages:
 endif
 endif
 
-ifneq ($(UNIX_HOST),)
-release-clients: release-java-client
-
-JAVA_CLIENT_SRCS = $(DEPS_DIR)/rabbitmq_java_client \
-		   $(DEPS_DIR)/rabbitmq_codegen
-
-release-java-client: $(DEPS_DIR)/rabbitmq_java_client
-
-ifeq ($(UNIX_HOST),localhost)
-release-java-client:
-	$(exec_verbose) $(MAKE) -C "$(DEPS_DIR)/rabbitmq_java_client" dist
-	$(verbose) rm -rf $(JAVA_CLIENT_PACKAGES_DIR)
-	$(verbose) mkdir -p $(JAVA_CLIENT_PACKAGES_DIR)
-	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
-		$(DEPS_DIR)/rabbitmq_java_client/target/*.jar \
-		$(DEPS_DIR)/rabbitmq_java_client/target/apidocs \
-		$(JAVA_CLIENT_PACKAGES_DIR)
-	$(verbose) mv $(JAVA_CLIENT_PACKAGES_DIR)/apidocs \
-		$(JAVA_CLIENT_PACKAGES_DIR)/rabbitmq-java-client-javadoc-$(VERSION)
-	$(verbose) cd $(JAVA_CLIENT_PACKAGES_DIR) && \
-		zip -qr rabbitmq-java-client-javadoc-$(VERSION).zip \
-		rabbitmq-java-client-javadoc-$(VERSION)
-else
-release-java-client: REMOTE_RELEASE_TMPDIR = rabbitmq-java-client-$(VERSION)
-release-java-client:
-	$(exec_verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
-		'rm -rf $(REMOTE_RELEASE_TMPDIR); \
-		 mkdir -p $(REMOTE_RELEASE_TMPDIR)'
-	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
-		$(JAVA_CLIENT_SRCS) \
-		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)
-	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
-		'$(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)/rabbitmq_java_client" \
-		 dist \
-		 DEPS_DIR=".."'
-	$(verbose) rm -rf $(JAVA_CLIENT_PACKAGES_DIR)
-	$(verbose) mkdir -p $(JAVA_CLIENT_PACKAGES_DIR)
-	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
-		--include '*.jar' \
-		--include 'apidocs' --include 'apidocs/*' \
-		--exclude '*' \
-		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/rabbitmq_java_client/target/ \
-		$(JAVA_CLIENT_PACKAGES_DIR)/
-	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
-		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
-	$(verbose) mv $(JAVA_CLIENT_PACKAGES_DIR)/apidocs \
-		$(JAVA_CLIENT_PACKAGES_DIR)/rabbitmq-java-client-javadoc-$(VERSION)
-	$(verbose) cd $(JAVA_CLIENT_PACKAGES_DIR) && \
-		zip -qr rabbitmq-java-client-javadoc-$(VERSION).zip \
-		rabbitmq-java-client-javadoc-$(VERSION)
-endif
-endif
-
 release-clients: release-erlang-client
 
 release-erlang-client: release-erlang-client-sources
@@ -416,7 +362,7 @@ release-clients-build-doc: $(DEPS_DIR)/rabbitmq_website
 		python driver.py www & \
 		sleep 1; \
 		trap "kill $$!" EXIT; \
-		set -e; for file in build-java-client.html build-erlang-client.html; do \
+		set -e; for file in build-erlang-client.html; do \
 			elinks -dump -no-references -no-numbering \
 			 http://localhost:8191/$$file > \
 			 $(abspath $(CLIENTS_BUILD_DOC_DIR))/$${file%.html}.txt; \
@@ -435,7 +381,6 @@ sign-artifacts:
 		 $(SERVER_PACKAGES_DIR)/*.rpm
 	$(verbose) for p in \
 		$(SERVER_PACKAGES_DIR)/* \
-		$(JAVA_CLIENT_PACKAGES_DIR)/* \
 		$(ERLANG_CLIENT_PACKAGES_DIR)/* \
 	; do \
 		[ -f $$p ] && \
@@ -459,7 +404,6 @@ DEPLOY_HOST ?= localhost
 DEPLOY_PATH ?= /tmp/rabbitmq/extras/releases
 
 DEPLOYMENT_SUBDIRS = $(SERVER_PACKAGES_DIR) \
-		     $(JAVA_CLIENT_PACKAGES_DIR) \
 		     $(ERLANG_CLIENT_PACKAGES_DIR) \
 		     $(DEBIAN_REPO_DIR)
 
@@ -488,11 +432,6 @@ deploy:
 			$(DIR)/ \
 			$(DEPLOY_PATH)/$(patsubst $(PACKAGES_DIR)/%,%,$(DIR))/ \
 	)
-	$(verbose) cd $(DEPLOY_PATH)/rabbitmq-java-client; \
-		 rm -f current-javadoc; \
-		 ln -s \
-		  `cd $(abspath $(JAVA_CLIENT_PACKAGES_DIR)/..) && \
-		   ls -td */rabbitmq-java-client-javadoc-*/ | head -1` current-javadoc
 	$(verbose) cd $(DEPLOY_PATH)/rabbitmq-server; \
 		 rm -f current; \
 		 ln -s v$(VERSION) current
@@ -505,12 +444,6 @@ deploy:
 			$(DIR)/ \
 			$(DEPLOY_HOST):$(DEPLOY_PATH)/$(patsubst $(PACKAGES_DIR)/%,%,$(DIR))/ \
 	)
-	$(verbose) ssh $(SSH_OPTS) $(DEPLOY_HOST) \
-		"(cd $(DEPLOY_PATH)/rabbitmq-java-client; \
-		 rm -f current-javadoc; \
-		 ln -s \
-		  `cd $(abspath $(JAVA_CLIENT_PACKAGES_DIR)/..) && \
-		   ls -td */rabbitmq-java-client-javadoc-*/ | head -1` current-javadoc)"
 	$(verbose) ssh $(SSH_OPTS) $(DEPLOY_HOST) \
 		'(cd $(DEPLOY_PATH)/rabbitmq-server; \
 		 rm -f current; \
