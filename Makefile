@@ -319,7 +319,7 @@ release-java-client:
 	$(verbose) mkdir -p $(JAVA_CLIENT_PACKAGES_DIR)
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
 		$(DEPS_DIR)/rabbitmq_java_client/target/*.jar \
-		$(DEPS_DIR)/rabbitmq_java_client/target/apidocs \
+		$(DEPS_DIR)/rabbitmq_java_client/target/site/apidocs \
 		$(JAVA_CLIENT_PACKAGES_DIR)
 	$(verbose) mv $(JAVA_CLIENT_PACKAGES_DIR)/apidocs \
 		$(JAVA_CLIENT_PACKAGES_DIR)/rabbitmq-java-client-javadoc-$(VERSION)
