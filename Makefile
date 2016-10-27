@@ -319,7 +319,9 @@ release-erlang-client: release-erlang-client-package
 
 ifeq ($(UNIX_HOST),localhost)
 release-erlang-client-package: release-erlang-client-sources
-	$(exec_verbose) $(MAKE) -C "$(DEPS_DIR)/amqp_client" \
+	$(exec_verbose) release-build/install-otp.sh "$(OTP_VERSION)"
+	$(verbose) PATH="$$HOME/otp-$(OTP_VERSION)/bin:$$PATH" \
+		$(MAKE) -C "$(DEPS_DIR)/amqp_client" \
 		dist docs \
 		VERSION="$(VERSION)" \
 		PACKAGES_DIR=$(abspath $(ERLANG_CLIENT_PACKAGES_DIR))
@@ -337,10 +339,14 @@ release-erlang-client-package: release-erlang-client-sources
 		 mkdir -p $(REMOTE_RELEASE_TMPDIR)'
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
 		$(ERLANG_CLIENT_PACKAGES_DIR)/amqp_client-$(VERSION)-src.tar.xz \
+		release-build/install-otp.sh \
 		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)
 	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
-		'cd $(REMOTE_RELEASE_TMPDIR) && \
+		'chmod 755 $(REMOTE_RELEASE_TMPDIR)/install-otp.sh && \
+		 $(REMOTE_RELEASE_TMPDIR)/install-otp.sh '$(OTP_VERSION)' && \
+		 cd $(REMOTE_RELEASE_TMPDIR) && \
 		 xzcat amqp_client-$(VERSION)-src.tar.xz | tar -xf - && \
+		 PATH="$$HOME/otp-$(OTP_VERSION)/bin:$$PATH" \
 		 $(REMOTE_MAKE) -C "amqp_client-$(VERSION)-src" dist docs \
 		  VERSION=$(VERSION) \
 		  V=$(V)'
