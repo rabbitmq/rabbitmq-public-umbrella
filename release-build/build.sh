@@ -136,7 +136,7 @@ fi
     DEBIAN_FRONTEND=noninteractive ; export DEBIAN_FRONTEND
     apt-get -y update
     apt-get -y dist-upgrade
-    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm tofrodos zip unzip ant $java_package htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev erlang-nox erlang-src python-pexpect openssl s3cmd fakeroot git-core m4 xmlto mercurial xsltproc nsis
+    apt-get -y install ncurses-dev rsync cdbs elinks python-simplejson rpm tofrodos zip unzip ant $java_package htmldoc plotutils transfig graphviz docbook-utils texlive-fonts-recommended gs-gpl python2.5 erlang-dev erlang-nox erlang-src=1:18.3-1 python-pexpect openssl s3cmd fakeroot git-core m4 xmlto mercurial xsltproc nsis
     [ -n "$uja_command" ] && eval $uja_command
 '
 
