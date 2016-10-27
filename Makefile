@@ -343,14 +343,15 @@ release-java-client:
 	$(verbose) mkdir -p $(JAVA_CLIENT_PACKAGES_DIR)
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
 		--include '*.jar' \
-		--include 'apidocs' --include 'apidocs/*' \
+		--include 'site' --include 'site/apidocs' --include 'site/apidocs/*' \
 		--exclude '*' \
 		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/rabbitmq_java_client/target/ \
 		$(JAVA_CLIENT_PACKAGES_DIR)/
 	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
 		'rm -rf $(REMOTE_RELEASE_TMPDIR)'
-	$(verbose) mv $(JAVA_CLIENT_PACKAGES_DIR)/apidocs \
+	$(verbose) mv $(JAVA_CLIENT_PACKAGES_DIR)/site/apidocs \
 		$(JAVA_CLIENT_PACKAGES_DIR)/rabbitmq-java-client-javadoc-$(VERSION)
+	$(verbose) rmdir $(JAVA_CLIENT_PACKAGES_DIR)/site
 	$(verbose) cd $(JAVA_CLIENT_PACKAGES_DIR) && \
 		zip -qr rabbitmq-java-client-javadoc-$(VERSION).zip \
 		rabbitmq-java-client-javadoc-$(VERSION)
