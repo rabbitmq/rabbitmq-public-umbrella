@@ -557,11 +557,6 @@ deploy:
 			$(DIR)/ \
 			$(DEPLOY_PATH)/$(patsubst $(PACKAGES_DIR)/%,%,$(DIR))/ \
 	)
-	$(verbose) cd $(DEPLOY_PATH)/rabbitmq-java-client; \
-		 rm -f current-javadoc; \
-		 ln -s \
-		  `cd $(abspath $(JAVA_CLIENT_PACKAGES_DIR)/..) && \
-		   ls -td */rabbitmq-java-client-javadoc-*/ | head -1` current-javadoc
 	$(verbose) cd $(DEPLOY_PATH)/rabbitmq-server; \
 		 rm -f current; \
 		 ln -s v$(VERSION) current
@@ -574,12 +569,6 @@ deploy:
 			$(DIR)/ \
 			$(DEPLOY_HOST):$(DEPLOY_PATH)/$(patsubst $(PACKAGES_DIR)/%,%,$(DIR))/ \
 	)
-	$(verbose) ssh $(SSH_OPTS) $(DEPLOY_HOST) \
-		"(cd $(DEPLOY_PATH)/rabbitmq-java-client; \
-		 rm -f current-javadoc; \
-		 ln -s \
-		  `cd $(abspath $(JAVA_CLIENT_PACKAGES_DIR)/..) && \
-		   ls -td */rabbitmq-java-client-javadoc-*/ | head -1` current-javadoc)"
 	$(verbose) ssh $(SSH_OPTS) $(DEPLOY_HOST) \
 		'(cd $(DEPLOY_PATH)/rabbitmq-server; \
 		 rm -f current; \
