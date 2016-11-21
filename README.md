@@ -20,7 +20,7 @@ cases for historical reasons:
  * `rabbit` is RabbitMQ server
  * `amqp_client` is RabbitMQ Erlang client (AMQP 0-9-1)
  * `rabbit_common` is a library shared by the above
- * `rabbitmq_test` contains Erlang tests for the server
+ * `rabbitmq_server_release` contains release automation and packaging bits
  * `rabbitmq_java_client` also contains integration test suites for the server
 
 ## Running RabbitMQ from Source
@@ -36,33 +36,18 @@ If you need to access log files, see under `$TMPDIR/rabbit*`.
 
 ### Integration Tests
 
-To run only integration tests, make sure you have JDK 7+ and `ant` installed.
-Then run a broker node in one shell with
-
-    cd deps/rabbit
-    make run-broker
-
-and run integration test suites with:
+Integration tests require that you have JDK 7+ and Maven 3.x installed.
+To run all test suites with:
 
     cd deps/rabbitmq_java_client
-    ant test-functional
-
-to run all Java-based test suites (this will take some 15 minutes
-on a modern MBP), use
-
-    ant test-suite
-
-### Unit Tests
-
-    cd deps/rabbitmq_test
-    make unit
+    mvn verify
 
 ### Full Server Tests
 
 To run all server tests, use
 
-    cd deps/rabbitmq_test
-    make full
+    cd deps/rabbit
+    make tests
 
 Note that the above can take up to 45 minutes.
 
@@ -82,7 +67,7 @@ directory under `deps` and run `make`.
 
 To start RabbitMQ from a plugin directory, use `make run-broker`.
 
-To run a node with multiple plugins, cd into `deps/rabbit` (the server), and run
+To run a node with multiple plugins, cd into `deps/rabbitmq_server_release`, and run
 it with `PLUGINS` listing the plugins you need:
 
     make run-broker PLUGINS='rabbitmq_management rabbitmq_consistent_hash_exchange'
