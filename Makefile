@@ -182,7 +182,9 @@ release-server-sources: $(DEPS_DIR)/rabbitmq_server_release
 # Build source archive.
 	$(verbose) rm -rf $(SERVER_PACKAGES_DIR)
 	$(verbose) mkdir -p $(SERVER_PACKAGES_DIR)
-	$(verbose) $(MAKE) -C deps/rabbitmq_server_release source-dist PACKAGES_DIR=$(abspath $(SERVER_PACKAGES_DIR))
+	$(verbose) $(MAKE) -C deps/rabbitmq_server_release source-dist \
+	 PACKAGES_DIR=$(abspath $(SERVER_PACKAGES_DIR)) \
+	 PROJECT_VERSION=$(VERSION)
 	$(verbose) rm -rf $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION)
 
 ifneq ($(UNIX_HOST),)
