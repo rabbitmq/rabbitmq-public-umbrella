@@ -179,7 +179,9 @@ release-server-sources: $(DEPS_DIR)/rabbitmq_server_release
 # Build source archive.
 	$(verbose) rm -rf $(SERVER_PACKAGES_DIR)
 	$(verbose) mkdir -p $(SERVER_PACKAGES_DIR)
-	$(verbose) $(MAKE) -C deps/rabbitmq_server_release source-dist PACKAGES_DIR=$(abspath $(SERVER_PACKAGES_DIR))
+	$(verbose) $(MAKE) -C deps/rabbitmq_server_release source-dist \
+	 PACKAGES_DIR=$(abspath $(SERVER_PACKAGES_DIR)) \
+	 PROJECT_VERSION=$(VERSION)
 	$(verbose) rm -rf $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION)
 
 ifneq ($(UNIX_HOST),)
@@ -311,7 +313,8 @@ release-erlang-client-sources: release-clients-build-doc
 	$(verbose) mkdir -p $(ERLANG_CLIENT_PACKAGES_DIR)
 	$(verbose) $(MAKE) -C "$(DEPS_DIR)/amqp_client" source-dist \
 		BUILD_DOC="$(abspath $(CLIENTS_BUILD_DOC_DIR)/build-erlang-client.txt)" \
-		PACKAGES_DIR=$(abspath $(ERLANG_CLIENT_PACKAGES_DIR))
+		PACKAGES_DIR=$(abspath $(ERLANG_CLIENT_PACKAGES_DIR)) \
+		PROJECT_VERSION=$(VERSION)
 	$(verbose) rm -rf $(ERLANG_CLIENT_PACKAGES_DIR)/amqp_client-$(VERSION)-src
 
 ifneq ($(UNIX_HOST),)
@@ -323,7 +326,7 @@ release-erlang-client-package: release-erlang-client-sources
 	$(verbose) PATH="$$HOME/otp-$(OTP_VERSION)/bin:$$PATH" \
 		$(MAKE) -C "$(DEPS_DIR)/amqp_client" \
 		dist docs \
-		VERSION="$(VERSION)" \
+		PROJECT_VERSION="$(VERSION)" \
 		PACKAGES_DIR=$(abspath $(ERLANG_CLIENT_PACKAGES_DIR))
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
 		$(DEPS_DIR)/amqp_client/plugins/ \
@@ -348,7 +351,7 @@ release-erlang-client-package: release-erlang-client-sources
 		 xzcat amqp_client-$(VERSION)-src.tar.xz | tar -xf - && \
 		 PATH="$$HOME/otp-$(OTP_VERSION)/bin:$$PATH" \
 		 $(REMOTE_MAKE) -C "amqp_client-$(VERSION)-src" dist docs \
-		  VERSION=$(VERSION) \
+		  PROJECT_VERSION=$(VERSION) \
 		  V=$(V)'
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
 		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)/amqp_client-$(VERSION)-src/plugins/ \
