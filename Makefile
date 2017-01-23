@@ -382,12 +382,6 @@ release-clients-build-doc: $(DEPS_DIR)/rabbitmq_website
 .PHONY: sign-artifacts verify-signatures
 
 sign-artifacts:
-	$(exec_verbopse) python util/nopassphrase.py \
-		rpm --addsign \
-		 --define '_signature gpg' \
-		 --define '_gpg_path $(KEYSDIR)/keyring/.gnupg' \
-		 --define '_gpg_name $(SIGNING_KEY)' \
-		 $(SERVER_PACKAGES_DIR)/*.rpm
 	$(verbose) for p in \
 		$(SERVER_PACKAGES_DIR)/* \
 		$(ERLANG_CLIENT_PACKAGES_DIR)/* \
