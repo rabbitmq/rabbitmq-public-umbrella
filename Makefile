@@ -129,7 +129,7 @@ CHANGELOG_ADDITIONAL_COMMENTS_FILE ?= \
 	$(DEPS_DIR)/rabbitmq_server_release/packaging/debs/Debian/changelog_comments/additional_changelog_comments_$(VERSION)
 
 OTP_VERSION ?= 18.3
-STANDALONE_OTP_VERSION ?= 18.3
+STANDALONE_OTP_VERSION ?= 19.2.3
 
 SOURCE_DIST_FILE = $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.xz
 
