@@ -54,12 +54,6 @@ SCRIPTDIR=$(dirname $0)
 # the grandparent-directory of this script.
 UMBRELLADIR=
 
-# OTP version to build against
-OTP_VERSION="18.3"
-
-# OTP version for the standalone package
-STANDALONE_OTP_VERSION="18.3"
-
 # Imitate make-style variable settings as arguments
 while [[ $# -gt 0 ]] ; do
   declare "$1"
