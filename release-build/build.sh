@@ -58,7 +58,7 @@ UMBRELLADIR=
 OTP_VERSION="18.3"
 
 # OTP version for the standalone package
-STANDALONE_OTP_VERSION="18.3"
+STANDALONE_OTP_VERSION="19.2.3"
 
 # Imitate make-style variable settings as arguments
 while [[ $# -gt 0 ]] ; do
