@@ -131,7 +131,7 @@ CHANGELOG_COMMENT ?= New upstream release
 CHANGELOG_ADDITIONAL_COMMENTS_FILE ?= \
 	$(DEPS_DIR)/rabbitmq_server_release/packaging/debs/Debian/changelog_comments/additional_changelog_comments_$(VERSION)
 
-OTP_VERSION ?= 18.3
+OTP_VERSION ?= R16B03
 STANDALONE_OTP_VERSION ?= 17.5
 
 SOURCE_DIST_FILE = $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.xz

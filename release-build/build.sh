@@ -59,7 +59,7 @@ SCRIPTDIR=$(dirname $0)
 UMBRELLADIR=
 
 # OTP version to build against
-OTP_VERSION="18.3"
+OTP_VERSION="R16B03"
 
 # OTP version for the standalone package
 STANDALONE_OTP_VERSION="17.5"
