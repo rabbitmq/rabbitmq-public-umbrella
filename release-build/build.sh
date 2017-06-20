@@ -116,6 +116,10 @@ fi
         java_package=openjdk-6-jdk
         uja_command="update-java-alternatives -s java-1.6.0-openjdk"
         ;;
+    8.*)
+        java_package=openjdk-7-jdk
+        uja_command="update-java-alternatives -s java-1.7.0-openjdk-amd64"
+        ;;
     *)
         echo "Not sure which JDK package to install"
         exit 1
