@@ -130,6 +130,7 @@ CHANGELOG_ADDITIONAL_COMMENTS_FILE ?= \
 
 OTP_VERSION ?= 18.3
 STANDALONE_OTP_VERSION ?= 19.2.3
+ELIXIR_VERSION ?= 1.4.5
 
 SOURCE_DIST_FILE = $(SERVER_PACKAGES_DIR)/rabbitmq-server-$(VERSION).tar.xz
 
@@ -204,7 +205,9 @@ UNIX_SERVER_VARS += $(SIGNING_VARS)
 ifeq ($(UNIX_HOST),localhost)
 release-unix-server-packages:
 	$(exec_verbose) release-build/install-otp.sh "$(OTP_VERSION)"
-	$(verbose) PATH="$$HOME/otp-$(OTP_VERSION)/bin:$$PATH" \
+	$(exec_verbose) PATH="$$HOME/otp-$(OTP_VERSION)/bin:$$PATH" \
+		release-build/install-elixir.sh "$(ELIXIR_VERSION)"
+	$(verbose) PATH="$$HOME/otp-$(OTP_VERSION)/bin:$$HOME/elixir-$(ELIXIR_VERSION)/bin:$$PATH" \
 		$(MAKE) -C $(DEPS_DIR)/rabbitmq_server_release/packaging \
 		SOURCE_DIST_FILE="$(abspath $(SOURCE_DIST_FILE))" \
 		PACKAGES_DIR="$(abspath $(SERVER_PACKAGES_DIR))" \
@@ -225,13 +228,15 @@ release-unix-server-packages:
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
 		$(DEPS_DIR)/rabbitmq_server_release/packaging \
 		$(SOURCE_DIST_FILE) \
-		release-build/install-otp.sh \
+		release-build/install-*.sh \
 		$(UNIX_SERVER_SRCS) \
 		$(UNIX_HOST):$(REMOTE_RELEASE_TMPDIR)
 	$(verbose) ssh $(SSH_OPTS) $(UNIX_HOST) \
-		'chmod 755 $(REMOTE_RELEASE_TMPDIR)/install-otp.sh && \
+		'chmod 755 $(REMOTE_RELEASE_TMPDIR)/install-*.sh && \
 		 $(REMOTE_RELEASE_TMPDIR)/install-otp.sh '$(OTP_VERSION)' && \
 		 PATH="$$HOME/otp-$(OTP_VERSION)/bin:$$PATH" \
+		 $(REMOTE_RELEASE_TMPDIR)/install-elixir.sh '$(ELIXIR_VERSION)' && \
+		 PATH="$$HOME/otp-$(OTP_VERSION)/bin:$$PATH:$$HOME/elixir-$(ELIXIR_VERSION)/bin" \
 		 $(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)/packaging" \
 		 SOURCE_DIST_FILE="$$HOME/$(REMOTE_RELEASE_TMPDIR)/$(notdir $(SOURCE_DIST_FILE))" \
 		 PACKAGES_DIR="PACKAGES" \
@@ -268,7 +273,9 @@ release-macosx-server-packages: release-server-sources
 ifeq ($(MACOSX_HOST),localhost)
 release-macosx-server-packages:
 	$(exec_verbose) release-build/install-otp.sh "$(STANDALONE_OTP_VERSION)"
-	$(verbose) PATH="$$HOME/otp-$(STANDALONE_OTP_VERSION)/bin:$$PATH" \
+	$(exec_verbose) PATH="$$HOME/otp-$(STANDALONE_OTP_VERSION)/bin:$$PATH" \
+		release-build/install-elixir.sh "$(ELIXIR_VERSION)"
+	$(verbose) PATH="$$HOME/otp-$(STANDALONE_OTP_VERSION)/bin:$$HOME/elixir-$(ELIXIR_VERSION)/bin:$$PATH" \
 		$(MAKE) -C $(DEPS_DIR)/rabbitmq_server_release/packaging \
 		package-standalone-macosx \
 		SOURCE_DIST_FILE="$(abspath $(SOURCE_DIST_FILE))" \
@@ -283,12 +290,14 @@ release-macosx-server-packages:
 	$(verbose) $(RSYNC) $(RSYNC_FLAGS) \
 		$(DEPS_DIR)/rabbitmq_server_release/packaging \
 		$(SOURCE_DIST_FILE) \
-		release-build/install-otp.sh \
+		release-build/install-*.sh \
 		$(MACOSX_HOST):$(REMOTE_RELEASE_TMPDIR)
 	$(verbose) ssh $(SSH_OPTS) $(MACOSX_HOST) \
-		'chmod 755 $(REMOTE_RELEASE_TMPDIR)/install-otp.sh && \
+		'chmod 755 $(REMOTE_RELEASE_TMPDIR)/install-*.sh && \
 		 $(REMOTE_RELEASE_TMPDIR)/install-otp.sh '$(STANDALONE_OTP_VERSION)' && \
 		 PATH="$$HOME/otp-$(STANDALONE_OTP_VERSION)/bin:$$PATH" \
+		 $(REMOTE_RELEASE_TMPDIR)/install-elixir.sh '$(ELIXIR_VERSION)' && \
+		 PATH="$$HOME/otp-$(STANDALONE_OTP_VERSION)/bin:$$HOME/elixir-$(ELIXIR_VERSION)/bin:$$PATH" \
 		 $(REMOTE_MAKE) -C "$(REMOTE_RELEASE_TMPDIR)/packaging" \
 		 package-standalone-macosx \
 		 SOURCE_DIST_FILE="$$HOME/$(REMOTE_RELEASE_TMPDIR)/$(notdir $(SOURCE_DIST_FILE))" \
