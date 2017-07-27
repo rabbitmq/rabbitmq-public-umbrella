@@ -74,7 +74,7 @@ PLUGINS = {
 DEFAULT_OTP_VERSIONS = {
         'a_long_time_ago': 'R13B03',
         '3.6.x': 'R16B03',
-        '3.7.x': '18.3',
+        '3.7.x': '19.2',
 }
 
 BUILD_DIR = "/var/tmp/plugins-build/"
