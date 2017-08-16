@@ -53,7 +53,7 @@ set -e -x
 
 TARGETS=deploy
 if [ "$DEPLOY_TARGET" = 'deploy-live' ]; then
-	TARGETS="$TARGETS deploy-maven"
+	TARGETS="$TARGETS"
 fi
 
 # Finally, deploy
