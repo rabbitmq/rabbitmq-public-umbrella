@@ -36,11 +36,11 @@ If you need to access log files, see under `$TMPDIR/rabbit*`.
 
 ### Integration Tests
 
-Integration tests require that you have JDK 7+ and Maven 3.x installed.
+Integration tests require that you have JDK *+ and Maven 3.x installed.
 To run all test suites with:
 
     cd deps/rabbitmq_java_client
-    mvn verify
+    make tests
 
 ### Full Server Tests
 
@@ -49,7 +49,11 @@ To run all server tests, use
     cd deps/rabbit
     make tests
 
-Note that the above can take up to 45 minutes.
+Note that the above can take up to 2 hours depending on the hardware.
+
+To run a subset of the most essential tests:
+
+    make ct-fast
 
 ### Sub-projects
 
@@ -72,6 +76,10 @@ it with `PLUGINS` listing the plugins you need:
 
     make run-broker PLUGINS='rabbitmq_management rabbitmq_consistent_hash_exchange'
 
+To run a node built from source with multiple plugins and a config file, use
+
+    make run-broker PLUGINS='rabbitmq_management rabbitmq_consistent_hash_exchange' RABBITMQ_CONFIG_FILE=/path/to/config/file
+
 
 ## Variables That Can Be Set When Building
 
@@ -88,6 +96,16 @@ order to configure builds.
 
 
 ## Packaging
+
+### Consider Using a Snapshot
+
+Before building a distribution from source, consider using [a snapshot build](http://www.rabbitmq.com/snapshots.html)
+instead. For contributions that were merged into one of the maintained release
+branches, there should typically be no reason to build from source as snapshot
+releases will be published in the next 15 minutes to several hours (depending on
+the change and how busy the pipeline is).
+
+### Producing a Distribution from Source
 
 The distro-specific packaging targets are now integrated into the 
 top-level build system. You should need to do no more than:
