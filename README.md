@@ -110,7 +110,7 @@ the change and how busy the pipeline is).
 The distro-specific packaging targets are now integrated into the 
 top-level build system. You should need to do no more than:
 
-    make VERSION=<Version> UNOFFICIAL_RELEASE=1 dist
+    make VERSION=3.7.0.snapshot.123 RABBIT_VSN=3.7.0.snapshot.123 UNOFFICIAL_RELEASE=1 dist
 
 to build debs and rpms, along with the source and binary tarballs. If
 you just want to build one package, you can use the targets
