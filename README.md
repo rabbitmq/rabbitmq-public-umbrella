@@ -25,11 +25,31 @@ cases for historical reasons:
 
 ## Running RabbitMQ from Source
 
-From `deps/rabbit`:
+To run a RabbitMQ node built from source without any plugins, change to the `deps/rabbit`
+directory and run:
 
     make run-broker
 
 If you need to access log files, see under `$TMPDIR/rabbit*`.
+
+
+
+## Running RabbitMQ with Plugins
+
+To build a package, and all its dependencies, cd into the package
+directory under `deps` and run `make`.
+
+To start RabbitMQ from a plugin directory, use `make run-broker`.
+
+To run a node with multiple plugins, cd into `deps/rabbitmq_server_release`, and run
+it with `PLUGINS` listing the plugins you need:
+
+    make run-broker PLUGINS='rabbitmq_management rabbitmq_consistent_hash_exchange'
+
+To run a node built from source with multiple plugins and a config file, use
+
+    make run-broker PLUGINS='rabbitmq_management rabbitmq_consistent_hash_exchange' RABBITMQ_CONFIG_FILE=/path/to/config/file
+
 
 
 ## Running Tests
@@ -63,22 +83,6 @@ To run tests for a sub-project, run
 
 from its directory.
 
-
-## Running RabbitMQ with Plugins
-
-To build a package, and all its dependencies, cd into the package
-directory under `deps` and run `make`.
-
-To start RabbitMQ from a plugin directory, use `make run-broker`.
-
-To run a node with multiple plugins, cd into `deps/rabbitmq_server_release`, and run
-it with `PLUGINS` listing the plugins you need:
-
-    make run-broker PLUGINS='rabbitmq_management rabbitmq_consistent_hash_exchange'
-
-To run a node built from source with multiple plugins and a config file, use
-
-    make run-broker PLUGINS='rabbitmq_management rabbitmq_consistent_hash_exchange' RABBITMQ_CONFIG_FILE=/path/to/config/file
 
 
 ## Variables That Can Be Set When Building
