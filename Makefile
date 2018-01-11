@@ -66,10 +66,15 @@ tag: $(abspath .)+tag $(READY_DEPS:%=$(DEPS_DIR)/%+tag)
 	git tag $(TAG) && \
 	echo
 
-clean:: clean-subrepos
+clean:: clean-subrepos clean-3rd-party-repos
 
 clean-subrepos: $(READY_DEPS:%=$(DEPS_DIR)/%+clean)
 	@:
+
+THIRD_PARTY_DEPS_DIRS = $(filter-out $(patsubst %,$(DEPS_DIR)/%,$(READY_DEPS)),$(wildcard $(DEPS_DIR)/*))
+
+clean-3rd-party-repos:
+	$(verbose) rm -rf $(THIRD_PARTY_DEPS_DIRS)
 
 %+clean:
 	-$(exec_verbose) $(MAKE) -C $* clean
