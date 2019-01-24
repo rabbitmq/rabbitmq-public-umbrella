@@ -73,8 +73,13 @@ clean-subrepos: $(READY_DEPS:%=$(DEPS_DIR)/%+clean)
 
 THIRD_PARTY_DEPS_DIRS = $(filter-out $(patsubst %,$(DEPS_DIR)/%,$(READY_DEPS)),$(wildcard $(DEPS_DIR)/*))
 
+ifeq ($(DEPS_DIR),$(CURDIR)/deps)
 clean-3rd-party-repos:
 	$(verbose) rm -rf $(THIRD_PARTY_DEPS_DIRS)
+else
+clean-3rd-party-repos:
+	@:
+endif
 
 %+clean:
 	-$(exec_verbose) $(MAKE) -C $* clean
