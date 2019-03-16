@@ -19,7 +19,7 @@ KEYSDIR=
 # The base URL of the rabbitmq website where the results of the build
 # will actually be available.  Optional, defaults to the rabbitmq.com
 # site
-REAL_WEB_URL=http://www.rabbitmq.com/
+REAL_WEB_URL=https://www.rabbitmq.com/
 
 # Mac OS X host used to produce OS X-specific artifacts
 MAC_USERHOST=
