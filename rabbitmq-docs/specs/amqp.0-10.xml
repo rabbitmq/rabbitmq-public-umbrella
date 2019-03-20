@@ -98,11 +98,11 @@
 
   Links to full AMQP specification:
   =================================
-  http://www.envoytech.org/spec/amq/
-  http://www.iona.com/opensource/amqp/
-  http://www.redhat.com/solutions/specifications/amqp/
-  http://www.twiststandards.org/tiki-index.php?page=AMQ
-  http://www.imatix.com/amqp
+  https://www.envoytech.org/spec/amq/
+  /YoadZ/opensource/amqp/
+  https://www.redhat.com/solutions/specifications/amqp/
+  http://twiststandards.org/tiki-index.php?page=AMQ
+  https://www.imatix.com/amqp
 -->
 
 <!--
@@ -123,7 +123,7 @@
 
 <!DOCTYPE amqp SYSTEM "amqp.dtd">
 
-<amqp xmlns="http://www.amqp.org/schema/amqp.xsd"
+<amqp xmlns="https://www.amqp.org/schema/amqp.xsd"
     major="0" minor="10" port="5672">
 
   <!--
@@ -888,7 +888,7 @@
 
     <doc>
       1) The list-of-pairs representation is sorted ascending (as defined by RFC 1982
-      (http://www.ietf.org/rfc/rfc1982.txt) ) by the first elements of each pair.
+      (https://www.ietf.org/rfc/rfc1982.txt) ) by the first elements of each pair.
     </doc>
 
     <doc>
@@ -1450,7 +1450,7 @@
         tcp_prot_addr     = tcp_id tcp_addr
         tcp_id            = "tcp:" | ""
         tcp_addr          = [host [":" port] ]
-        host              = <as per http://www.ietf.org/rfc/rfc3986.txt>
+        host              = <as per https://www.ietf.org/rfc/rfc3986.txt>
         port              = number]]>
       </doc>
     </domain>
