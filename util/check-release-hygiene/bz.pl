@@ -1,13 +1,13 @@
 #!/usr/bin/perl -w
 
-# http://mxr.mozilla.org/bugzilla/source/contrib/bz_webservice_demo.pl?raw=1
+# https://mxr.mozilla.org/bugzilla/source/contrib/bz_webservice_demo.pl?raw=1
 
 # -*- Mode: perl; indent-tabs-mode: nil -*-
 #
 # The contents of this file are subject to the Mozilla Public
 # License Version 1.1 (the “License”); you may not use this file
 # except in compliance with the License. You may obtain a copy of
-# the License at http://www.mozilla.org/MPL/
+# the License at https://www.mozilla.org/MPL/
 #
 # Software distributed under the License is distributed on an “AS
 # IS” basis, WITHOUT WARRANTY OF ANY KIND, either express or
@@ -90,7 +90,7 @@ Print a short help message and exit.
 =item --uri
 
 URI to Bugzilla's C<xmlrpc.cgi> script, along the lines of
-C<http://your.bugzilla.installation/path/to/bugzilla/xmlrpc.cgi>.
+C<https://your.bugzilla.installation/path/to/bugzilla/xmlrpc.cgi>.
 
 =item --login
 
@@ -178,7 +178,7 @@ my $cookie_jar =
 
 Using the XMLRPC::Lite class, you set up a proxy, as shown in this script.
 Bugzilla's XMLRPC URI ends in C<xmlrpc.cgi>, so your URI looks along the lines
-of C<http://your.bugzilla.installation/path/to/bugzilla/xmlrpc.cgi>.
+of C<https://your.bugzilla.installation/path/to/bugzilla/xmlrpc.cgi>.
 
 =cut
 
@@ -231,7 +231,7 @@ if ($fetch_extension_info) {
 =head3 Using Bugzilla's Environment Authentication
 
 Use a
-C<http://login:password@your.bugzilla.installation/path/to/bugzilla/xmlrpc.cgi>
+C<https://login:password@your.bugzilla.installation/path/to/bugzilla/xmlrpc.cgi>
 style URI.
 You don't log out if you're using this kind of authentication.
 

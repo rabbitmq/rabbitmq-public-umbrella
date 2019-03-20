@@ -103,7 +103,7 @@ order to configure builds.
 
 ### Consider Using a Snapshot
 
-Before building a distribution from source, consider using [a snapshot build](http://www.rabbitmq.com/snapshots.html)
+Before building a distribution from source, consider using [a snapshot build](https://www.rabbitmq.com/snapshots.html)
 instead. For contributions that were merged into one of the maintained release
 branches, there should typically be no reason to build from source as snapshot
 releases will be published in the next 15 minutes to several hours (depending on
