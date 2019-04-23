@@ -49,6 +49,12 @@ status: $(abspath .)+status $(READY_DEPS:%=$(DEPS_DIR)/%+status)
 	git status -s && \
 	echo
 
+branch: $(abspath .)+branch $(READY_DEPS:%=$(DEPS_DIR)/%+branch)
+	@:
+
+%+branch:
+	@cd $* && pwd && git branch && echo
+
 push: $(abspath .)+push $(READY_DEPS:%=$(DEPS_DIR)/%+push)
 	@:
 
