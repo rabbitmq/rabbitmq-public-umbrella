@@ -475,3 +475,15 @@ deploy:
 		 rm -f current; \
 		 ln -s v$(VERSION) current)'
 endif
+
+# https://hub.docker.com/r/pivotalrabbitmq/rabbitmq-server-buildenv/tags
+DOCKER_IMAGE ?= pivotalrabbitmq/rabbitmq-server-buildenv:linux-erlang-22.0
+workspace:
+	@docker run \
+	  --interactive --tty \
+	  --volume $(CURDIR):/workspace \
+	  --workdir /workspace \
+	  --publish 15672:15672 \
+	  --publish 15692:15692 \
+	  $(DOCKER_IMAGE) \
+	  bash
