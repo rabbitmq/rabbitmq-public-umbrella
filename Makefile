@@ -72,6 +72,22 @@ tag: $(abspath .)+tag $(READY_DEPS:%=$(DEPS_DIR)/%+tag)
 	git tag $(TAG) && \
 	echo
 
+update-copyright: $(abspath .)+update-copyright $(READY_DEPS:%=$(DEPS_DIR)/%+update-copyright)
+	@:
+
+UPDATE_COPYRIGHT_SCRIPT = $(CURDIR)/update-copyright.sh
+
+# Set DO_COMMIT=yes on the make(1) command line to tell the script to
+# commit the result.
+%+update-copyright:
+	$(gen_verbose) cd $*; \
+	(git diff --quiet && \
+	 git diff --quiet --cached && \
+	 $(UPDATE_COPYRIGHT_SCRIPT)) || \
+	(echo "$(notdir $*): Please commit your local changes first" 1>&2; \
+	 echo; \
+	 exit 1)
+
 clean:: clean-subrepos clean-3rd-party-repos
 
 clean-subrepos: $(READY_DEPS:%=$(DEPS_DIR)/%+clean)
