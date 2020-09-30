@@ -1,15 +1,17 @@
-# Rabbit Public Umbrella
+# RabbitMQ Public Umbrella
 
 This repository makes it easier to work on multiple RabbitMQ sub-projects
 at once. It is no longer a requirement for working on an individual plugin
-(as of the 3.6.0 cycle) thanks to `erlang.mk`.
+thanks to `erlang.mk`.
 
 
 ## Initial Clone
 
 After you clone the umbrella for the first time, use
 
-    make co
+``` shell
+make co -j 32
+```
 
 to clone all dependencies. They will be checked out under `deps`.
 
@@ -28,9 +30,20 @@ cases for historical reasons:
 To run a RabbitMQ node built from source without any plugins, change to the `deps/rabbit`
 directory and run:
 
-    make run-broker
+``` shell
+make run-broker
+```
 
-If you need to access log files, see under `$TMPDIR/rabbit*`.
+If you need to access log files, use
+
+``` shell
+rabbitmqctl log_tail -N 300
+
+# streams logs to standard output
+# rabbitmqctl log_tail_stream
+```
+
+or see node data directories under `$TMPDIR/rabbit*`.
 
 
 
@@ -44,12 +57,15 @@ To start RabbitMQ from a plugin directory, use `make run-broker`.
 To run a node with multiple plugins, cd into `deps/rabbitmq_server_release`, and run
 it with `PLUGINS` listing the plugins you need:
 
-    make run-broker PLUGINS='rabbitmq_management rabbitmq_consistent_hash_exchange'
+``` shell
+make run-broker PLUGINS='rabbitmq_management rabbitmq_consistent_hash_exchange'
+```
 
 To run a node built from source with multiple plugins and a config file, use
 
-    make run-broker PLUGINS='rabbitmq_management rabbitmq_consistent_hash_exchange' RABBITMQ_CONFIG_FILE=/path/to/config/file
-
+``` shell
+make run-broker PLUGINS='rabbitmq_management rabbitmq_consistent_hash_exchange' RABBITMQ_CONFIG_FILE=/path/to/config/file
+```
 
 
 ## Running Tests
@@ -59,27 +75,35 @@ To run a node built from source with multiple plugins and a config file, use
 Integration tests require that you have JDK *+ and Maven 3.x installed.
 To run all test suites with:
 
-    cd deps/rabbitmq_java_client
-    make tests
+``` shell
+cd deps/rabbitmq_java_client
+make tests
+```
 
 ### Full Server Tests
 
 To run all server tests, use
 
-    cd deps/rabbit
-    make tests
+``` shell
+cd deps/rabbit
+make tests
+```
 
 Note that the above can take up to 2 hours depending on the hardware.
 
 To run a subset of the most essential tests:
 
-    make ct-fast
+``` shell
+make ct-fast
+```
 
 ### Sub-projects
 
 To run tests for a sub-project, run
 
-    make tests
+``` shell
+make tests
+```
 
 from its directory.
 
@@ -114,7 +138,9 @@ the change and how busy the pipeline is).
 The distro-specific packaging targets are now integrated into the 
 top-level build system. You should need to do no more than:
 
-    make VERSION=3.7.0.snapshot.123 RABBIT_VSN=3.7.0.snapshot.123 UNOFFICIAL_RELEASE=1 dist
+``` shell
+make VERSION=3.8.10.snapshot.1 RABBIT_VSN=3.8.10.snapshot.1 UNOFFICIAL_RELEASE=1 dist
+```
 
 to build debs and rpms, along with the source and binary tarballs. If
 you just want to build one package, you can use the targets
