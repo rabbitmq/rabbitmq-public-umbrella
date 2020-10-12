@@ -493,10 +493,11 @@ deploy:
 endif
 
 # https://hub.docker.com/r/pivotalrabbitmq/rabbitmq-server-buildenv/tags
-DOCKER_IMAGE ?= pivotalrabbitmq/rabbitmq-server-buildenv:linux-erlang-22.0
+DOCKER_IMAGE ?= pivotalrabbitmq/rabbitmq-server-buildenv:linux-erlang-22.3-elixir-latest
 workspace:
-	@docker run \
-	  --interactive --tty \
+	docker pull $(DOCKER_IMAGE) \
+	&& docker run \
+	  --interactive --tty --rm \
 	  --volume $(CURDIR):/workspace \
 	  --workdir /workspace \
 	  --publish 15672:15672 \
